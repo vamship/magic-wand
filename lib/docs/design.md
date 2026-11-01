@@ -224,7 +224,8 @@ generate on demand.
 Implements `docs/data-storage.md`:
 
 - create and open data folders; create sessions; write, update and delete
-  samples and their clips;
+  samples and their clips, treating a missing or removed clip as "no clip"
+  and never as an error;
 - list and filter samples by label, session, author, date and status;
 - atomic writes and the startup cleanup of leftovers;
 - consistency check, export to a single file, and merge of data folders;

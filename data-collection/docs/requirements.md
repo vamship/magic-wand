@@ -122,7 +122,8 @@ are consistent.
 - R5.1 After each capture the app shows the wand path with direction cues
   (start/end markers or a color gradient). The user can switch between:
   - path only (color on black), and
-  - path overlaid on one camera frame (e.g. the first frame of the sample).
+  - path overlaid on one camera frame (e.g. the first frame of the sample),
+    available when the sample has a video clip.
 - R5.2 While reviewing the latest sample (during the countdown or while
   paused), the user can **reject** it (or accept it again), **delete** it, and
   **change its label**. Changes are saved immediately.
@@ -153,12 +154,18 @@ are consistent.
   the app also saves the relevant video clip, from a few seconds before to a
   few seconds after the gesture, linked from the sample metadata. This is for
   debugging motion detection and classification. The padding duration is
-  configurable.
+  configurable. Video is optional (R6.9).
 - R6.7 Camera defaults: request a common mode (**640x480 at 30 fps**,
   configurable) and record the actual mode obtained in the session metadata.
   Warn the user if the actual mode differs from the request. Motion thresholds
   are expressed in resolution-independent units.
 - R6.8 Delete removes the sample record and its video clip.
+- R6.9 **Missing video.** Video clips are optional. The app works when a
+  sample's clip was never recorded, failed to encode, or was removed later.
+  A failure to write a clip does not prevent the sample from being saved.
+  Features that need the clip (the overlay view and the P2 scrubbing view) are
+  unavailable for that sample and say so; every other feature, including the
+  path-only view, works unchanged.
 
 ### R7. Load and review existing data (P1 unless noted)
 - R7.1 The user can open a data directory and browse existing samples,
@@ -173,7 +180,8 @@ are consistent.
 - R7.4 Per-label counts of accepted samples are shown (progress toward
   ~1,000 each).
 - R7.5 **(P2)** Fullscreen view of a sample with the ability to scrub back and
-  forth through its video frames, with the path overlaid.
+  forth through its video frames, with the path overlaid. Available for
+  samples that have a video clip.
 - R7.6 Edits persist immediately and safely (see R6.4).
 
 ## 4. Non-Functional Requirements
@@ -219,6 +227,7 @@ are consistent.
 | Handedness | Stored with sample/session; training handles it |
 | Platforms | macOS, Linux; Windows best effort |
 | Video snippets | Capture in P1; viewer/scrubbing in P2 |
+| Video clips | Optional; the app works without them |
 | Data sharing | Self-contained sessions; merge command |
 | Spell list | Dummy entries until teammates decide |
 | Display mirroring | Dropped; track handedness in metadata only |

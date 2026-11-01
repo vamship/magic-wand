@@ -33,6 +33,9 @@ Goals:
   accepted samples.
 - A sample can be deleted. Deleting is permanent: it removes the sample record
   and its video clip from the dataset.
+- Video clips are optional. A clip may never have been recorded, may have
+  failed to encode, or may have been removed later to save space. A missing
+  clip is never an error: every tool treats it as "no clip".
 - Labels are defined in the shared configuration, not in the dataset. Samples
   refer to labels by identifier.
 - Every session records the settings and camera mode used to capture it.
@@ -168,7 +171,9 @@ reading; in the file it is a single line.
   was not found are absent; the times show the gaps. Derived vectors are never
   stored.
 - `video.file` is relative to the session folder. `video.gestureStartS` is
-  where the gesture begins within the clip. `video` is null if no clip exists.
+  where the gesture begins within the clip. `video` is null if no clip was
+  recorded. If the referenced file is absent, the sample has no clip, exactly
+  as if `video` were null.
 
 JSON is used because samples are small (tens to a few hundred points) and the
 files stay readable. One line per sample keeps a session in a single file and
@@ -201,7 +206,8 @@ written is lost.
 Reports, without changing anything: temporary files, incomplete last lines in
 sample files, video clips with no sample, samples whose clip is missing,
 samples with an unknown label id, and files with an unsupported format
-version.
+version. Samples whose clip is missing are listed as information, not as
+errors.
 
 ### 7.2 Export
 
@@ -223,10 +229,9 @@ Combines one or more source data folders into a target data folder:
 - A session present in both with different content is a conflict. It is
   reported and left unchanged unless the user chooses to replace the target's
   copy with the source's.
-- Video clips are copied by default so the target is self-contained. The user
-  can instead skip clips (training needs only positions) or hard-link them
-  when source and target are on the same volume, which saves space without
-  making the target depend on the source.
+- Video clips are copied with their sessions, so everything travels together
+  and the target never depends on the source. Because clips are optional, the
+  user can choose to skip them when only positions are needed.
 - Sessions are never modified or split, so merging cannot interleave data from
   different sessions.
 
@@ -237,7 +242,8 @@ Merging does not need a camera or a running application.
 At the default 640x480 and 30 fps, a clip with 2 seconds of padding on each
 side of a 2-second gesture is about 6 seconds, roughly 1 to 2 MB. At 1,000
 samples per gesture that is about 1 to 2 GB per gesture. The padding is
-configurable in `config/data-collection.yaml`.
+configurable in `config/data-collection.yaml`. Clips can be deleted at any
+time without affecting the rest of the dataset.
 
 ## 9. Versioning
 

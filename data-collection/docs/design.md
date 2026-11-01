@@ -213,7 +213,8 @@ Implements the states in 4.4. It also:
 
 Encodes the sample's frames to an H.264 MP4 file on a background thread, using
 a temporary file that is renamed when complete. If encoding fails the sample is
-still saved, with no clip, and the user is told.
+still saved, with no clip, and the user is told. Nothing else in the
+application depends on a clip existing.
 
 ### 5.4 Calibration service
 
@@ -249,6 +250,12 @@ label, session, author, date and status; supplies per-label counts of accepted
 samples; and applies label changes, status changes and deletions through the
 dataset store. Thumbnails are generated on demand by the shared path renderer
 and cached in the operating system's cache location.
+
+A missing clip never blocks listing, filtering or editing. The sample's
+details state whether it has a clip. For a sample without one, the detail view
+hides the overlay mode and the video view and says why; the path-only image
+and thumbnail are unaffected. A clip that has been removed from disk is
+treated the same as one that was never recorded.
 
 ### 5.7 Labels
 
@@ -294,7 +301,7 @@ action.
 |---|---|
 | `controller` | State, countdown remaining, active label, counts |
 | `motion` | Speed, moving or not, thresholds (live, at frame rate) |
-| `sample` | The latest sample: id, label, status, saved or saving |
+| `sample` | The latest sample: id, label, status, saved or saving, has clip |
 | `discard` | Reason a gesture was discarded |
 | `session` | Session started or ended |
 
@@ -334,6 +341,9 @@ action.
 | `GET /api/samples/{id}/thumbnail` | Thumbnail |
 | `GET /api/samples/{id}/video` | Video clip (P2 viewer) |
 | `GET /api/stats` | Accepted counts per label |
+
+Requests that need a clip, namely the video and the overlay image, return
+"not found" for a sample without one.
 
 ### 6.3 Command line
 
@@ -380,7 +390,7 @@ writes:
   state, a review action arriving before the save finishes, and that the engine
   is never ready before the sample is saved.
 - **Services**: against a temporary data folder, including settings locking,
-  label rules and library queries.
+  label rules, library queries, and samples whose clip is missing or removed.
 - **Whole application**: the HTTP interface exercised with a recorded video in
   place of the camera: calibrate, start a session, replay a clip of gestures,
   reject one, and check the files on disk.
