@@ -1,14 +1,13 @@
 # Data Collection Application - Requirements
 
-> **Version** 4 | **Updated** 2026-11-01 | **Draft**
+> **Version** 5 | **Updated** 2026-11-01 | **Draft**
 
 ## 1. Overview
 
 This document lists what the data collection application must do (functional
-requirements R1 to R7), the qualities it must have (N1 to N5), what is out of
-scope, and the decisions made so far. After reading it you will know what the
-application is for, what the user can do with it, and which requirement IDs the
-design and task documents refer to.
+requirements R1 to R7) and the qualities it must have (N1 to N5). After
+reading it you will know what the application is for, what the user can do
+with it, and which requirement IDs the design and task documents refer to.
 
 The application records and labels wand gestures to build the training dataset
 for the gesture classifier (target: about 1,000 samples per gesture). It must
@@ -18,17 +17,14 @@ are consistent.
 
 ## 2. Definitions
 
-- **Gesture / label**: a named spell the classifier must recognize.
-- **Sample**: one recorded gesture, bounded by idle at start and end.
-- **Session**: one run of the app by one author, with settings locked at start.
-- **Calibration**: the phase before a session where the camera, vision
-  settings and motion settings are chosen and tested against the live view.
-- **Tip position**: midpoint of the ping pong ball in a frame, with the frame
-  timestamp (output of the vision system).
-- **Status**: each stored sample is either `accepted` or `rejected`.
-  **Delete** is different: it removes the sample from the dataset entirely.
+Terms used across the project (tip, gesture, sample, session, label, status,
+calibration, and others) are defined in `docs/glossary.md`. Terms specific to
+this document:
+
 - **Rapid capture**: the recording workflow in R4, a repeating cycle of
   countdown, gesture and result.
+- **Review**: examining the samples captured so far in the session while
+  capturing is paused, in order to reject, relabel or delete them (R5).
 - **P1 / P2**: delivery phases. P1 is needed for the first usable release; P2
   is a later phase.
 
@@ -106,29 +102,38 @@ are consistent.
   Segments that exceed the valid time window or are too small are **thrown
   away, not stored**; the user is notified that one was discarded.
 - R4.6 **Auto-accept.** A captured sample is saved as `accepted` without any
-  user action. The user intervenes only to reject (or otherwise change) it.
-- R4.7 **Pause.** Pressing Escape or clicking any mouse button pauses the
-  countdown so the user can review the latest sample (R5). Resuming continues
-  the countdown.
+  user action. The user intervenes only to reject or relabel it, in review.
+- R4.7 **Pause and resume.** Pressing Escape or clicking any mouse button
+  pauses capturing and opens review (R5). Resuming continues the countdown.
+  Capturing can be paused and resumed any number of times within one session,
+  and the user can choose a different active label at each resume. The session
+  settings stay locked throughout (R2.2).
 - R4.8 The live view shows the camera feed, the detected tip, the current state
   (countdown, ready, recording, paused), the countdown, the active label, and a
   running count of accepted samples for that label.
 - R4.9 There is no separate record-then-label workflow. Unlabeled samples are
-  not created; a sample's label can be changed during review (R5.2) or later
+  not created; a sample's label can be changed during review (R5.3) or later
   (R7.3).
 
-### R5. Review of the latest sample (P1)
-- R5.1 After each capture the app shows the wand path with direction cues
+### R5. Review of captured samples (P1)
+- R5.1 Review is available while capturing is paused (R4.7). It shows the
+  samples captured so far in the current session, with the latest one selected.
+  The user can step through them.
+- R5.2 For the selected sample the app shows the wand path with direction cues
   (start/end markers or a color gradient). The user can switch between:
   - path only (color on black), and
   - path overlaid on one camera frame (e.g. the first frame of the sample),
     available when the sample has a video clip.
-- R5.2 While reviewing the latest sample (during the countdown or while
-  paused), the user can **reject** it (or accept it again), **delete** it, and
-  **change its label**. Changes are saved immediately.
-- R5.3 These actions are available via keyboard shortcuts (usable one-handed)
+- R5.3 For the selected sample the user can **reject** it (or accept it
+  again), **delete** it, and **change its label**. Changes are saved
+  immediately.
+- R5.4 These actions are available via keyboard shortcuts (usable one-handed)
   and on-screen buttons; shortcut keys are shown on the buttons.
-- R5.4 Rejecting or deleting the most recent sample needs a single action.
+- R5.5 The latest sample is selected when review opens, so rejecting or
+  relabeling it takes a single action.
+- R5.6 While capturing is running, the app shows the path image of the latest
+  capture but offers no review actions. Reviewing the whole dataset after
+  capture is covered by R7.
 
 ### R6. Storage (P1 unless noted)
 - R6.1 Each sample stores raw timestamped positions `(x, y, t)` per frame.
@@ -173,9 +178,10 @@ are consistent.
 - R7.2 Samples are shown in a table with a small path-preview thumbnail per
   row, with the ability to select one for a larger detail view (path image,
   metadata).
-- R7.3 The user can change a sample's label, change its status
+- R7.3 The user can review any sample in the dataset, not only those of the
+  current session, and change its label, change its status
   (accepted <-> rejected, at any time, including after the session has closed),
-  and delete it.
+  or delete it.
 - R7.4 Per-label counts of accepted samples are shown (progress toward
   ~1,000 each).
 - R7.5 **(P2)** Fullscreen view of a sample with the ability to scrub back and
@@ -198,35 +204,3 @@ are consistent.
   or position data as input, so it can be tested without a live camera, using
   saved video files or synthetic `(x, y, t)` data. Stored video snippets can
   double as regression fixtures.
-
-## 5. Out of Scope (for now)
-
-- Classifier training and evaluation (including any mirroring of
-  left-handed samples; stored data is never mirrored).
-- Action triggering.
-- Multi-user concurrent access to one dataset.
-- Storing the *discarded* (too long / too small) segments.
-- A separate record-then-label workflow.
-
-## 6. Decisions Log
-
-| Topic | Decision |
-|---|---|
-| Labeling workflow | Label-first rapid capture only; relabel in review |
-| Capture pacing | Countdown (default 3 s, configurable), then ready |
-| Acceptance | Auto-accept; the user intervenes to reject |
-| Pause | Escape or mouse click; resume continues the countdown |
-| Input | Keyboard shortcuts and on-screen buttons |
-| Stored data | Raw timestamped positions; no derived vectors |
-| Label set | Shared project config, editable in the app |
-| Settings during a session | Locked; new session to change |
-| Calibration | Click the tip; manual sliders; motion tuning screen |
-| Rejected samples | Kept with status `rejected`; delete is separate |
-| Detector-discarded segments | Not stored |
-| Handedness | Stored with sample/session; training handles it |
-| Platforms | macOS, Linux; Windows best effort |
-| Video snippets | Capture in P1; viewer/scrubbing in P2 |
-| Video clips | Optional; the app works without them |
-| Data sharing | Self-contained sessions; merge command |
-| Spell list | Dummy entries until teammates decide |
-| Display mirroring | Dropped; track handedness in metadata only |
