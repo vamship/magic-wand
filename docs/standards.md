@@ -1,8 +1,6 @@
 # Standards
 
-- Version: 1
-- Status: Draft
-- Updated: 2026-11-01
+Version: 1 | Updated: 2026-11-01 | Draft
 
 ## Overview
 
@@ -85,13 +83,18 @@ The shared library is a component and keeps its own design in `lib/docs/`.
 
 ### 5.2 Rules for all documents
 
-Every document starts, after its title, with a header of three items:
+Every document starts, after its title, with a one-line header in this
+format:
+
+```text
+Version: 1 | Updated: 2026-11-01 | Draft
+```
 
 - **Version**: a whole number, starting at 1. Increase it when the document is
   revised after a review.
-- **Status**: `Draft` or `Approved`.
 - **Updated**: the date of the latest change, as `YYYY-MM-DD`. Change it
   whenever the document changes.
+- **Status**: `Draft` or `Approved`, shown last.
 
 Next comes an **Overview** section. It states what the document contains and
 what the reader will learn from it.

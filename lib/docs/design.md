@@ -1,8 +1,6 @@
 # Shared Library - Design
 
-- Version: 1
-- Status: Draft
-- Updated: 2026-11-01
+Version: 1 | Updated: 2026-11-01 | Draft
 
 ## 1. Overview
 

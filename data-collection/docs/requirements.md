@@ -1,8 +1,6 @@
 # Data Collection Application - Requirements
 
-- Version: 4
-- Status: Draft
-- Updated: 2026-11-01
+Version: 4 | Updated: 2026-11-01 | Draft
 
 ## 1. Overview
 
