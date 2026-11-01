@@ -113,3 +113,9 @@ organization will evolve over time, but the current structure is as follows:
 
 - `data-collection`: Contains code for collecting and labeling data for training
   the gesture classifier.
+
+# Standards and Documentation
+
+All development must follow `docs/standards.md`, which covers workflow,
+tooling, formatting and documentation rules. The system-wide architecture is in
+`docs/architecture.md`.
