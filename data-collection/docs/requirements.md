@@ -1,6 +1,6 @@
 # Data Collection Application - Requirements
 
-> **Version** 5 | **Updated** 2026-11-01 | **Draft**
+> **Version** 6 | **Updated** 2026-11-01 | **Draft**
 
 ## 1. Overview
 
@@ -73,6 +73,12 @@ this document:
 - R2.5 **Merge.** Data recorded in parallel (for example by different teammates
   on different machines) can be merged into one dataset. Merging never alters
   a session, and reports any conflict instead of silently overwriting.
+- R2.6 **Load an existing session.** The user can load a previously recorded
+  session from the dataset and choose to either **review** it or **resume** it.
+  Review opens the session's samples as in R5, without capturing. Resume
+  continues capturing into the same session: new samples are added to it, and
+  it keeps its recorded settings, which stay locked (R2.2). If the recorded
+  camera is unavailable or delivers a different mode, the app warns the user.
 
 ### R3. Gesture label management (P1)
 - R3.1 The label set is a project configuration file shared by all teammates,
@@ -116,9 +122,10 @@ this document:
   (R7.3).
 
 ### R5. Review of captured samples (P1)
-- R5.1 Review is available while capturing is paused (R4.7). It shows the
-  samples captured so far in the current session, with the latest one selected.
-  The user can step through them.
+- R5.1 Review is available while capturing is paused (R4.7), and when a
+  previously recorded session is loaded for review (R2.6). It shows the
+  samples of that session, with the latest one selected. The user can step
+  through them.
 - R5.2 For the selected sample the app shows the wand path with direction cues
   (start/end markers or a color gradient). The user can switch between:
   - path only (color on black), and
