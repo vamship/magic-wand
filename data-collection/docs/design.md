@@ -1,6 +1,6 @@
 # Data Collection Application - Design
 
-> **Version** 4 | **Updated** 2026-11-01 | **Draft**
+> **Version** 5 | **Updated** 2026-11-01 | **Draft**
 
 ## 1. Overview
 
@@ -51,7 +51,7 @@ and reads shared configuration.
 ### 2.2 Components
 
 The application is a single Python program with a browser front end. It is
-built from ten components:
+built from eleven components:
 
 ```text
  +-------------------------------- Browser -------------------------------+
@@ -80,10 +80,17 @@ built from ten components:
                                 +----------+----------+
                                            v
                                       Data folder
+
+ +------------------------------------------------------------------------+
+ |      Application State (read by every component; see section 4.3)      |
+ +------------------------------------------------------------------------+
 ```
 
 - **Web UI**: the pages the user sees and uses, in the browser.
 - **Application Server**: the web server; connects the Web UI to the services.
+- **Application State**: a small shared record of what the application is
+  doing now (the current session, the capture state, the active label and the
+  camera in use). Every component can read it; each field has one writer.
 - **Calibration Service**: camera choice, color calibration, motion tuning and
   calibration profiles.
 - **Session Service**: starting, ending, listing, loading and resuming
@@ -251,8 +258,8 @@ shows what the server reports.
     status and delete actions, and per-label counts.
 - The live video is an image element whose source is the live video stream.
   State comes from the event stream, which the browser reconnects automatically
-  if it drops. On every connection the server first sends the current state, so
-  a refreshed page shows the right thing at once.
+  if it drops. On every connection the server first sends the Application
+  State, so a refreshed page shows the right thing at once.
 - Keyboard shortcuts are read by a listener on the page. Defaults are below,
   are configurable in `config/data-collection.yaml`, and each is shown on its
   on-screen button.
@@ -297,9 +304,93 @@ video, and pushes events.
 
 **Interactions.** Receives requests from the Web UI. Calls the Calibration
 Service, Session Service, Capture Controller, Sample Library and Label
-Service. Reads frames from the Capture Engine. Subscribes to the event bus.
+Service. Reads frames from the Capture Engine and the Application State.
+Subscribes to the event bus.
 
-### 4.3 Calibration Service
+### 4.3 Application State
+
+**What it is.** A small shared record of the facts about what the running
+application is doing right now. Several components need these facts. With the
+Application State, none of them has to ask another component, or be told by
+one. It is not saved to disk: when the application starts it is empty (no
+session), and the sessions on disk remain the lasting record.
+
+**What it holds.**
+
+- **Session**: none, or the session's id and name and whether it is loaded
+  for capture or for review only. Written by the Session Service.
+- **Capture state**: STOPPED, COUNTDOWN, READY, RECORDING or PAUSED. Written by
+  the Capture Controller.
+- **Active label**: the label new samples receive. Written by the Capture
+  Controller.
+- **Camera**: the camera in use and the mode it delivers. Written by the
+  Capture Engine.
+
+Whether the settings are locked is not a separate field. The settings are
+locked while the session is loaded for capture, and readers work that out from
+the Session field. The state holds no frames, countdown ticks, setting values
+or samples.
+
+**How the components use it.**
+
+```text
+   Session Service        Capture Controller        Capture Engine
+   writes: session        writes: capture state,    writes: camera in use
+                                  active label
+          |                       |                       |
+          +-----------------------+-----------------------+
+                                  v
+                       +-------------------+
+                       | Application State |----- state event ---> event bus
+                       +---------+---------+                          |
+                                 |                                    v
+         +-----------+-----------+-----------+            Application Server
+         |           |           |           |                        |
+         v           v           v           v                        v
+    Calibration   Session    Capture      Sample                    Web UI
+    Service       Service    Controller   Library
+    reads:        reads:     reads:       reads:
+    session       session    session      session
+```
+
+- The **Calibration Service** reads the session whenever a request would change
+  the settings, load a profile, or run a color calibration. While the session is
+  loaded for capture it refuses the request and says a session is active.
+- The **Session Service** reads the session to refuse starting or loading a
+  session while one is loaded for capture. The user must end it first.
+- The **Capture Controller** reads the session to accept a start only when a
+  session is loaded for capture.
+- The **Sample Library** reads the session to open review on it by default.
+- The **Application Server** reads the whole state to send it to each browser
+  that connects.
+
+**How it works.**
+
+- One Application State object is created when the application starts and is
+  passed to every component. It is not a module-level global, so a test can
+  create a fresh one.
+- It holds one immutable **snapshot**. A reader gets the current snapshot,
+  which is a plain read that is safe from any thread and always internally
+  consistent. A reader never sees half of an update.
+- Only a field's owner writes it. To change a field the owner calls an update;
+  the Application State takes a lock, builds a new snapshot equal to the old
+  one with that change, replaces the old snapshot, and publishes a `state`
+  event with the new snapshot on the event bus. Updates from different owners
+  are applied one at a time.
+- Session transitions:
+  - Start, or resume of an open session: none to loaded for capture.
+  - Load for review: none, or another review, to loaded for review only.
+  - End: loaded for capture to none. Closing a review: loaded for review to
+    none.
+- A component applies a rule by reading the state at the moment it acts. The
+  Calibration Service and the Session Service both run on the Application
+  Server's event loop, and neither pauses between reading the state and acting
+  on it. A settings change and a session start therefore cannot interleave.
+- The Web UI never reads the state directly. It receives the snapshot in the
+  `state` event, and the Application Server sends the current snapshot first
+  whenever a browser connects.
+
+### 4.4 Calibration Service
 
 **What it does.** It prepares the settings for a session: chooses the camera,
 derives the vision settings from a click, tunes the motion settings, and saves
@@ -329,13 +420,16 @@ and loads profiles.
   waves, passes them to the shared motion calibrator, and returns the proposed
   thresholds.
 - **Profiles**: saved as YAML files under `config/profiles/` on this machine.
-- Once a session is active it refuses every settings change.
+- Before it changes the settings, loads a profile or runs a color
+  calibration, it reads the session from the Application State. While a
+  session is loaded for capture it refuses the request.
 
 **Interactions.** Receives requests from the Application Server. Sends settings
 and camera commands to the Capture Engine. Receives frames, tip detections and
-motion state from the Capture Engine. Reads and writes `config/profiles/`.
+motion state from the Capture Engine. Reads the session from the Application
+State. Reads and writes `config/profiles/`.
 
-### 4.4 Session Service
+### 4.5 Session Service
 
 **What it does.** It owns the session: starting, ending, listing, loading and
 resuming, and the numbering of samples.
@@ -346,18 +440,22 @@ resuming, and the numbering of samples.
   resolves the final settings from the Calibration Service, and writes
   `session.json` through the Dataset Store with the camera's identifier and
   actual mode, the full vision and motion settings, the clip padding, and a
-  highest sample number of zero. It then locks the settings.
-- **End**: only when the user asks. It records `endedAt` and tells the Capture
-  Controller to stop. Closing the application leaves the session open.
+  highest sample number of zero. It then records the session in the
+  Application State as loaded for capture, which locks the settings.
+- **End**: only when the user asks. It records `endedAt`, tells the Capture
+  Controller to stop, and clears the session in the Application State. Closing
+  the application leaves the session open.
 - **List**: the sessions in the data folder, with name, author, start time,
   sample count, and whether each is open or ended.
-- **Load for review**: any session. It opens review on the session's samples
-  without starting capture.
+- **Load for review**: any session. It records it in the Application State as
+  loaded for review only, and opens review on the session's samples without
+  starting capture.
 - **Resume**: only open sessions. It opens the camera recorded in the session,
   identified by its stored device identifier. If that device is not among the
   available cameras, because it is unplugged or the session was recorded with
   another machine's camera, the resume is refused and the reason is shown. It
-  then applies the settings from the session record and locks them. If the
+  then applies the settings from the session record and records the session in
+  the Application State as loaded for capture, which locks them. If the
   camera delivers a different mode than the one recorded, the app warns the
   user (R6.7) but continues.
 - **Sample numbers**: the next sample's number is one more than the larger of
@@ -367,10 +465,11 @@ resuming, and the numbering of samples.
 **Interactions.** Receives requests from the Application Server. Reads the
 final settings from the Calibration Service. Sends camera and settings commands
 to the Capture Engine and start, stop commands to the Capture Controller.
-Gives the Capture Controller each new sample number. Reads and writes session
-files through the Dataset Store.
+Gives the Capture Controller each new sample number. Writes the session to,
+and reads it from, the Application State. Reads and writes session files
+through the Dataset Store.
 
-### 4.5 Capture Engine
+### 4.6 Capture Engine
 
 **What it does.** It is the only owner of the camera. It turns frames into tip
 positions, detects gestures, and keeps recent frames for video clips.
@@ -400,14 +499,16 @@ positions, detects gestures, and keeps recent frames for video clips.
   active; on resume the engine takes its settings from the session record.
 - Frame timing is measured, not assumed: the actual frame rate is reported and
   written to the session.
+- After opening a camera it writes the device and the mode it delivers to the
+  Application State.
 
 **Interactions.** Receives commands from the Calibration Service, Session
 Service and Capture Controller. Sends the latest annotated frame to the
 Application Server, the motion state to the event bus, and gesture and discard
 results to the Capture Controller. Lets the Capture Controller read frames from
-its buffer.
+its buffer. Writes the camera in use to the Application State.
 
-### 4.6 Capture Controller
+### 4.7 Capture Controller
 
 **What it does.** It runs the capture cycle (section 3.4): it counts down,
 decides when the engine is ready, creates a sample from each gesture, and
@@ -466,8 +567,10 @@ handles pause and resume.
 from the Capture Engine. Sends arm and disarm commands to the Capture Engine,
 frames to the Clip Writer, sample records to the Dataset Store, and state and
 sample events to the event bus. Gets sample numbers from the Session Service.
+Reads the session from the Application State, and writes the capture state and
+the active label to it.
 
-### 4.7 Clip Writer
+### 4.8 Clip Writer
 
 **What it does.** It turns a list of frames into a video clip file.
 
@@ -481,7 +584,7 @@ application depends on a clip existing.
 **Interactions.** Receives frames from the Capture Controller. Returns the clip
 path, or failure, to it. Writes the clip file.
 
-### 4.8 Sample Library
+### 4.9 Sample Library
 
 **What it does.** It finds and changes stored samples, for both review (the
 samples of one session) and browsing (the whole dataset).
@@ -511,8 +614,9 @@ samples of one session) and browsing (the whole dataset).
 **Interactions.** Receives requests from the Application Server. Reads and
 writes samples through the Dataset Store. Publishes change events to the event
 bus. Answers the Label Service's question of how many samples use a label.
+Reads the current session from the Application State.
 
-### 4.9 Label Service
+### 4.10 Label Service
 
 **What it does.** It manages the shared list of spell labels.
 
@@ -526,7 +630,7 @@ when it changes, so labels pulled from git appear without a restart.
 **Interactions.** Receives requests from the Application Server. Asks the
 Sample Library for label use counts. Reads and writes `config/labels.yaml`.
 
-### 4.10 Dataset Store
+### 4.11 Dataset Store
 
 **What it does.** It is the one component that reads and writes the data
 folder. It is part of the shared library, so the classifier reads data with the
@@ -546,11 +650,11 @@ Library. Reads and writes the data folder.
 
 | Event | Carries |
 |---|---|
-| `controller` | State, countdown remaining, active label, counts |
+| `state` | The Application State: session, capture state, label, camera |
+| `controller` | Countdown remaining, accepted counts |
 | `motion` | Speed, moving or not, thresholds (live, at frame rate) |
 | `sample` | The latest sample: id, label, status, saved or saving, has clip |
 | `discard` | Reason a gesture was discarded |
-| `session` | Session started, loaded, resumed or ended |
 
 ### 5.2 HTTP interface
 
@@ -641,6 +745,11 @@ writes:
   is held until the gesture ends, that review opens only once a sample is saved,
   resume in each state, and that READY is never entered before the sample is
   saved.
+- **Application State**: each field is written only by its owner; readers
+  always get a consistent snapshot while writers update from several threads;
+  every update publishes a `state` event; the Calibration Service refuses
+  settings changes, profile loads and color calibration while a session is
+  loaded for capture; a settings change and a session start never interleave.
 - **Session Service**: start, end, list and load; an ended session cannot be
   resumed but can be reviewed and edited; closing the application leaves a
   session open; resume is refused when the recorded camera is unavailable;
@@ -660,17 +769,17 @@ writes:
 
 | Requirement | Where addressed |
 |---|---|
-| R1 Setup and calibration | 3.3, 4.3, 5.2 |
-| R2 Session management | 3.2, 4.4, 6, `docs/data-handling.md` |
+| R1 Setup and calibration | 3.3, 4.4, 5.2 |
+| R2 Session management | 3.2, 4.3, 4.5, 6, `docs/data-handling.md` |
 | R2.5 Merge | 5.3, `docs/data-handling.md` |
-| R2.6, R2.7 Load, resume, end | 3.2, 4.4, 5.2 |
-| R3 Labels | 4.9 |
-| R4 Recording | 3.4, 4.5, 4.6 |
-| R5 Review | 3.4, 4.1, 4.8 |
-| R6 Storage | 4.7, 4.10, 6, `docs/data-handling.md` |
-| R7 Browse and review | 4.1, 4.8, 5.2 |
+| R2.6, R2.7 Load, resume, end | 3.2, 4.3, 4.5, 5.2 |
+| R3 Labels | 4.10 |
+| R4 Recording | 3.4, 4.6, 4.7 |
+| R5 Review | 3.4, 4.1, 4.9 |
+| R6 Storage | 4.8, 4.11, 6, `docs/data-handling.md` |
+| R7 Browse and review | 4.1, 4.9, 5.2 |
 | N1 Shared code | 2.2, `lib/docs/design.md` |
 | N2 Throughput | 3.4 |
-| N3 Responsiveness | 4.5 |
+| N3 Responsiveness | 4.6 |
 | N4 Platform | `docs/notes.md` |
 | N5 Offline testability | 7, `lib/docs/design.md` |
