@@ -1,6 +1,6 @@
 # Architecture
 
-> **Version** 3 | **Updated** 2026-11-01 | **Approved**
+> **Version** 4 | **Updated** 2026-11-01 | **Approved**
 
 ## 1. Overview
 
@@ -45,7 +45,7 @@ filtering can find it in the video. Four stages turn video into an action:
 The classifier is a machine learning model, so it must be trained on labeled
 examples. The system therefore has two modes that share the first two stages:
 
-- **Inference**: live video goes through all four stages.
+- **Inference**: live video goes through all four stages, in real time.
 - **Data collection**: live video goes through the first two stages, and a
   person labels and stores the resulting gestures as a training dataset
   (about 1,000 samples per gesture).
@@ -53,6 +53,10 @@ examples. The system therefore has two modes that share the first two stages:
 ## 2. System Flow
 
 ### 2.1 Inference
+
+Inference runs in real time. Each frame is processed as it arrives, so vision
+and motion detection must keep up with the camera's frame rate, and a gesture
+is classified and acted on as soon as it ends.
 
 ```text
  +--------+ frame  +--------+ tip position +-----------+ gesture +----------+
@@ -214,7 +218,9 @@ window are settings that calibration adjusts.
 ### 3.3 Gesture classification
 
 A model trained on labeled gestures. Input: the motion vectors of one gesture.
-Output: a spell and a confidence score. Not yet designed.
+Output: a spell and a confidence score. It does not decide whether to act on
+the result; the action trigger applies the confidence threshold. Not yet
+designed.
 
 ### 3.4 Action trigger
 
