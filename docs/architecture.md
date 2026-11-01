@@ -1,171 +1,285 @@
 # Architecture
 
-Status: Draft v1. This is the system-wide view. Component designs live next to
-each component and are listed in section 9.
+Status: Draft v2. Covers the whole system. Component designs are listed in
+section 5.3.
 
-## 1. The problem and the approach
+## 1. Introduction
 
-The system turns the motion of a wand, seen through a webcam, into a spell.
-Three things make this hard, and the architecture is shaped by them.
+### 1.1 System overview
 
-- **Challenge: a classifier only works if live input looks like its training
-  data.** Approach: one shared library does the vision and motion work for both
-  data collection and run time.
-- **Challenge: people, wands, lighting, backgrounds and cameras differ.**
-  Approach: each recording session is calibrated, and the settings used are
-  stored with the data.
-- **Challenge: data comes from several people and machines at different
-  times.** Approach: data is stored in self-contained session folders with a
-  documented layout, and folders can be merged.
+The system recreates the magic wand experience of the Harry Potter area at
+Universal Studios. A user waves a wand in front of a camera. The system
+recognizes the motion as one of several predefined gestures (spells) and
+responds with an action: a visual effect on screen, a sound, or, if time
+permits, a physical device.
 
-## 2. Components
+The wand is a brightly colored ping pong ball on a stick, so that OpenCV color
+filtering can find it in the video. Four stages turn video into an action:
 
-- **Vision** (shared library): finds the wand tip in each camera frame.
-- **Motion detection** (shared library): splits tip positions into gestures
-  and builds motion vectors.
-- **Dataset format** (shared library): reads, writes, exports and merges
-  recorded data.
-- **Data collection** (in design): records, labels and reviews gestures into
-  a dataset.
-- **Gesture classification** (later): maps a gesture's vectors to a spell and
-  a confidence.
-- **Action trigger** (later): performs the effect for a recognized spell.
-- **Configuration**: labels, defaults and settings shared by components, kept
-  in files under `config/`.
+1. **Vision** finds the ball in each frame.
+2. **Motion detection** turns the ball's positions into gestures.
+3. **Gesture classification** names the spell a gesture represents.
+4. **Action trigger** performs the effect for that spell.
+
+The classifier is a machine learning model, so it must be trained on labeled
+examples. The system therefore has two modes that share the first two stages:
+
+- **Inference**: live video goes through all four stages.
+- **Data collection**: live video goes through the first two stages, and a
+  person labels and stores the resulting gestures as a training dataset
+  (about 1,000 samples per gesture).
+
+The project is the term project for EECE5644 (Machine Learning and Pattern
+Recognition).
 
 Terms used throughout:
 
-- **Tip**: the midpoint of the ping pong ball on the wand.
+- **Tip**: the midpoint of the ping pong ball.
 - **Gesture**: one deliberate motion of the tip, bounded by idle at the start
   and end.
 - **Sample**: a recorded gesture stored in a dataset.
 - **Session**: one run of data collection by one person with fixed settings.
-- **Label**: the name of a spell a gesture belongs to.
+- **Label**: the name of a spell.
 
-## 3. System flow
+### 1.2 What this document covers
 
-### 3.1 Run time
+- Section 2, system flow: how data moves through inference, data collection
+  and training.
+- Section 3, subsystems: what each subsystem does, and what the shared library
+  contains.
+- Section 4, conventions: technical decisions, common data structures and
+  rules for handling datasets.
+- Section 5, folder organization: how the repository is laid out.
 
-```text
- +--------+ frames +--------+ tip positions +--------+
- | Camera |------->| Vision |-------------->| Motion |
- +--------+        +--------+               +---+----+
-                                                | gesture (motion vectors)
-                                                v
- +----------+  spell + confidence  +-----------------------+
- |  Action  |<---------------------| Gesture classification|
- +----------+                      +-----------------------+
-```
+## 2. System Flow
 
-### 3.2 Data collection
+### 2.1 Inference
 
 ```text
- +--------+ frames +--------+ tip positions +--------+
- | Camera |------->| Vision |-------------->| Motion |
- +--------+        +--------+               +---+----+
-                                                | gesture
-                                                v
- +-------+   calibrate, label, review   +-----------------+
- | User  |<---------------------------->| Data collection |
- +-------+                              +--------+--------+
-                                                 | writes
-                                                 v
-                                        +-----------------+
-                                        | Dataset on disk |
-                                        +--------+--------+
-                                                 | read offline
-                                                 v
-                                        Classifier training
+ +--------+ frame  +--------+ tip position +-----------+ gesture +----------+
+ | Camera |------->| Vision |------------->|  Motion   |-------->| Gesture  |
+ +--------+        +--------+ + timestamp  | detection | vectors |classifier|
+                                           +-----------+         +----+-----+
+                                                                      |
+                                                       spell + confidence
+                                                                      v
+                                                                 +---------+
+                                                                 | Action  |
+                                                                 | trigger |
+                                                                 +---------+
 ```
 
-### 3.3 How the two flows relate
+1. The camera delivers frames. Each frame gets a timestamp.
+2. Vision finds the tip in the frame and outputs its position with the
+   frame's timestamp.
+3. Motion detection watches the stream of tip positions. It converts movement
+   between consecutive frames into vectors (direction and speed). A gesture
+   starts when the tip's speed rises above a threshold and ends when it falls
+   below one. Motion that lasts too long or covers too little distance is
+   discarded.
+4. The classifier receives the vectors of one gesture and outputs a spell and
+   a confidence score.
+5. The action trigger performs the action for the spell. If the confidence is
+   below the minimum threshold, no action is performed and the user is told
+   the gesture was not recognized.
 
-Vision and motion detection are the same code in both flows (the shared
-library), run with the same kind of settings. Data collection stores the
-tip positions of each gesture rather than derived vectors. The vectors are
-computed when the data is loaded, by the same code that run time uses, so a
-change to how vectors are built never requires re-recording.
-
-## 4. Shared library
-
-The library is the one place where vision, motion detection and the dataset
-format are defined. Neither data collection nor run time keeps a private copy.
-It has no knowledge of any user interface and never opens a camera on its own
-accord: it is handed frames or positions, which also makes it testable without
-hardware. Its design is in `lib/docs/design.md`.
-
-## 5. Conventions
-
-These conventions apply to all components and to stored data.
-
-- **Time**: seconds. Within a sample, time is measured from the first stored
-  position.
-- **Position**: horizontal and vertical position of the tip as a fraction of
-  the frame width and height (0 to 1, vertical axis pointing down). The frame
-  size is stored beside it.
-- **Distance and speed**: measured in frame-heights, and frame-heights per
-  second. The horizontal fraction is scaled by the frame's aspect ratio so both
-  axes use the same unit. Thresholds expressed this way do not depend on camera
-  resolution.
-- **Handedness**: recorded as metadata (left or right). Stored positions are
-  never mirrored; any handling is the responsibility of training.
-- **Labels**: referenced by a stable identifier, never by display name.
-
-## 6. Repository layout
+### 2.2 Data collection
 
 ```text
-magic-wand/
-  pyproject.toml     uv workspace root; shared tool settings (ruff)
-  uv.lock            resolved dependency versions for the whole workspace
-  CLAUDE.md          agent instructions; points to docs/
-  config/            all configuration (section 7)
-  docs/              system-wide documentation
-  lib/               the shared library
-  data-collection/   the data collection application
-  data/              default dataset location; not under version control
+ +--------+ frame  +--------+ tip position +-----------+ gesture +-----------+
+ | Camera |------->| Vision |------------->|  Motion   |-------->|   Data    |
+ +--------+        +--------+ + timestamp  | detection |positions|collection |
+                                           +-----------+         +--+-----+--+
+                                                                    ^     |
+                                        calibrate, label, review    |     v
+                                        +--------+                  |  +-------+
+                                        |  User  |<-----------------+  |Dataset|
+                                        +--------+                     +-------+
 ```
 
-Each component has its own `pyproject.toml`, `docs/` and tests. Tooling rules
-are in `docs/standards.md`.
+1. Vision and motion detection run exactly as in inference, with the same
+   code.
+2. Before recording, the user calibrates vision and motion detection for the
+   current camera, lighting and background.
+3. Each gesture that motion detection reports is turned into a sample with
+   the label the user chose. The sample stores the tip positions of the
+   gesture, not the vectors.
+4. The user reviews samples and can reject, relabel or delete them.
+5. Samples are written to the dataset together with the settings used to
+   record them.
 
-## 7. Configuration
+### 2.3 Training
 
-All configuration lives in the `config/` folder.
+```text
+ Dataset --> load accepted --> compute motion --> train --> Trained classifier
+ (disk)      samples           vectors            model     (used in inference)
+```
+
+Training reads the dataset, computes motion vectors from the stored positions
+with the shared library, and trains the classifier. The trained classifier is
+what the inference flow loads.
+
+### 2.4 What the flows share
+
+Vision and motion detection are implemented once, in the shared library, and
+both flows run that implementation. A gesture seen live therefore has the same
+form as a gesture the classifier was trained on. Vectors are computed from
+positions at load time rather than stored, so changing how vectors are built
+does not require re-recording.
+
+## 3. Subsystems
+
+### 3.1 Vision
+
+Finds the tip in each frame by filtering for the ball's color and locating the
+resulting shape. Input: camera frames. Output: tip position and timestamp (or
+"not found") per frame. Its color settings are tuned for each camera and
+lighting condition by calibration.
+
+### 3.2 Motion detection
+
+Tracks the tip's speed to separate idle from motion, cuts the stream into
+gestures, and builds motion vectors. Input: tip positions. Output: gestures,
+and the live state (moving or idle). Its thresholds and time window are
+settings that calibration adjusts.
+
+### 3.3 Gesture classification
+
+A model trained on labeled gestures. Input: the motion vectors of one gesture.
+Output: a spell and a confidence score. Not yet designed.
+
+### 3.4 Action trigger
+
+Maps a recognized spell to an effect: on-screen visual, sound, or device
+control. Applies the confidence threshold. Not yet designed.
+
+### 3.5 Data collection
+
+An application for recording, labeling and reviewing gestures. It hosts vision
+and motion detection, adds calibration, the labeling workflow and review, and
+writes datasets. Design: `data-collection/docs/design.md`.
+
+### 3.6 Shared library
+
+The library (`wand-core`) holds everything that must be identical in
+data collection and inference:
+
+- frame sources: a live camera and a recorded video file;
+- the tracker (vision) and its settings;
+- the segmenter and vector builder (motion detection) and their settings;
+- the color and motion calibrators that derive those settings;
+- the dataset store: reading, writing, export and merge of datasets;
+- the path renderer, which draws a gesture as an image.
+
+Each application imports the library and supplies what the library does not
+have: the camera, the user interface and the application logic. The library
+never opens a camera or draws a user interface by itself, so it can be tested
+with recorded video and synthetic data. Design: `lib/docs/design.md`.
+
+## 4. Conventions
+
+### 4.1 Technical decisions
+
+| Decision | Reason |
+|---|---|
+| Single mono-repo | Components share code and evolve together |
+| Python 3.11 or later | OpenCV and ML ecosystem |
+| OpenCV color filtering | The wand is a brightly colored ball |
+| One shared library | Identical processing for training and inference |
+| uv workspace, ruff | Reproducible environments, one style |
+| YAML for configuration | Human-edited, supports comments |
+| JSON for recorded data | Small files, readable, safe to edit atomically |
+| macOS and Linux | Windows is best effort and untested |
+
+Tooling and workflow rules are in `docs/standards.md`.
+
+### 4.2 Common data structures
+
+All subsystems use these structures. Field-level definitions are in
+`lib/docs/design.md` and `docs/data-storage.md`.
+
+- **Frame**: an image with a timestamp in seconds.
+- **Tip detection**: timestamp, tip position, ball radius, and whether the
+  ball was found.
+- **Position**: horizontal and vertical position as fractions of the frame
+  width and height (0 to 1, vertical axis pointing down). The frame size is
+  stored beside it.
+- **Distance and speed**: in frame-heights, and frame-heights per second. The
+  horizontal fraction is scaled by the frame's aspect ratio so both axes use
+  one unit. Thresholds in these units do not depend on camera resolution.
+- **Gesture**: a sequence of timestamped positions. Time is in seconds from
+  the first position.
+- **Motion vectors**: for each pair of consecutive positions, the displacement,
+  the elapsed time and the speed. Always derived from positions.
+- **Label**: a stable identifier and a display name. Everything refers to the
+  identifier.
+- **Sample and session**: the stored forms of a gesture and of a recording
+  run, defined in `docs/data-storage.md`.
+- **Classification result**: a label identifier and a confidence between 0
+  and 1.
+
+### 4.3 Dataset handling
+
+Rules for handling datasets, and their layout and file formats, are in
+`docs/data-storage.md`.
+
+### 4.4 Configuration
+
+All configuration is in `config/`.
 
 | File | Contents | In git |
 |---|---|---|
-| `labels.yaml` | The spell labels: identifier and display name | Yes |
+| `labels.yaml` | Spell labels: identifier, display name | Yes |
 | `vision.yaml` | Default vision settings | Yes |
 | `motion.yaml` | Default motion settings | Yes |
-| `data-collection.yaml` | App settings (see its design) | Yes |
-| `*.local.yaml` | Per-machine override of the file with the same prefix | No |
+| `data-collection.yaml` | Data collection settings | Yes |
+| `*.local.yaml` | Per-machine override of the file with that prefix | No |
 | `profiles/` | Saved calibration profiles | No |
 
-Settings that affect detection are resolved in this order, later steps
-overriding earlier ones:
+Detection settings resolve in this order, later steps overriding earlier ones:
+the default file and local override; a loaded calibration profile; adjustments
+made during calibration. A session records the resolved settings.
 
-1. The default files above, then any local override.
-2. A calibration profile, if one is loaded.
-3. Adjustments made on the calibration screens.
+## 5. Folder Organization
 
-When a session starts, the resolved settings are copied into the session record,
-so the data always carries the settings that produced it.
+### 5.1 Repository layout
 
-## 8. Data
+```text
+magic-wand/
+  pyproject.toml      uv workspace root; shared tool settings (ruff)
+  uv.lock             resolved dependency versions for the workspace
+  CLAUDE.md           project and agent instructions
+  config/             configuration (section 4.4)
+  docs/               system-wide documentation
+  lib/                shared library
+    docs/
+    src/              library code
+    tests/
+  data-collection/    data collection application
+    docs/             requirements, design, tasks
+    src/              application code
+    tests/
+  data/               default dataset location; not in git
+```
 
-Datasets are stored in self-contained session folders, outside version control
-by default. The layout, file formats, merge and export rules are in
-`docs/data-storage.md`.
+Later components, such as the classifier and the run-time application, are
+added as further top-level folders and workspace members, each with its own
+`pyproject.toml`, `docs/`, `src/` and `tests/`.
 
-## 9. Document map
+### 5.2 Rules
 
-| Document | Content |
-|---|---|
-| `docs/architecture.md` | This document |
-| `docs/data-storage.md` | Dataset layout, formats, merge and export |
-| `docs/standards.md` | Workflow, tooling, formatting, documentation rules |
-| `docs/notes.md` | Assumptions and constraints |
-| `lib/docs/design.md` | Shared library design |
-| `data-collection/docs/requirements.md` | Data collection requirements |
-| `data-collection/docs/design.md` | Data collection design |
-| `data-collection/docs/tasks.md` | Data collection work breakdown |
+- Shared logic lives in `lib/`, not in a component.
+- A component depends on `lib/` through the workspace, never by copying code.
+- Each component owns its documentation, tests and package settings.
+- System-wide documents and cross-cutting rules live in `docs/`.
+
+### 5.3 Documentation map
+
+- `docs/architecture.md`: this document.
+- `docs/data-storage.md`: dataset layout, formats, merge and export.
+- `docs/standards.md`: workflow, tooling, formatting and documentation rules.
+- `docs/notes.md`: assumptions and constraints.
+- `lib/docs/design.md`: shared library design.
+- `data-collection/docs/requirements.md`: data collection requirements.
+- `data-collection/docs/design.md`: data collection design.
+- `data-collection/docs/tasks.md`: data collection work breakdown.
