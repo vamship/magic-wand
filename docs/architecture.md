@@ -1,6 +1,8 @@
 # Architecture
 
-Status: Draft v3. Covers the whole system.
+- Version: 3
+- Status: Draft
+- Updated: 2026-11-01
 
 ## 1. Overview
 

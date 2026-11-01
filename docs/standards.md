@@ -1,5 +1,9 @@
 # Standards
 
+- Version: 1
+- Status: Draft
+- Updated: 2026-11-01
+
 ## Overview
 
 This document defines how work is done in every component of the repository:
@@ -81,8 +85,16 @@ The shared library is a component and keeps its own design in `lib/docs/`.
 
 ### 5.2 Rules for all documents
 
-Every document has an **Overview** section at the start. It states what the
-document contains and what the reader will learn from it.
+Every document starts, after its title, with a header of three items:
+
+- **Version**: a whole number, starting at 1. Increase it when the document is
+  revised after a review.
+- **Status**: `Draft` or `Approved`.
+- **Updated**: the date of the latest change, as `YYYY-MM-DD`. Change it
+  whenever the document changes.
+
+Next comes an **Overview** section. It states what the document contains and
+what the reader will learn from it.
 
 ### 5.3 Rules for design documents
 

@@ -1,7 +1,8 @@
 # Shared Library - Design
 
-Status: Draft v1. System context is in `docs/architecture.md`; the dataset
-layout is in `docs/data-handling.md`.
+- Version: 1
+- Status: Draft
+- Updated: 2026-11-01
 
 ## 1. Overview
 
@@ -10,7 +11,8 @@ vision, motion detection and the dataset format. Data collection uses it now
 and the run-time system will use it later. This document describes its
 components, how they work together, the settings that control them, and how
 they are tested. After reading it you will know what the library does, what
-each component is responsible for, and what each setting means.
+each component is responsible for, and what each setting means. System context
+is in `docs/architecture.md`; the dataset layout is in `docs/data-handling.md`.
 
 A gesture classifier is trained on recorded data and then fed live data. If
 the two are produced by different code, or by differently tuned code, the

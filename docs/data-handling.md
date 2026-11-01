@@ -1,6 +1,8 @@
 # Data Handling
 
-Status: Draft v2.
+- Version: 2
+- Status: Draft
+- Updated: 2026-11-01
 
 ## 1. Overview
 

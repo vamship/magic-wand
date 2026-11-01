@@ -1,5 +1,9 @@
 # Notes
 
+- Version: 1
+- Status: Draft
+- Updated: 2026-11-01
+
 ## Overview
 
 This document records assumptions and constraints that affect decisions but

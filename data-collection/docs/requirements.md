@@ -1,9 +1,8 @@
 # Data Collection Application - Requirements
 
-Status: v4. Updated after the design review: rapid-capture workflow with
-auto-accept, click-to-calibrate, motion tuning, camera selection, shared label
-configuration, and dataset merging. Delivery phases: **P1** = needed for the
-first usable release, **P2** = later phase.
+- Version: 4
+- Status: Draft
+- Updated: 2026-11-01
 
 ## 1. Overview
 
@@ -32,6 +31,8 @@ are consistent.
   **Delete** is different: it removes the sample from the dataset entirely.
 - **Rapid capture**: the recording workflow in R4, a repeating cycle of
   countdown, gesture and result.
+- **P1 / P2**: delivery phases. P1 is needed for the first usable release; P2
+  is a later phase.
 
 ## 3. Functional Requirements
 

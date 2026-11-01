@@ -1,9 +1,8 @@
 # Data Collection Application - Design
 
-Status: Draft v2. Requirement IDs (R1.1, N1, ...) refer to `requirements.md`.
-System context is in `docs/architecture.md`; the shared vision and motion
-components are in `lib/docs/design.md`; the dataset layout is in
-`docs/data-handling.md`.
+- Version: 2
+- Status: Draft
+- Updated: 2026-11-01
 
 ## 1. Overview
 
@@ -12,7 +11,10 @@ This document describes how the data collection application is built to meet
 the system flow, the details of each component, the interfaces, the data it
 writes, and how it is tested. After reading it you will know how a gesture
 travels from the camera to the dataset, which component does what, and how
-calibration and review fit in.
+calibration and review fit in. Requirement IDs (R1.1, N1, ...) refer to
+`requirements.md`. Related documents: `docs/architecture.md` (system context),
+`lib/docs/design.md` (the shared vision and motion components) and
+`docs/data-handling.md` (the dataset layout).
 
 Training a gesture classifier needs about 1,000 samples of every gesture,
 recorded by several people on different machines. That raises three problems:
