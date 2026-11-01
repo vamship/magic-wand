@@ -14,6 +14,7 @@ each gesture as a spell, and performs the action for that spell.
 |---|---|
 | `docs/architecture.md` | System overview, flows, subsystems, conventions |
 | `docs/data-handling.md` | Dataset rules, layout, formats, operations |
+| `docs/glossary.md` | Terms shared across the project |
 | `docs/standards.md` | Workflow, tooling, formatting, documentation rules |
 | `docs/notes.md` | Assumptions and constraints |
 | `lib/docs/design.md` | Shared library design |

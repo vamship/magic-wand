@@ -74,6 +74,7 @@ here; this file is the single source for the rules.
 | Architecture | System-wide components, flows, conventions | `docs/` |
 | Data handling | Dataset rules, layout, formats, operations | `docs/` |
 | Standards | These rules | `docs/` |
+| Glossary | Terms shared across documents | `docs/` |
 | Notes | Assumptions and constraints that need no action | `docs/` |
 | Requirements | What a component must do | `<component>/docs/` |
 | Design | How a component does it | `<component>/docs/` |
