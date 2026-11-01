@@ -11,7 +11,24 @@ collection writes this layout; the classifier and tools read it.
 - Be directly loadable by the classifier.
 - Never leave a half-written file behind, even after a crash.
 
-## 2. The data folder
+## 2. Rules
+
+- Datasets are not stored in git. The default location, `data/`, is excluded
+  from version control, and a dataset can be placed anywhere.
+- A session folder is self-contained and is the unit of exchange. Datasets are
+  combined by merging session folders; merging never modifies a session.
+- Samples store positions, never derived vectors.
+- Rejected samples stay in the dataset with status `rejected`; training uses
+  accepted samples.
+- Labels are defined in the shared configuration, not in the dataset. Samples
+  refer to labels by identifier.
+- Every session records the settings and camera mode used to capture it.
+- Handedness is recorded, and positions are never mirrored when stored.
+- Files are written atomically, and every file carries a format version.
+- Derived data such as thumbnails is cached outside the dataset and can be
+  deleted.
+
+## 3. The data folder
 
 A dataset lives in one **data folder**. The default is `data/` at the repository
 root, which is not under version control (recorded video makes datasets too
@@ -48,7 +65,7 @@ Not stored in the data folder:
   the operating system's user cache location. They can be deleted at any time.
   Keeping them out of the data folder keeps copies of it clean.
 
-## 3. Identifiers
+## 4. Identifiers
 
 - **Session id**: `YYYYMMDDTHHMMSS-<author>-<4 hex>`, for example
   `20261101T141502-vamshi-a3f1`. The author part is a lowercase slug.
@@ -57,11 +74,11 @@ Not stored in the data folder:
 - Identifiers are never reused or changed.
 - **Label id**: a lowercase slug (letters, digits, underscore).
 
-## 4. File formats
+## 5. File formats
 
 All files are UTF-8 JSON. Every file has an integer `format_version`.
 
-### 4.1 `session.json`
+### 5.1 `session.json`
 
 ```json
 {
@@ -88,7 +105,7 @@ All files are UTF-8 JSON. Every file has an integer `format_version`.
 `ended_at` is null while the session is open. `profile` is null if none was
 loaded.
 
-### 4.2 `<sample id>.json`
+### 5.2 `<sample id>.json`
 
 ```json
 {
@@ -123,7 +140,7 @@ loaded.
 JSON is used because samples are small (tens to a few hundred points), files
 stay readable, and one file per sample makes safe edits simple.
 
-## 5. Writing safely
+## 6. Writing safely
 
 Every write goes through one routine: write to a temporary file in the same
 folder, flush it to disk, atomically rename it over the final name, then flush
@@ -131,15 +148,15 @@ the folder. A reader never sees a partial file. A video clip is completed
 before the sample file that refers to it. Leftover temporary files are removed
 when the data folder is opened.
 
-## 6. Operations
+## 7. Operations
 
-### 6.1 Consistency check
+### 7.1 Consistency check
 
 Reports, without changing anything: temporary files, video clips with no
 sample, samples whose clip is missing, samples with an unknown label id, and
 files with an unsupported format version.
 
-### 6.2 Export
+### 7.2 Export
 
 Writes one consolidated file in JSON Lines format. Each line is one sample
 record with its session record embedded under `session`. The export can be
@@ -147,7 +164,7 @@ filtered (for example, accepted samples only) and can read several data
 folders at once. It contains positions and metadata, not video. The classifier
 can load either a data folder or an export file.
 
-### 6.3 Merge
+### 7.3 Merge
 
 Combines one or more source data folders into a target data folder:
 
@@ -161,14 +178,14 @@ Combines one or more source data folders into a target data folder:
 
 Merging does not need a camera or a running application.
 
-## 7. Size
+## 8. Size
 
 At the default 640x480 and 30 fps, a clip with 2 seconds of padding on each
 side of a 2-second gesture is about 6 seconds, roughly 1 to 2 MB. At 1,000
 samples per gesture that is about 1 to 2 GB per gesture. The padding is
 configurable in `config/data-collection.yaml`.
 
-## 8. Versioning
+## 9. Versioning
 
 `format_version` increases when a change is not backward compatible. Readers
 reject versions they do not know rather than guessing.
