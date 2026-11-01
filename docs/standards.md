@@ -51,9 +51,20 @@ here; this file is the single source for the rules.
   recording every file's name, version and source URL. Updating a vendored
   file is a task with its own branch.
 
-## 4. Documentation
+## 4. Naming
 
-### 4.1 Document types and locations
+- Python variable names are lowercase snake case (`tip_position`).
+- Python constants are uppercase snake case (`MAX_DURATION_S`).
+- Do not use single-letter variable names, except for loop counters. Use a
+  descriptive name instead: prefer `features` over `f` or `X`.
+- JSON keys are camel case (`formatVersion`). When Python reads a JSON file, it
+  converts the keys to the equivalent snake case variable names
+  (`format_version`). When Python writes a JSON file, it converts snake case
+  variable names to the equivalent camel case keys.
+
+## 5. Documentation
+
+### 5.1 Document types and locations
 
 | Document | Purpose | Location |
 |---|---|---|
@@ -67,12 +78,12 @@ here; this file is the single source for the rules.
 
 The shared library is a component and keeps its own design in `lib/docs/`.
 
-### 4.2 Rules for all documents
+### 5.2 Rules for all documents
 
 Every document has an **Overview** section at the start. It states what the
 document contains and what the reader will learn from it.
 
-### 4.3 Rules for design documents
+### 5.3 Rules for design documents
 
 1. **Independent of source code.** Code is generated from the design, so the
    design describes the system rather than the code. Do not name files,
@@ -95,7 +106,7 @@ document contains and what the reader will learn from it.
    tasks, or record them as notes in `docs/notes.md`. A document that cannot
    be finished yet lists what is missing in a final To Do section.
 
-### 4.4 Writing style
+### 5.4 Writing style
 
 Do not write sentences that comment on the text instead of stating something.
 They are typical of AI-generated text and carry no information. Example of
@@ -113,7 +124,7 @@ Avoid in particular:
 State facts, behavior and reasons directly. If a sentence can be deleted
 without losing information, delete it.
 
-### 4.5 Formatting
+### 5.5 Formatting
 
 Diagrams are plain-text blocks that fit in 80 columns. Tables must also fit,
 so keep cell text short.
