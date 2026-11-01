@@ -1,6 +1,6 @@
 # Data Collection Application - Requirements
 
-> **Version** 7 | **Updated** 2026-11-01 | **Draft**
+> **Version** 7 | **Updated** 2026-11-01 | **Approved**
 
 ## 1. Overview
 
