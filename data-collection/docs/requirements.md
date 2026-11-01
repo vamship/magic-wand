@@ -1,6 +1,6 @@
 # Data Collection Application - Requirements
 
-> **Version** 6 | **Updated** 2026-11-01 | **Draft**
+> **Version** 7 | **Updated** 2026-11-01 | **Draft**
 
 ## 1. Overview
 
@@ -74,11 +74,16 @@ this document:
   on different machines) can be merged into one dataset. Merging never alters
   a session, and reports any conflict instead of silently overwriting.
 - R2.6 **Load an existing session.** The user can load a previously recorded
-  session from the dataset and choose to either **review** it or **resume** it.
-  Review opens the session's samples as in R5, without capturing. Resume
-  continues capturing into the same session: new samples are added to it, and
-  it keeps its recorded settings, which stay locked (R2.2). If the recorded
-  camera is unavailable or delivers a different mode, the app warns the user.
+  session from the dataset. An open session can be **reviewed** or
+  **resumed**; an ended session can only be reviewed. Review opens the
+  session's samples as in R5, without capturing. Resume continues capturing
+  into the same session: new samples are added to it, and it keeps its
+  recorded settings, which stay locked (R2.2). Resuming is blocked if the
+  camera recorded in the session is unavailable or is a different camera.
+- R2.7 **Ending a session.** A session ends only when the user ends it.
+  Closing the application leaves the session open, so it can be resumed
+  later. An ended session accepts no new samples, but its samples can still be
+  reviewed and edited (R5, R7).
 
 ### R3. Gesture label management (P1)
 - R3.1 The label set is a project configuration file shared by all teammates,

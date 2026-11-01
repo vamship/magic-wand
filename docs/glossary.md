@@ -24,7 +24,8 @@ belong to one component are defined in that component's documents.
 - **Sample**: a recorded gesture stored in a dataset, with its label and
   status.
 - **Session**: one run of data collection by one person with fixed settings.
-  Capturing can be paused and resumed within a session.
+  Capturing can be paused and resumed within a session. A session stays open
+  until the user ends it; an ended session can be reviewed but not resumed.
 - **Status**: whether a stored sample is `accepted` or `rejected`. Rejected
   samples stay in the dataset. Deleting a sample is different: it removes the
   sample from the dataset entirely.
