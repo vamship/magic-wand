@@ -60,7 +60,8 @@ here; this file is the single source for the rules.
 - JSON and YAML keys are camel case (`formatVersion`). When Python reads a JSON
   or YAML file, it converts the keys to the equivalent snake case variable
   names (`format_version`). When Python writes a JSON or YAML file, it converts
-  snake case variable names to the equivalent camel case keys.
+  snake case variable names to the equivalent camel case keys. Only keys are
+  converted; string values, such as `too_long`, may be snake case.
 
 ## 5. Documentation
 
