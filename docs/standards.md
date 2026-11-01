@@ -70,7 +70,7 @@ here; this file is the single source for the rules.
 | Document | Purpose | Location |
 |---|---|---|
 | Architecture | System-wide components, flows, conventions | `docs/` |
-| Data storage | How datasets are laid out on disk | `docs/` |
+| Data handling | Dataset rules, layout, formats, operations | `docs/` |
 | Standards | These rules | `docs/` |
 | Notes | Assumptions and constraints that need no action | `docs/` |
 | Requirements | What a component must do | `<component>/docs/` |

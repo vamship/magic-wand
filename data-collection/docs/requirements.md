@@ -141,7 +141,7 @@ are consistent.
   comparable; resolution is recorded as well. Real timestamps are always
   kept, because actual frame rates vary.
 - R6.3 The data directory is user-specified. The default is outside version
-  control. The file format and layout are defined in `docs/data-storage.md` and
+  control. The file format and layout are defined in `docs/data-handling.md` and
   must be directly loadable by the classification subsystem (Python/NumPy/
   PyTorch).
 - R6.4 Writes are crash-safe: a sample is on disk before the next capture is

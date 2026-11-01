@@ -13,7 +13,7 @@ each gesture as a spell, and performs the action for that spell.
 | Document | Content |
 |---|---|
 | `docs/architecture.md` | System overview, flows, subsystems, conventions |
-| `docs/data-storage.md` | Dataset layout, formats, merge and export |
+| `docs/data-handling.md` | Dataset rules, layout, formats, operations |
 | `docs/standards.md` | Workflow, tooling, formatting, documentation rules |
 | `docs/notes.md` | Assumptions and constraints |
 | `lib/docs/design.md` | Shared library design |

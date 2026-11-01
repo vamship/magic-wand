@@ -1,7 +1,7 @@
 # Shared Library - Design
 
 Status: Draft v1. System context is in `docs/architecture.md`; the dataset
-layout is in `docs/data-storage.md`.
+layout is in `docs/data-handling.md`.
 
 ## 1. Overview
 
@@ -35,7 +35,7 @@ with many cameras and lighting conditions, and be testable without a camera.
   measurement of the user's stillness and gesture speed.
 - **Path renderer**: draws a gesture's path as an image.
 - **Dataset store**: reads, writes, filters, exports and merges recorded data
-  as defined in `docs/data-storage.md`.
+  as defined in `docs/data-handling.md`.
 
 ## 3. How the components work together
 
@@ -221,7 +221,7 @@ generate on demand.
 
 ## 12. Dataset store
 
-Implements `docs/data-storage.md`:
+Implements `docs/data-handling.md`:
 
 - create and open data folders; create sessions; write, update and delete
   samples and their clips, treating a missing or removed clip as "no clip"

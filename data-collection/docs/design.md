@@ -3,7 +3,7 @@
 Status: Draft v2. Requirement IDs (R1.1, N1, ...) refer to `requirements.md`.
 System context is in `docs/architecture.md`; the shared vision and motion
 components are in `lib/docs/design.md`; the dataset layout is in
-`docs/data-storage.md`.
+`docs/data-handling.md`.
 
 ## 1. Overview
 
@@ -355,7 +355,7 @@ Requests that need a clip, namely the video and the overlay image, return
 | `wand-collect check` | Run the consistency check |
 
 Export, merge and check use the shared dataset store, work without a camera,
-and follow the rules in `docs/data-storage.md`.
+and follow the rules in `docs/data-handling.md`.
 
 ### 6.4 Application settings
 
@@ -374,7 +374,7 @@ Set in `config/data-collection.yaml`, with camel case keys:
 
 ## 7. Data
 
-Everything is stored as defined in `docs/data-storage.md`. The application
+Everything is stored as defined in `docs/data-handling.md`. The application
 writes:
 
 - `session.json` when a session starts, updated when it ends;
@@ -403,15 +403,15 @@ writes:
 | Requirement | Where addressed |
 |---|---|
 | R1 Setup and calibration | 4.5, 5.4, 6.2 |
-| R2 Session management | 5.5, 7, `docs/data-storage.md` |
+| R2 Session management | 5.5, 7, `docs/data-handling.md` |
 | R3 Labels | 5.7 |
 | R4 Recording | 4.3, 4.4, 5.1, 5.2 |
 | R5 Review | 4.3, 5.2, 5.8 |
-| R6 Storage | 5.3, 7, `docs/data-storage.md` |
+| R6 Storage | 5.3, 7, `docs/data-handling.md` |
 | R7 Browse and review | 5.6, 5.8, 6.2 |
 | N1 Shared code | 3, `lib/docs/design.md` |
 | N2 Throughput | 4.3 |
 | N3 Responsiveness | 5.1 |
 | N4 Platform | `docs/notes.md` |
 | N5 Offline testability | 8, `lib/docs/design.md` |
-| R2.5 Merge | 6.3, `docs/data-storage.md` |
+| R2.5 Merge | 6.3, `docs/data-handling.md` |

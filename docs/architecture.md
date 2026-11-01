@@ -165,7 +165,7 @@ A dataset holds sessions, and each session holds samples:
 - The settings in a session start from the defaults in the configuration or a
   saved profile, as described under Configuration.
 
-File formats and layout are in `docs/data-storage.md`.
+File formats and layout are in `docs/data-handling.md`.
 
 ### 2.3 Training
 
@@ -183,7 +183,7 @@ File formats and layout are in `docs/data-storage.md`.
 
 Each teammate records sessions on their own machine. The datasets are merged
 into one training dataset; merging copies whole sessions and never changes
-them (see `docs/data-storage.md`). Training loads the accepted samples,
+them (see `docs/data-handling.md`). Training loads the accepted samples,
 computes motion vectors from the stored positions with the shared library, and
 trains the classifier. The trained classifier is what the inference flow loads.
 
@@ -246,7 +246,7 @@ in data collection and inference. Design: `lib/docs/design.md`.
 - **Motion calibrator** proposes motion settings from a short measurement of
   the user holding still and then waving.
 - **Dataset store** reads, writes, filters, exports and merges datasets in the
-  format in `docs/data-storage.md`.
+  format in `docs/data-handling.md`.
 - **Path renderer** draws a gesture's path as an image.
 
 Each application imports the library and supplies what the library does not
@@ -302,8 +302,8 @@ Common formats used by every subsystem:
   position.
 
 Field-level definitions are in `lib/docs/design.md` and
-`docs/data-storage.md`. The rules for handling datasets are in
-`docs/data-storage.md`.
+`docs/data-handling.md`. The rules for handling datasets are in
+`docs/data-handling.md`.
 
 ### 4.3 Configuration
 
