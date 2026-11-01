@@ -92,7 +92,8 @@ document contains and what the reader will learn from it.
    their interactions at a high level before the detail of any one component.
    Split into architecture and design documents when that reads better.
 7. **No open questions in finished documents.** Resolve them, turn them into
-   tasks, or record them as notes in `docs/notes.md`.
+   tasks, or record them as notes in `docs/notes.md`. A document that cannot
+   be finished yet lists what is missing in a final To Do section.
 
 ### 4.4 Writing style
 
