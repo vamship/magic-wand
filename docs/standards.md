@@ -1,6 +1,6 @@
 # Standards
 
-Version: 1 | Updated: 2026-11-01 | Draft
+> **Version** 1 · **Updated** 2026-11-01 · **Draft**
 
 ## Overview
 
@@ -84,10 +84,10 @@ The shared library is a component and keeps its own design in `lib/docs/`.
 ### 5.2 Rules for all documents
 
 Every document starts, after its title, with a one-line header in this
-format:
+format. The blockquote and bold make it render as a distinct header block:
 
 ```text
-Version: 1 | Updated: 2026-11-01 | Draft
+> **Version** 1 · **Updated** 2026-11-01 · **Draft**
 ```
 
 - **Version**: a whole number, starting at 1. Increase it when the document is
