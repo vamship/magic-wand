@@ -4,14 +4,19 @@ Status: Draft v3. Covers the whole system.
 
 ## 1. Overview
 
-This document describes the architecture of the magic wand system: the
-subsystems and what each is responsible for, how data flows through them when
-the system collects data, trains a classifier and recognizes spells, the
-conventions every component follows, and how the repository is organized.
+This document describes the architecture of the magic wand system. It covers:
+
+- how data flows through the system when it collects data, trains a classifier
+  and recognizes spells;
+- the subsystems and what each is responsible for, including the shared
+  library;
+- the technical decisions, data formats and configuration that every
+  component follows;
+- how the repository is organized;
+- the items still to be filled in before final submission.
+
 After reading it you will understand how the system works end to end and know
 where to find the detail for any part of it.
-
-### 1.1 The system
 
 The system recreates the magic wand experience of the Harry Potter area at
 Universal Studios. A user waves a wand in front of a camera. The system
@@ -19,10 +24,18 @@ recognizes the motion as one of several predefined gestures (spells) and
 responds with an action: a visual effect on screen, a sound, or, if time
 permits, a physical device.
 
+Terms used throughout:
+
+- **Tip**: the approximate center of the ping pong ball on the wand. It is the
+  point whose motion the system tracks.
+- **Gesture**: one deliberate motion of the tip, bounded by idle at the start
+  and end.
+- **Sample**: a recorded gesture stored in a dataset.
+- **Session**: one run of data collection by one person with fixed settings.
+- **Label**: the name of a spell.
+
 The wand is a brightly colored ping pong ball on a stick, so that OpenCV color
-filtering can find it in the video. The **tip** is the approximate center of
-the ball; it is the point whose motion the system tracks. Four stages turn
-video into an action:
+filtering can find it in the video. Four stages turn video into an action:
 
 1. **Vision** finds the tip in each frame.
 2. **Motion detection** turns the tip's positions into gestures.
@@ -36,28 +49,6 @@ examples. The system therefore has two modes that share the first two stages:
 - **Data collection**: live video goes through the first two stages, and a
   person labels and stores the resulting gestures as a training dataset
   (about 1,000 samples per gesture).
-
-The project is the term project for EECE5644 (Machine Learning and Pattern
-Recognition).
-
-Terms used throughout:
-
-- **Gesture**: one deliberate motion of the tip, bounded by idle at the start
-  and end.
-- **Sample**: a recorded gesture stored in a dataset.
-- **Session**: one run of data collection by one person with fixed settings.
-- **Label**: the name of a spell.
-
-### 1.2 What this document covers
-
-- Section 2, system flow: how data moves through inference, data collection
-  and training.
-- Section 3, subsystems: what each subsystem does, and what the shared library
-  contains.
-- Section 4, conventions: technical decisions, the data that flows between
-  data collection and inference, and configuration.
-- Section 5, folder organization: how the repository is laid out.
-- Section 6, to do: items to fill in before final submission.
 
 ## 2. System Flow
 
@@ -117,26 +108,34 @@ Data collection has two sub flows: calibration, then recording.
 #### 2.2.2 Recording
 
 ```text
- +--------+ frame  +--------+ tip position +-----------+ gesture +-----------+
- | Camera |------->| Vision |------------->|  Motion   |-------->|   Data    |
- +--------+        +--------+ + timestamp  | detection |positions|collection |
-                                           +-----------+         +--+-----+--+
-                                                                    ^     |
-                                        label, review               |     v
-                                        +--------+                  |  +-------+
-                                        |  User  |<-----------------+  |Dataset|
-                                        +--------+                     +-------+
+ +--------+ frame  +--------+ tip position +-----------+
+ | Camera |------->| Vision |------------->|  Motion   |
+ +--------+        +--------+ + timestamp  | detection |
+                                           +-----+-----+
+                                                 | gesture (positions)
+                                                 v
+ +--------+  label, accept or reject    +-----------------+
+ |  User  |<--------------------------->| Data collection |
+ +--------+                             +--------+--------+
+                                                 | sample: positions
+                                                 | + label + status
+                                                 v
+                                        +-----------------+
+                                        | Dataset (disk)  |
+                                        +-----------------+
 ```
 
 1. Vision and motion detection run as in inference, with the same code and the
    settings from calibration.
 2. The user chooses a label and starts capturing. The app paces the captures
    with a countdown.
-3. Each gesture that motion detection reports becomes a sample with the chosen
-   label. The sample stores the tip positions of the gesture, not the vectors,
-   and is accepted by default.
-4. The user can reject, relabel or delete samples.
-5. Each sample is written to the dataset as part of the current session.
+3. Motion detection reports a gesture. The app turns it into a sample: the
+   tip positions of the gesture, not the vectors.
+4. The sample takes the label the user chose and is accepted by default. The
+   user reviews it and can reject, relabel or delete it.
+5. The sample, with the user's label and status, is written to the dataset as
+   part of the current session. Changes the user makes during review update
+   the stored sample.
 
 #### 2.2.3 What is stored
 
@@ -164,20 +163,29 @@ A dataset holds sessions, and each session holds samples:
   identifier, and the labels are defined in the shared configuration
   (`config/labels.yaml`).
 - The settings in a session start from the defaults in the configuration or a
-  saved profile, as described in section 4.3.
+  saved profile, as described under Configuration.
 
 File formats and layout are in `docs/data-storage.md`.
 
 ### 2.3 Training
 
 ```text
- Dataset --> load accepted --> compute motion --> train --> Trained classifier
- (disk)      samples           vectors            model     (used in inference)
+ Dataset (teammate A) --+
+ Dataset (teammate B) --+--> Merge --> Training dataset
+ Dataset (teammate C) --+                   |
+                                            v
+                         Load accepted samples, compute motion vectors
+                                            |
+                                            v
+                              Train --> Trained classifier
+                                        (used in inference)
 ```
 
-Training reads the dataset, computes motion vectors from the stored positions
-with the shared library, and trains the classifier. The trained classifier is
-what the inference flow loads.
+Each teammate records sessions on their own machine. The datasets are merged
+into one training dataset; merging copies whole sessions and never changes
+them (see `docs/data-storage.md`). Training loads the accepted samples,
+computes motion vectors from the stored positions with the shared library, and
+trains the classifier. The trained classifier is what the inference flow loads.
 
 ### 2.4 Shared Implementation
 
@@ -199,9 +207,9 @@ lighting condition by calibration.
 ### 3.2 Motion detection
 
 Tracks the tip's speed to separate idle from motion, cuts the stream into
-gestures, and builds motion vectors. Input: tip positions. Output: gestures,
-and the live state (moving or idle). Its thresholds and time window are
-settings that calibration adjusts.
+gestures, and builds motion vectors. Input: tip positions with timestamps.
+Output: gestures, and the live state (moving or idle). Its thresholds and time
+window are settings that calibration adjusts.
 
 ### 3.3 Gesture classification
 
@@ -334,7 +342,7 @@ magic-wand/
   pyproject.toml      uv workspace root; shared tool settings (ruff)
   uv.lock             resolved dependency versions for the workspace
   CLAUDE.md           project and agent instructions
-  config/             configuration (section 4.3)
+  config/             configuration
   docs/               system-wide documentation
   lib/                shared library
     docs/
@@ -347,7 +355,7 @@ magic-wand/
   data/               default dataset location; not in git
 ```
 
-Components not yet defined (section 6) are added as further top-level folders
+Components not yet defined (see To Do) are added as further top-level folders
 and workspace members, each with its own `pyproject.toml`, `docs/`, `src/` and
 `tests/`.
 
