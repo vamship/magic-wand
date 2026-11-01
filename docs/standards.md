@@ -57,10 +57,10 @@ here; this file is the single source for the rules.
 - Python constants are uppercase snake case (`MAX_DURATION_S`).
 - Do not use single-letter variable names, except for loop counters. Use a
   descriptive name instead: prefer `features` over `f` or `X`.
-- JSON keys are camel case (`formatVersion`). When Python reads a JSON file, it
-  converts the keys to the equivalent snake case variable names
-  (`format_version`). When Python writes a JSON file, it converts snake case
-  variable names to the equivalent camel case keys.
+- JSON and YAML keys are camel case (`formatVersion`). When Python reads a JSON
+  or YAML file, it converts the keys to the equivalent snake case variable
+  names (`format_version`). When Python writes a JSON or YAML file, it converts
+  snake case variable names to the equivalent camel case keys.
 
 ## 5. Documentation
 

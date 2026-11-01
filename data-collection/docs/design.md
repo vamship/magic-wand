@@ -129,8 +129,8 @@ processing runs for the app, for tests and for later inference.
 4. If the gesture was discarded the UI shows the reason, and a new countdown
    starts. No sample is created.
 5. Otherwise the controller creates the sample: the tip positions, the active
-   label, status `accepted`, and a video clip that runs from `pre_s` seconds
-   before the gesture to `post_s` seconds after it. A new **countdown starts
+   label, status `accepted`, and a video clip that runs from `preS` seconds
+   before the gesture to `postS` seconds after it. A new **countdown starts
    immediately**, and the UI shows the sample's path image.
 6. In the background the frames after the gesture are collected, the clip writer
    encodes the clip, and the sample is saved. The engine is not made ready until
@@ -187,7 +187,7 @@ at leisure; resuming continues the countdown.
 
 Runs on its own thread so slow requests never stall the camera (N3). It takes
 frames from the camera at the requested mode, runs the tracker and segmenter,
-and keeps a rolling buffer of the latest `pre_s` + gesture + `post_s` seconds of
+and keeps a rolling buffer of the latest `preS` + gesture + `postS` seconds of
 raw frames for clips. After each frame it publishes:
 
 - the annotated live image (tip marker and motion state drawn on it, or the
@@ -238,7 +238,7 @@ still saved, with no clip, and the user is told.
 On start it validates the author and handedness, resolves the settings (see
 `docs/architecture.md`), and writes `session.json` with the camera's actual
 mode, the full vision and motion settings and the clip padding. It then locks
-the settings. On end it records `ended_at`.
+the settings. On end it records `endedAt`.
 
 ### 5.6 Library
 
@@ -348,17 +348,17 @@ and follow the rules in `docs/data-storage.md`.
 
 ### 6.4 Application settings
 
-Set in `config/data-collection.yaml`:
+Set in `config/data-collection.yaml`, with camel case keys:
 
 | Key | Meaning | Default |
 |---|---|---|
-| `data_folder` | Where datasets are stored | `data` |
+| `dataFolder` | Where datasets are stored | `data` |
 | `server.host`, `server.port` | Where the app listens | local only, 8000 |
 | `camera.index` | Preferred camera | 0 |
 | `camera.width`, `.height`, `.fps` | Requested mode | 640, 480, 30 |
-| `countdown_s` | Countdown length | 3.0 |
-| `clip_padding.pre_s`, `.post_s` | Clip padding | 2.0, 2.0 |
-| `end_threshold_ratio` | End threshold as a fraction of start | 0.6 |
+| `countdownS` | Countdown length | 3.0 |
+| `clipPadding.preS`, `.postS` | Clip padding | 2.0, 2.0 |
+| `endThresholdRatio` | End threshold as a fraction of start | 0.6 |
 | `shortcuts` | Key bindings | as in 5.8 |
 
 ## 7. Data

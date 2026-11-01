@@ -71,6 +71,10 @@ Positions, time, distances and speeds follow `docs/architecture.md`: positions
 are fractions of the frame, vertical axis down; distances are in frame-heights;
 speeds in frame-heights per second; time in seconds.
 
+Setting names in this document are written as they appear in configuration and
+JSON files, in camel case. In Python code they are snake case, per
+`docs/standards.md`.
+
 ## 5. Frame source
 
 - A frame is delivered with a timestamp in seconds that increases steadily.
@@ -102,13 +106,13 @@ was found. The tracker can also produce the marked-pixel mask for display.
 
 | Key | Meaning |
 |---|---|
-| `hue_center`, `hue_half_width` | Color range on the hue circle |
-| `sat_min`, `sat_max` | Saturation range |
-| `val_min`, `val_max` | Brightness range |
-| `blur_size` | Smoothing strength |
-| `cleanup_size` | Speck removal and hole filling strength |
-| `min_area`, `max_area` | Allowed region size, as fractions of the frame |
-| `min_roundness` | How close to circular a region must be (0 to 1) |
+| `hueCenter`, `hueHalfWidth` | Color range on the hue circle |
+| `satMin`, `satMax` | Saturation range |
+| `valMin`, `valMax` | Brightness range |
+| `blurSize` | Smoothing strength |
+| `cleanupSize` | Speck removal and hole filling strength |
+| `minArea`, `maxArea` | Allowed region size, as fractions of the frame |
+| `minRoundness` | How close to circular a region must be (0 to 1) |
 
 The hue range is a center and half-width on a circle, so colors that straddle
 the red end of the spectrum, such as orange and red, need no special handling
@@ -143,16 +147,16 @@ The segmenter receives one tip detection at a time and keeps a short history.
 - Three states describe the stream:
 
 ```text
-         speed >= start_speed             speed < end_speed for end_hold_s
+         speed >= startSpeed             speed < endSpeed for endHoldS
  IDLE ------------------------> MOTION ---------------------------> report
-   ^    (for start_frames frames)   |                              gesture
+   ^    (for startFrames frames)   |                              gesture
    |                                | too long, or tip lost too long
    |                                v
-   +<------ speed < end_speed ---- DISCARD (wait for idle)
+   +<------ speed < endSpeed ---- DISCARD (wait for idle)
 ```
 
-- Two thresholds give hysteresis: motion starts above `start_speed` and ends
-  only when speed stays below the lower `end_speed` for `end_hold_s`, so a
+- Two thresholds give hysteresis: motion starts above `startSpeed` and ends
+  only when speed stays below the lower `endSpeed` for `endHoldS`, so a
   brief pause inside a gesture does not end it.
 - When motion ends, the gesture is reported if its duration is within the valid
   window and its path is large enough. Otherwise it is discarded with a
@@ -172,15 +176,15 @@ frame-heights.
 
 | Key | Meaning | Starting value |
 |---|---|---|
-| `start_speed` | Speed above which motion starts | 0.25 |
-| `end_speed` | Speed below which motion may end | 0.15 |
-| `start_frames` | Frames above start speed needed | 2 |
-| `end_hold_s` | Time below end speed needed | 0.3 |
-| `min_duration_s` | Shortest valid gesture | 0.3 |
-| `max_duration_s` | Longest valid gesture (the valid window) | 4.0 |
-| `min_extent` | Smallest valid path size (bounding box diagonal) | 0.10 |
-| `lost_timeout_s` | Longest tolerated gap with no tip | 0.25 |
-| `smoothing_frames` | Frames in the smoothing average | 3 |
+| `startSpeed` | Speed above which motion starts | 0.25 |
+| `endSpeed` | Speed below which motion may end | 0.15 |
+| `startFrames` | Frames above start speed needed | 2 |
+| `endHoldS` | Time below end speed needed | 0.3 |
+| `minDurationS` | Shortest valid gesture | 0.3 |
+| `maxDurationS` | Longest valid gesture (the valid window) | 4.0 |
+| `minExtent` | Smallest valid path size (bounding box diagonal) | 0.10 |
+| `lostTimeoutS` | Longest tolerated gap with no tip | 0.25 |
+| `smoothingFrames` | Frames in the smoothing average | 3 |
 
 The starting values are provisional. A task tunes them against real
 recordings; thereafter they are set per machine through calibration and stored
@@ -196,8 +200,8 @@ camera:
    percentile as the idle ceiling.
 2. **Wave** the wand a few times. It records the typical peak speeds.
 
-It then proposes `end_speed` as a multiple of the idle ceiling, and
-`start_speed` between that and the typical gesture speed. The user checks and
+It then proposes `endSpeed` as a multiple of the idle ceiling, and
+`startSpeed` between that and the typical gesture speed. The user checks and
 adjusts the proposal on the motion tuning screen of the application.
 
 ## 10. Vector builder
@@ -237,7 +241,7 @@ Implements `docs/data-storage.md`:
   which the tracker finds the disk and little else.
 - **Segmenter**: synthetic position streams. A still tip stays idle; a circle
   gives one gesture; each discard reason is triggered; tremor below the
-  threshold gives nothing; a pause shorter than `end_hold_s` does not split a
+  threshold gives nothing; a pause shorter than `endHoldS` does not split a
   gesture.
 - **Motion calibrator**: synthetic still and waving streams give thresholds in
   a sensible order.
