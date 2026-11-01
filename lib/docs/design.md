@@ -1,11 +1,16 @@
 # Shared Library - Design
 
-Status: Draft v1. The library is installed as `wand-core`. It is the single
-implementation of vision, motion detection and the dataset format, used by data
-collection now and by the run-time system later. System context is in
-`docs/architecture.md`; the dataset layout is in `docs/data-storage.md`.
+Status: Draft v1. System context is in `docs/architecture.md`; the dataset
+layout is in `docs/data-storage.md`.
 
-## 1. The challenge
+## 1. Overview
+
+The shared library, installed as `wand-core`, is the single implementation of
+vision, motion detection and the dataset format. Data collection uses it now
+and the run-time system will use it later. This document describes its
+components, how they work together, the settings that control them, and how
+they are tested. After reading it you will know what the library does, what
+each component is responsible for, and what each setting means.
 
 A gesture classifier is trained on recorded data and then fed live data. If
 the two are produced by different code, or by differently tuned code, the
@@ -57,8 +62,8 @@ Calibration uses the same pieces:
 ```
 
 The Tracker and Segmenter never open a camera or read a file themselves; they
-are given frames or positions. That is what allows the same code to run on live
-video, on recorded clips and on synthetic test data.
+are given frames or positions. As a result the same code runs on live video,
+on recorded clips and on synthetic test data.
 
 ## 4. Conventions
 

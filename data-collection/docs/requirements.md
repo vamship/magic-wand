@@ -5,12 +5,19 @@ auto-accept, click-to-calibrate, motion tuning, camera selection, shared label
 configuration, and dataset merging. Delivery phases: **P1** = needed for the
 first usable release, **P2** = later phase.
 
-## 1. Purpose
+## 1. Overview
 
-Record and label wand gestures to build the training dataset for the gesture
-classifier (target: ~1,000 samples per gesture). The app must make high-volume
-recording fast and must use the same vision and motion-detection code as the
-inference pipeline so training and inference data are consistent.
+This document lists what the data collection application must do (functional
+requirements R1 to R7), the qualities it must have (N1 to N5), what is out of
+scope, and the decisions made so far. After reading it you will know what the
+application is for, what the user can do with it, and which requirement IDs the
+design and task documents refer to.
+
+The application records and labels wand gestures to build the training dataset
+for the gesture classifier (target: about 1,000 samples per gesture). It must
+make high-volume recording fast, and it must use the same vision and
+motion-detection code as the inference pipeline so training and inference data
+are consistent.
 
 ## 2. Definitions
 

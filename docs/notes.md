@@ -1,7 +1,11 @@
 # Notes
 
-Assumptions and constraints that need no action now but affect decisions.
-Items that need work become tasks in the owning component's `tasks.md`.
+## Overview
+
+This document records assumptions and constraints that affect decisions but
+need no action now: cameras, platforms, wands and handedness. After reading
+it you will know what the project takes for granted. Items that need work
+are tasks in the owning component's `tasks.md`, not notes.
 
 ## Cameras
 

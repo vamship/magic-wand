@@ -3,9 +3,9 @@
 Status: Draft v2. Covers the whole system. Component designs are listed in
 section 5.3.
 
-## 1. Introduction
+## 1. Overview
 
-### 1.1 System overview
+### 1.1 The system
 
 The system recreates the magic wand experience of the Harry Potter area at
 Universal Studios. A user waves a wand in front of a camera. The system
@@ -50,6 +50,10 @@ Terms used throughout:
 - Section 4, conventions: technical decisions, common data structures and
   rules for handling datasets.
 - Section 5, folder organization: how the repository is laid out.
+
+After reading it you will know how the system works end to end, what each
+subsystem is responsible for, which conventions every component follows, and
+where things live in the repository.
 
 ## 2. System Flow
 
@@ -195,8 +199,8 @@ Tooling and workflow rules are in `docs/standards.md`.
 
 ### 4.2 Common data structures
 
-All subsystems use these structures. Field-level definitions are in
-`lib/docs/design.md` and `docs/data-storage.md`.
+Field-level definitions are in `lib/docs/design.md` and
+`docs/data-storage.md`.
 
 - **Frame**: an image with a timestamp in seconds.
 - **Tip detection**: timestamp, tip position, ball radius, and whether the

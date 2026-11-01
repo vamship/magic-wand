@@ -1,9 +1,18 @@
 # Data Storage
 
-Status: Draft v1. Defines how recorded data is organized on disk. Data
-collection writes this layout; the classifier and tools read it.
+Status: Draft v1.
 
-## 1. Goals
+## 1. Overview
+
+This document defines how recorded gesture data is organized on disk: the
+rules for handling datasets, the data folder layout, identifiers, file
+formats, write safety, and the export, merge and check operations. After
+reading it you will know where each piece of data lives, what the session
+and sample files contain, and what every tool must do when it reads or
+writes a dataset. Data collection writes this layout; the classifier and
+tools read it.
+
+Goals:
 
 - Be organized and documented, with a clear place for everything.
 - Let sessions recorded in parallel, by different people on different machines,

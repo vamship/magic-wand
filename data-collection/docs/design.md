@@ -5,7 +5,14 @@ System context is in `docs/architecture.md`; the shared vision and motion
 components are in `lib/docs/design.md`; the dataset layout is in
 `docs/data-storage.md`.
 
-## 1. The challenge
+## 1. Overview
+
+This document describes how the data collection application is built to meet
+`requirements.md`: the technology, the components and their responsibilities,
+the system flow, the details of each component, the interfaces, the data it
+writes, and how it is tested. After reading it you will know how a gesture
+travels from the camera to the dataset, which component does what, and how
+calibration and review fit in.
 
 Training a gesture classifier needs about 1,000 samples of every gesture,
 recorded by several people on different machines. That raises three problems:
@@ -17,7 +24,7 @@ recorded by several people on different machines. That raises three problems:
 - **Data must be consistent and combinable.** Vision code is shared, and
   sessions are self-contained so they can be merged.
 
-## 2. The application at a glance
+## 2. The application
 
 A **local web application**. A Python program runs on the user's machine,
 owns the camera, and serves a user interface that the user opens in a browser.

@@ -1,7 +1,12 @@
 # Standards
 
-These standards apply to every component in the repository. The root
-`CLAUDE.md` points here; this file is the single source for the rules.
+## Overview
+
+This document defines how work is done in every component of the repository:
+the branching workflow, Python tooling, code and text formatting, and the
+rules for writing documentation. After reading it you will know what is
+required of any change and of any document. The root `CLAUDE.md` points
+here; this file is the single source for the rules.
 
 ## 1. Workflow
 
