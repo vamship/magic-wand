@@ -1,6 +1,6 @@
 # Notes
 
-> **Version** 1 · **Updated** 2026-11-01 · **Draft**
+> **Version** 1 | **Updated** 2026-11-01 | **Draft**
 
 ## Overview
 

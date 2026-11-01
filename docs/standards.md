@@ -1,6 +1,6 @@
 # Standards
 
-> **Version** 1 · **Updated** 2026-11-01 · **Draft**
+> **Version** 1 | **Updated** 2026-11-01 | **Draft**
 
 ## Overview
 
@@ -87,7 +87,7 @@ Every document starts, after its title, with a one-line header in this
 format. The blockquote and bold make it render as a distinct header block:
 
 ```text
-> **Version** 1 · **Updated** 2026-11-01 · **Draft**
+> **Version** 1 | **Updated** 2026-11-01 | **Draft**
 ```
 
 - **Version**: a whole number, starting at 1. Increase it when the document is
