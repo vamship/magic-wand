@@ -1,6 +1,6 @@
 # Data Handling
 
-> **Version** 2 | **Updated** 2026-11-01 | **Approved**
+> **Version** 3 | **Updated** 2026-11-01 | **Draft**
 
 ## 1. Overview
 
@@ -94,8 +94,14 @@ Not stored in the data folder:
   starts at 0001 in capture order, with more digits if a session exceeds 9999
   samples. Because the session id is unique, the sample id is unique across all
   datasets.
-- Samples are added only while a session is running, and numbers are not
-  reused within it, even after a sample is deleted.
+- A session stays open until the user ends it; closing the application does
+  not end it. Samples are added only while a session is open, so an ended
+  session never receives new samples. An open session can be resumed later and
+  continues in the same session folder.
+- The session records the highest sample number it has used. The next sample
+  takes the number after the larger of that value and the highest number in
+  the samples file. Numbers are therefore never reused, not after a sample is
+  deleted and not after a resume.
 - Identifiers never change. Merging keeps them.
 - **Label id**: a lowercase slug (letters, digits, underscore).
 
@@ -127,12 +133,15 @@ keys are camel case, as required by `docs/standards.md`. Both `dataset.json` and
   "visionSettings": {"...": "see the library design"},
   "motionSettings": {"...": "see the library design"},
   "clipPadding": {"preS": 2.0, "postS": 2.0},
+  "highestSampleNumber": 42,
   "profile": "desk-evening"
 }
 ```
 
-`endedAt` is null while the session is open. `profile` is null if none was
-loaded. `name` and `notes` are optional free text.
+`endedAt` is null while the session is open, including when the application
+was closed without ending it. `highestSampleNumber` is the highest sample
+number used so far, and is updated each time a sample is saved. `profile` is
+null if none was loaded. `name` and `notes` are optional free text.
 
 ### 5.2 `samples.jsonl`
 
@@ -191,13 +200,17 @@ file:
 - **Append** (used when a new sample is saved): write the video clip first,
   using the replace routine. Then write the sample's line, including its
   newline, to the end of `samples.jsonl` in one write and flush it to disk.
+  Then update `highestSampleNumber` in `session.json` using the replace
+  routine.
 - **Delete** (used when a sample is deleted): rewrite `samples.jsonl` without
   the sample using the replace routine, then remove the video clip.
 
 A crash during an append can leave an incomplete last line. Readers ignore a
 last line that lacks its newline or is not valid JSON. Opening a data folder
 removes it, and removes leftover temporary files. At most the sample being
-written is lost.
+written is lost. If a crash falls between the append and the update of
+`highestSampleNumber`, the next sample number is still correct because it also
+considers the highest number in the samples file.
 
 ## 7. Operations
 
