@@ -24,11 +24,16 @@ Goals:
 
 - Datasets are not stored in git. The default location, `data/`, is excluded
   from version control, and a dataset can be placed anywhere.
+  > Vamshi: "anywhere where?" Do you mean to say "anywhere on the local machine"
+  > or "anywhere under the data/ folder"?
 - A session folder is self-contained and is the unit of exchange. Datasets are
   combined by merging session folders; merging never modifies a session.
 - Samples store positions, never derived vectors.
 - Rejected samples stay in the dataset with status `rejected`; training uses
   accepted samples.
+  > Vamshi: We should also call out that samples can be deleted from the
+  > dataset - a hard delete operation that removes the sample and its video
+  > clip.
 - Labels are defined in the shared configuration, not in the dataset. Samples
   refer to labels by identifier.
 - Every session records the settings and camera mode used to capture it.

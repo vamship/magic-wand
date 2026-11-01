@@ -4,6 +4,13 @@ Status: Draft v3. Covers the whole system.
 
 ## 1. Overview
 
+This document describes the architecture of the magic wand system: the
+subsystems and what each is responsible for, how data flows through them when
+the system collects data, trains a classifier and recognizes spells, the
+conventions every component follows, and how the repository is organized.
+After reading it you will understand how the system works end to end and know
+where to find the detail for any part of it.
+
 ### 1.1 The system
 
 The system recreates the magic wand experience of the Harry Potter area at
@@ -51,10 +58,6 @@ Terms used throughout:
   data collection and inference, and configuration.
 - Section 5, folder organization: how the repository is laid out.
 - Section 6, to do: items to fill in before final submission.
-
-After reading it you will know how the system works end to end, what each
-subsystem is responsible for, which conventions every component follows, and
-where things live in the repository.
 
 ## 2. System Flow
 
