@@ -84,7 +84,25 @@ The shared library is a component and keeps its own design in `lib/docs/`.
 7. **No open questions in finished documents.** Resolve them, turn them into
    tasks, or record them as notes in `docs/notes.md`.
 
-### 4.3 Formatting
+### 4.3 Writing style
+
+Do not write sentences that comment on the text instead of stating something.
+They are typical of AI-generated text and carry no information. Example of
+what to avoid: "Three things make this hard, and the architecture is shaped by
+them." Name the three things and say how each is handled.
+
+Avoid in particular:
+
+- sentences that announce or summarize structure ("The following sections
+  describe...", "In summary...");
+- sentences that claim importance or promise a payoff ("This is a key
+  design decision", "This makes the system robust");
+- filler transitions and framing ("It is worth noting that...").
+
+State facts, behavior and reasons directly. If a sentence can be deleted
+without losing information, delete it.
+
+### 4.4 Formatting
 
 Diagrams are plain-text blocks that fit in 80 columns. Tables must also fit,
 so keep cell text short.
