@@ -1,6 +1,6 @@
 # Architecture
 
-> **Version** 4 | **Updated** 2026-11-01 | **Approved**
+> **Version** 5 | **Updated** 2026-11-01 | **Draft**
 
 ## 1. Overview
 
@@ -24,18 +24,12 @@ recognizes the motion as one of several predefined gestures (spells) and
 responds with an action: a visual effect on screen, a sound, or, if time
 permits, a physical device.
 
-Terms used throughout:
-
-- **Tip**: the approximate center of the ping pong ball on the wand. It is the
-  point whose motion the system tracks.
-- **Gesture**: one deliberate motion of the tip, bounded by idle at the start
-  and end.
-- **Sample**: a recorded gesture stored in a dataset.
-- **Session**: one run of data collection by one person with fixed settings.
-- **Label**: the name of a spell.
+Terms such as tip, gesture, sample, session and label are defined in
+`docs/glossary.md`.
 
 The wand is a brightly colored ping pong ball on a stick, so that OpenCV color
-filtering can find it in the video. Four stages turn video into an action:
+filtering can find it in the video. The system tracks the center of the ball,
+called the tip. Four stages turn video into an action:
 
 1. **Vision** finds the tip in each frame.
 2. **Motion detection** turns the tip's positions into gestures.
