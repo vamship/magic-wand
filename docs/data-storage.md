@@ -1,6 +1,6 @@
 # Data Storage
 
-Status: Draft v1.
+Status: Draft v2.
 
 ## 1. Overview
 
@@ -8,7 +8,7 @@ This document defines how recorded gesture data is organized on disk: the
 rules for handling datasets, the data folder layout, identifiers, file
 formats, write safety, and the export, merge and check operations. After
 reading it you will know where each piece of data lives, what the session
-and sample files contain, and what every tool must do when it reads or
+and sample records contain, and what every tool must do when it reads or
 writes a dataset. Data collection writes this layout; the classifier and
 tools read it.
 
@@ -23,22 +23,21 @@ Goals:
 ## 2. Rules
 
 - Datasets are not stored in git. The default location, `data/`, is excluded
-  from version control, and a dataset can be placed anywhere.
-  > Vamshi: "anywhere where?" Do you mean to say "anywhere on the local machine"
-  > or "anywhere under the data/ folder"?
+  from version control. A dataset can be placed in any folder on the local
+  machine by setting the data folder in `config/data-collection.yaml`.
 - A session folder is self-contained and is the unit of exchange. Datasets are
-  combined by merging session folders; merging never modifies a session.
+  combined by merging session folders; merging never modifies a session or its
+  inputs.
 - Samples store positions, never derived vectors.
 - Rejected samples stay in the dataset with status `rejected`; training uses
   accepted samples.
-  > Vamshi: We should also call out that samples can be deleted from the
-  > dataset - a hard delete operation that removes the sample and its video
-  > clip.
+- A sample can be deleted. Deleting is permanent: it removes the sample record
+  and its video clip from the dataset.
 - Labels are defined in the shared configuration, not in the dataset. Samples
   refer to labels by identifier.
 - Every session records the settings and camera mode used to capture it.
 - Handedness is recorded, and positions are never mirrored when stored.
-- Files are written atomically, and every file carries a format version.
+- Writes are crash-safe (section 6), and the format carries a version number.
 - Derived data such as thumbnails is cached outside the dataset and can be
   deleted.
 
@@ -58,8 +57,7 @@ a whole.
   sessions/
     <session id>/
       session.json             who, when, camera, settings used
-      samples/
-        <sample id>.json       one file per recorded gesture
+      samples.jsonl            one line per recorded gesture
       videos/
         <sample id>.mp4        video clip for the sample (may be absent)
 ```
@@ -67,7 +65,8 @@ a whole.
 - `dataset.json`: format version of the folder, created with the folder.
 - `sessions/`: one subfolder per session; nothing else is stored here.
 - `session.json`: session metadata and the exact settings used.
-- `samples/`: one JSON file per sample, accepted or rejected.
+- `samples.jsonl`: the session's samples, accepted or rejected, in capture
+  order, one JSON record per line.
 - `videos/`: one video clip per sample, named after the sample.
 
 Not stored in the data folder:
@@ -81,27 +80,40 @@ Not stored in the data folder:
 
 ## 4. Identifiers
 
-- **Session id**: `YYYYMMDDTHHMMSS-<author>-<4 hex>`, for example
-  `20261101T141502-vamshi-a3f1`. The author part is a lowercase slug.
-- **Sample id**: `YYYYMMDDTHHMMSS-<4 hex>`, unique within its session.
-- A sample is identified globally by its session id and sample id together.
-- Identifiers are never reused or changed.
+- **Session id**: a random UUID (version 4) in lowercase with hyphens, for
+  example `3f8c1d2e-9a4b-4c7e-8f10-5b6d7e8f9a0b`. It names the session folder.
+  It carries no author or time information; those are in `session.json`.
+- **Session name**: free text chosen by the author when starting the session,
+  so teammates can refer to a session by name. It is stored in `session.json`,
+  need not be unique, and is never used as an identifier or folder name.
+- **Sample id**: `<session id>-<number>`, for example
+  `3f8c1d2e-9a4b-4c7e-8f10-5b6d7e8f9a0b-0042`. The number is a sequence that
+  starts at 0001 in capture order, with more digits if a session exceeds 9999
+  samples. Because the session id is unique, the sample id is unique across all
+  datasets.
+- Samples are added only while a session is running, and numbers are not
+  reused within it, even after a sample is deleted.
+- Identifiers never change. Merging keeps them.
 - **Label id**: a lowercase slug (letters, digits, underscore).
 
 ## 5. File formats
 
-All files are UTF-8 JSON. Every file has an integer `format_version`.
+`session.json` and `dataset.json` are UTF-8 JSON. `samples.jsonl` is UTF-8 JSON
+Lines: one complete JSON object per line, each line ending in a newline. JSON
+keys are camel case, as required by `docs/standards.md`. Both `dataset.json` and
+`session.json` carry an integer `formatVersion`.
 
 ### 5.1 `session.json`
 
 ```json
 {
-  "format_version": 1,
-  "session_id": "20261101T141502-vamshi-a3f1",
+  "formatVersion": 1,
+  "sessionId": "3f8c1d2e-9a4b-4c7e-8f10-5b6d7e8f9a0b",
+  "name": "Vamshi evening desk",
   "author": "vamshi",
   "handedness": "right",
-  "started_at": "2026-11-01T14:15:02-04:00",
-  "ended_at": "2026-11-01T14:58:40-04:00",
+  "startedAt": "2026-11-01T14:15:02-04:00",
+  "endedAt": "2026-11-01T14:58:40-04:00",
   "notes": "desk lamp, white wall",
   "camera": {
     "device": "FaceTime HD Camera",
@@ -109,66 +121,87 @@ All files are UTF-8 JSON. Every file has an integer `format_version`.
     "requested": {"width": 640, "height": 480, "fps": 30},
     "actual": {"width": 640, "height": 480, "fps": 29.8}
   },
-  "vision_settings": {"...": "see the library design"},
-  "motion_settings": {"...": "see the library design"},
-  "clip_padding": {"pre_s": 2.0, "post_s": 2.0},
+  "visionSettings": {"...": "see the library design"},
+  "motionSettings": {"...": "see the library design"},
+  "clipPadding": {"preS": 2.0, "postS": 2.0},
   "profile": "desk-evening"
 }
 ```
 
-`ended_at` is null while the session is open. `profile` is null if none was
-loaded.
+`endedAt` is null while the session is open. `profile` is null if none was
+loaded. `name` and `notes` are optional free text.
 
-### 5.2 `<sample id>.json`
+### 5.2 `samples.jsonl`
+
+Each line is one sample record. The example is spread over several lines for
+reading; in the file it is a single line.
 
 ```json
 {
-  "format_version": 1,
-  "sample_id": "20261101T141530-9c2e",
-  "session_id": "20261101T141502-vamshi-a3f1",
-  "captured_at": "2026-11-01T14:15:30-04:00",
-  "updated_at": "2026-11-01T14:15:30-04:00",
+  "sampleId": "3f8c1d2e-9a4b-4c7e-8f10-5b6d7e8f9a0b-0042",
+  "sessionId": "3f8c1d2e-9a4b-4c7e-8f10-5b6d7e8f9a0b",
+  "capturedAt": "2026-11-01T14:15:30-04:00",
+  "updatedAt": "2026-11-01T14:15:30-04:00",
   "label": "circle",
   "status": "accepted",
   "handedness": "right",
-  "frame_size": [640, 480],
+  "frameSize": [640, 480],
   "positions": {
-    "t": [0.0, 0.033, 0.066],
-    "x": [0.41, 0.42, 0.44],
-    "y": [0.52, 0.50, 0.47]
+    "timeS": [0.0, 0.033, 0.066],
+    "horizontal": [0.41, 0.42, 0.44],
+    "vertical": [0.52, 0.50, 0.47]
   },
-  "video": {"file": "videos/20261101T141530-9c2e.mp4", "gesture_start_s": 2.0}
+  "video": {
+    "file": "videos/3f8c1d2e-9a4b-4c7e-8f10-5b6d7e8f9a0b-0042.mp4",
+    "gestureStartS": 2.0
+  }
 }
 ```
 
 - `status` is `accepted` or `rejected`. Samples are accepted when captured and
   can be rejected during or after the session.
 - `label` is a label id and is always set for recorded samples. Changing it
-  later updates `updated_at`.
+  later updates `updatedAt`.
 - `positions` are the tip positions as defined in `docs/architecture.md`,
-  stored column by column. Frames where the tip was not found are absent;
-  timestamps show the gaps. Derived vectors are never stored.
-- `video.gesture_start_s` is where the gesture begins within the clip. `video`
-  is null if no clip exists.
+  stored column by column: `timeS` in seconds from the first position,
+  `horizontal` and `vertical` as fractions of the frame. Frames where the tip
+  was not found are absent; the times show the gaps. Derived vectors are never
+  stored.
+- `video.file` is relative to the session folder. `video.gestureStartS` is
+  where the gesture begins within the clip. `video` is null if no clip exists.
 
-JSON is used because samples are small (tens to a few hundred points), files
-stay readable, and one file per sample makes safe edits simple.
+JSON is used because samples are small (tens to a few hundred points) and the
+files stay readable. One line per sample keeps a session in a single file and
+lets a set of samples be combined by concatenating lines.
 
 ## 6. Writing safely
 
-Every write goes through one routine: write to a temporary file in the same
-folder, flush it to disk, atomically rename it over the final name, then flush
-the folder. A reader never sees a partial file. A video clip is completed
-before the sample file that refers to it. Leftover temporary files are removed
-when the data folder is opened.
+Every write follows one of three routines, so a reader never sees a damaged
+file:
+
+- **Replace** (used for `session.json`, `dataset.json` and any edit or delete
+  in `samples.jsonl`): write the complete new content to a temporary file in
+  the same folder, flush it to disk, atomically rename it over the final name,
+  then flush the folder.
+- **Append** (used when a new sample is saved): write the video clip first,
+  using the replace routine. Then write the sample's line, including its
+  newline, to the end of `samples.jsonl` in one write and flush it to disk.
+- **Delete** (used when a sample is deleted): rewrite `samples.jsonl` without
+  the sample using the replace routine, then remove the video clip.
+
+A crash during an append can leave an incomplete last line. Readers ignore a
+last line that lacks its newline or is not valid JSON. Opening a data folder
+removes it, and removes leftover temporary files. At most the sample being
+written is lost.
 
 ## 7. Operations
 
 ### 7.1 Consistency check
 
-Reports, without changing anything: temporary files, video clips with no
-sample, samples whose clip is missing, samples with an unknown label id, and
-files with an unsupported format version.
+Reports, without changing anything: temporary files, incomplete last lines in
+sample files, video clips with no sample, samples whose clip is missing,
+samples with an unknown label id, and files with an unsupported format
+version.
 
 ### 7.2 Export
 
@@ -182,11 +215,18 @@ can load either a data folder or an export file.
 
 Combines one or more source data folders into a target data folder:
 
-- Session folders that the target does not have are copied in whole.
+- Sources are only read and are never changed. Only the target is written.
+- Session folders that the target does not have are copied in whole. Session
+  ids and sample ids are kept as they are; they are already unique, so nothing
+  is renumbered.
 - A session present in both with identical content is skipped.
 - A session present in both with different content is a conflict. It is
   reported and left unchanged unless the user chooses to replace the target's
   copy with the source's.
+- Video clips are copied by default so the target is self-contained. The user
+  can instead skip clips (training needs only positions) or hard-link them
+  when source and target are on the same volume, which saves space without
+  making the target depend on the source.
 - Sessions are never modified or split, so merging cannot interleave data from
   different sessions.
 
@@ -201,5 +241,5 @@ configurable in `config/data-collection.yaml`.
 
 ## 9. Versioning
 
-`format_version` increases when a change is not backward compatible. Readers
+`formatVersion` increases when a change is not backward compatible. Readers
 reject versions they do not know rather than guessing.

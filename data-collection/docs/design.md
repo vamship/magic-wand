@@ -235,10 +235,11 @@ still saved, with no clip, and the user is told.
 
 ### 5.5 Session service
 
-On start it validates the author and handedness, resolves the settings (see
-`docs/architecture.md`), and writes `session.json` with the camera's actual
-mode, the full vision and motion settings and the clip padding. It then locks
-the settings. On end it records `endedAt`.
+On start it validates the author and handedness, records the session name the
+author chose, resolves the settings (see `docs/architecture.md`), and writes
+`session.json` with the camera's actual mode, the full vision and motion
+settings and the clip padding. It then locks the settings. On end it records
+`endedAt`.
 
 ### 5.6 Library
 
@@ -263,8 +264,8 @@ step. The vendored files, with versions and sources, are listed in a
 `VERSIONS.md` beside them. JavaScript and CSS follow the 80-column rule in
 `docs/standards.md`.
 
-- **Setup**: camera list and previews; session form (author, handedness,
-  notes).
+- **Setup**: camera list and previews; session form (author, session name,
+  handedness, notes).
 - **Calibrate**: frozen-frame color calibration; sliders; motion tuning screen.
 - **Record**: live view; countdown and state; active label; the latest
   sample's path image; review actions; counts.
@@ -367,9 +368,10 @@ Everything is stored as defined in `docs/data-storage.md`. The application
 writes:
 
 - `session.json` when a session starts, updated when it ends;
-- one sample file per captured gesture, and its clip, when it is saved;
-- updates to a sample file for each label or status change; the clip is removed
-  with a deleted sample.
+- one line in the session's sample file per captured gesture, and its clip,
+  when it is saved;
+- a rewrite of the sample file for each label or status change; a deleted
+  sample is removed from the file and its clip is deleted.
 
 ## 8. Testing
 

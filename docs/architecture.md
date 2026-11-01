@@ -144,7 +144,7 @@ A dataset holds sessions, and each session holds samples:
 ```text
  Dataset
  +-- Session (one per recording run)
-     |   author, handedness, notes
+     |   name, author, handedness, notes
      |   camera and the mode it delivered
      |   settings used: vision settings, motion settings, clip padding
      |

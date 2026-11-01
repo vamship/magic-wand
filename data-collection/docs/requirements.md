@@ -58,7 +58,8 @@ are consistent.
   differences between wands, and different laptop cameras.
 
 ### R2. Session management (P1)
-- R2.1 Starting a session captures metadata: author, handedness
+- R2.1 Starting a session captures metadata: author, an optional session name
+  chosen by the author so teammates can refer to the session, handedness
   (left/right), start timestamp, camera/device identifier, requested and
   *actual* frame resolution and frame rate, the full vision settings, and the
   full motion-detection settings (including time window and minimum size
@@ -161,7 +162,8 @@ are consistent.
 
 ### R7. Load and review existing data (P1 unless noted)
 - R7.1 The user can open a data directory and browse existing samples,
-  filtered by label, session, author, date, and status (accepted/rejected).
+  filtered by label, session (by name), author, date, and status
+  (accepted/rejected).
 - R7.2 Samples are shown in a table with a small path-preview thumbnail per
   row, with the ability to select one for a larger detail view (path image,
   metadata).
