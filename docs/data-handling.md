@@ -1,6 +1,6 @@
 # Data Handling
 
-> **Version** 3 | **Updated** 2026-11-01 | **Draft**
+> **Version** 3 | **Updated** 2026-11-01 | **Approved**
 
 ## 1. Overview
 
