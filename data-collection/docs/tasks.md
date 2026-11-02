@@ -143,7 +143,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L9 | Dataset store: sessions and samples | Not started |
 | DC-L10 | Dataset store: check, export and load | Not started |
 | DC-L11 | Dataset store: merge | Not started |
-| DC-A1 | Application State | Not started |
+| DC-A1 | Application State | In progress |
 | DC-A2 | Application Server | Not started |
 | DC-A3 | Capture Engine | Not started |
 | DC-A4 | Live video stream | Not started |
@@ -866,7 +866,7 @@ half-copied session.
 ### DC-A1 Application State
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-F1
 - **Requirements**: R2.2
 - **Design**: DC 4.3
