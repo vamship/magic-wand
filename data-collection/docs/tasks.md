@@ -133,7 +133,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-S1 | H.264 encoding spike | Completed |
 | DC-S2 | Linux verification | Not started |
 | DC-L1 | Frame sources | Not started |
-| DC-L2 | Tracker | Not started |
+| DC-L2 | Tracker | In progress |
 | DC-L3 | Segmenter | Not started |
 | DC-L4 | Vector builder | Not started |
 | DC-L5 | Path renderer | Not started |
@@ -480,7 +480,7 @@ machine.
 ### DC-L2 Tracker
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-F2
 - **Requirements**: R1.2, R1.7, N1, N5
 - **Design**: Lib 6, 13
