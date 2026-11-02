@@ -9,6 +9,7 @@ import uvicorn
 
 from wand_collect.app import build_application, is_loopback
 from wand_collect.server import create_app
+from wand_collect.stream import StreamService
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -46,6 +47,9 @@ def serve(args: argparse.Namespace) -> int:
     app = create_app(
         application.state,
         application.engine,
+        routers=[
+            StreamService(application.engine, application.state).router,
+        ],
         on_shutdown=application.shutdown,
     )
     print(f"Open http://{server.host}:{server.port}/ in a browser.")
