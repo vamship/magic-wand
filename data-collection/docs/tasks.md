@@ -146,7 +146,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A1 | Application State | Completed |
 | DC-A2 | Application Server | Completed |
 | DC-A3 | Capture Engine | Completed |
-| DC-A4 | Live video stream | Not started |
+| DC-A4 | Live video stream | Completed |
 | DC-A5 | Calibration Service | Not started |
 | DC-A6 | Label Service | Not started |
 | DC-A7 | Clip Writer | Not started |
@@ -1020,7 +1020,7 @@ and the motion reading.
 ### DC-A4 Live video stream
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-A2, DC-A3
 - **Requirements**: R1.4, R4.8
 - **Design**: DC 4.2
@@ -1032,15 +1032,15 @@ image element. A query parameter `view` chooses the annotated camera view
 
 **Acceptance criteria.**
 
-- [ ] The response has media type `multipart/x-mixed-replace` with a boundary,
+- [x] The response has media type `multipart/x-mixed-replace` with a boundary,
       and each part is a complete JPEG with its content type and length.
-- [ ] A frame is encoded only while at least one browser is connected, and one
+- [x] A frame is encoded only while at least one browser is connected, and one
       encoded frame is shared among browsers watching the same view.
-- [ ] A slow browser skips to the newest frame rather than falling behind.
-- [ ] Closing the connection stops the generator.
-- [ ] An unknown `view` returns 400. With no camera, the response sends a
+- [x] A slow browser skips to the newest frame rather than falling behind.
+- [x] Closing the connection stops the generator.
+- [x] An unknown `view` returns 400. With no camera, the response sends a
       placeholder image instead of failing.
-- [ ] A test reads several parts from a stream fed by a recorded video and
+- [x] A test reads several parts from a stream fed by a recorded video and
       decodes each as an image.
 
 **Implementation notes.** An async generator that waits for a frame newer than
