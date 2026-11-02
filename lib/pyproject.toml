@@ -3,7 +3,12 @@ name = "wand-core"
 version = "0.1.0"
 description = "Shared vision, motion and dataset library for the magic wand."
 requires-python = ">=3.11"
-dependencies = ["pydantic>=2", "pyyaml>=6"]
+dependencies = [
+    "numpy>=2.4.6",
+    "opencv-python-headless>=5.0.0.93",
+    "pydantic>=2",
+    "pyyaml>=6",
+]
 
 [build-system]
 requires = ["hatchling"]
