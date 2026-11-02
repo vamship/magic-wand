@@ -150,7 +150,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A5 | Calibration Service | Completed |
 | DC-A6 | Label Service | Not started |
 | DC-A7 | Clip Writer | Completed |
-| DC-A8 | Sample Library | In progress |
+| DC-A8 | Sample Library | Completed |
 | DC-A9 | Session Service | Completed |
 | DC-A10 | Capture Controller | Not started |
 | DC-A11 | Command-line tools | Not started |
@@ -1181,7 +1181,7 @@ hold the whole clip's decoded frames in memory at once if it can be avoided.
 ### DC-A8 Sample Library
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-A1, DC-L5, DC-L9
 - **Requirements**: R5.2, R6.5, R6.8, R6.9, R7.1, R7.2, R7.3, R7.4, R7.6
 - **Design**: DC 4.9
@@ -1210,23 +1210,23 @@ Behavior:
 
 **Acceptance criteria.**
 
-- [ ] Queries combine all filters, return stable pages, and are fast for 10,000
+- [x] Queries combine all filters, return stable pages, and are fast for 10,000
       samples (well under 100 ms).
-- [ ] A new sample written by the Capture Controller appears in queries and in
+- [x] A new sample written by the Capture Controller appears in queries and in
       the counts without a restart.
-- [ ] Changing a label or status, and deleting, work in open and ended sessions,
+- [x] Changing a label or status, and deleting, work in open and ended sessions,
       update the index and the counts, and raise the samples revision.
-- [ ] A label that does not exist is rejected with 400.
-- [ ] A label, status or delete change is on disk, written with the safe replace
+- [x] A label that does not exist is rejected with 400.
+- [x] A label, status or delete change is on disk, written with the safe replace
       routine, before the request returns.
-- [ ] Overlay or video requests for a sample without a clip, or whose clip file
+- [x] Overlay or video requests for a sample without a clip, or whose clip file
       is missing, return 404; path images and thumbnails still work.
-- [ ] Thumbnails are cached in the operating system's cache location (not in the
+- [x] Thumbnails are cached in the operating system's cache location (not in the
       data folder), keyed by sample id and a hash of the positions, and can be
       deleted without harm.
-- [ ] Without a `session` filter, queries cover the whole dataset; the current
+- [x] Without a `session` filter, queries cover the whole dataset; the current
       session in the state can be used as the default for review.
-- [ ] The label-use count is available to the Label Service.
+- [x] The label-use count is available to the Label Service.
 
 **Implementation notes.** `services/library.py`. Use `platformdirs` for the
 cache location. Keep the index in a dictionary plus per-session lists in
