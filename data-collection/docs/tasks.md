@@ -137,7 +137,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L3 | Segmenter | Completed |
 | DC-L4 | Vector builder | Not started |
 | DC-L5 | Path renderer | Not started |
-| DC-L6 | Color calibrator | Not started |
+| DC-L6 | Color calibrator | In progress |
 | DC-L7 | Motion calibrator | Not started |
 | DC-L8 | Dataset store: formats and safe writes | Completed |
 | DC-L9 | Dataset store: sessions and samples | Completed |
@@ -643,7 +643,7 @@ helper that encodes an image to PNG bytes for the server.
 ### DC-L6 Color calibrator
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-L2
 - **Requirements**: R1.2, R1.7
 - **Design**: Lib 7
