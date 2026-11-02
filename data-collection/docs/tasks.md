@@ -140,7 +140,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L6 | Color calibrator | Not started |
 | DC-L7 | Motion calibrator | Not started |
 | DC-L8 | Dataset store: formats and safe writes | Completed |
-| DC-L9 | Dataset store: sessions and samples | Not started |
+| DC-L9 | Dataset store: sessions and samples | Completed |
 | DC-L10 | Dataset store: check, export and load | Not started |
 | DC-L11 | Dataset store: merge | Not started |
 | DC-A1 | Application State | Completed |
@@ -752,7 +752,7 @@ by killing processes.
 ### DC-L9 Dataset store: sessions and samples
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-L8
 - **Requirements**: R2.1, R2.3, R2.4, R2.7, R6.2, R6.8, R7.3, R7.6
 - **Design**: DH 2, 3, 4; Lib 12
@@ -770,23 +770,23 @@ clip); supply the next sample number.
 
 **Acceptance criteria.**
 
-- [ ] Session ids are UUID version 4. Sample ids are `<session id>-<number>`
+- [x] Session ids are UUID version 4. Sample ids are `<session id>-<number>`
       with the number zero-padded to at least 4 digits.
-- [ ] The next sample number is one more than the larger of the session's
+- [x] The next sample number is one more than the larger of the session's
       `highestSampleNumber` and the highest number in the samples file. After a
       sample with the highest number is deleted, the next number is not reused.
-- [ ] Adding a sample appends exactly one line and updates
+- [x] Adding a sample appends exactly one line and updates
       `highestSampleNumber`. A crash between the two still gives the right next
       number.
-- [ ] Updating or deleting a sample rewrites the samples file atomically;
+- [x] Updating or deleting a sample rewrites the samples file atomically;
       deleting also removes the clip file, and a missing clip is not an error.
-- [ ] A sample whose `video` is empty, or whose clip file is absent, is read as
+- [x] A sample whose `video` is empty, or whose clip file is absent, is read as
       having no clip.
-- [ ] A label must be a lowercase slug (letters, digits, underscore); anything
+- [x] A label must be a lowercase slug (letters, digits, underscore); anything
       else is rejected.
-- [ ] Every change (session written, sample added, updated, deleted) is reported
+- [x] Every change (session written, sample added, updated, deleted) is reported
       to subscribers with the kind of change and the ids.
-- [ ] Ended sessions accept no new samples, but their samples can still be
+- [x] Ended sessions accept no new samples, but their samples can still be
       updated and deleted.
 
 **Implementation notes.** `dataset/store.py`. Subscribers are plain callbacks
