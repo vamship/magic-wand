@@ -145,7 +145,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L11 | Dataset store: merge | Not started |
 | DC-A1 | Application State | Completed |
 | DC-A2 | Application Server | Not started |
-| DC-A3 | Capture Engine | Not started |
+| DC-A3 | Capture Engine | Completed |
 | DC-A4 | Live video stream | Not started |
 | DC-A5 | Calibration Service | Not started |
 | DC-A6 | Label Service | Not started |
@@ -961,7 +961,7 @@ files, startup, the event stream, the state endpoint, error handling, and the
 ### DC-A3 Capture Engine
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-A1, DC-L1, DC-L2, DC-L3
 - **Requirements**: R4.5, R4.8, R6.6, R6.7, N3
 - **Design**: DC 4.6
@@ -979,29 +979,29 @@ and the motion reading.
 
 **Acceptance criteria.**
 
-- [ ] Commands arrive on a queue and take effect between frames: arm, disarm,
+- [x] Commands arrive on a queue and take effect between frames: arm, disarm,
       open a camera (by index), and close.
-- [ ] Settings are read from the Application State at the start of each frame,
+- [x] Settings are read from the Application State at the start of each frame,
       and the Tracker and Segmenter are rebuilt when they changed. Segmenter
       state is reset when its settings change.
-- [ ] The ring buffer keeps JPEG-compressed frames with their timestamps for
+- [x] The ring buffer keeps JPEG-compressed frames with their timestamps for
       about `clipPadding.preS + maxDurationS + clipPadding.postS` seconds (about
       8 seconds at the defaults, around 10 MB). It returns the frames between
       two timestamps.
-- [ ] The latest annotated frame (tip marker and the idle or motion state drawn
+- [x] The latest annotated frame (tip marker and the idle or motion state drawn
       on it) and the latest mask frame are available, each with a frame number,
       and a caller can wait for a newer one.
-- [ ] A motion reading (timestamp, speed, moving, thresholds) is published for
+- [x] A motion reading (timestamp, speed, moving, thresholds) is published for
       every frame.
-- [ ] When the Segmenter reports a gesture or a discard, or motion starts, a
+- [x] When the Segmenter reports a gesture or a discard, or motion starts, a
       message is sent to a registered receiver (the Capture Controller).
-- [ ] After opening a camera, the engine writes the camera to the Application
+- [x] After opening a camera, the engine writes the camera to the Application
       State: device, index, the requested mode and the actual mode, with the
       frame rate measured over the first couple of seconds.
-- [ ] If the camera cannot be opened, the camera field is cleared and the error
+- [x] If the camera cannot be opened, the camera field is cleared and the error
       is returned to the caller; the engine keeps running and can open another.
-- [ ] The engine accepts any frame source, so tests run it on a recorded video.
-- [ ] A slow consumer of the published frames never delays the camera loop.
+- [x] The engine accepts any frame source, so tests run it on a recorded video.
+- [x] A slow consumer of the published frames never delays the camera loop.
 
 **Implementation notes.**
 
