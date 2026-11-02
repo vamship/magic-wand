@@ -79,7 +79,12 @@ function App() {
     <${Notices} items=${items} />
     <main>
       ${snapshot
-        ? renderPage(page, current.title, { snapshot, store, shortcuts })
+        ? renderPage(page, current.title, {
+            snapshot,
+            store,
+            shortcuts,
+            notices,
+          })
         : html`<p>Connecting to the application...</p>`}
     </main>
   </div>`;
