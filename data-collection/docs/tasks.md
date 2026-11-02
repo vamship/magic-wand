@@ -1,12 +1,12 @@
 # Data Collection Application - Tasks
 
-> **Version** 2 | **Updated** 2026-11-01 | **Draft**
+> **Version** 3 | **Updated** 2026-11-01 | **Draft**
 
 ## 1. Overview
 
 This document breaks the data collection application into tasks. Each task has
 a title, a description, acceptance criteria and implementation notes, and it
-names its branch, its dependencies, and the requirements and design sections it
+gives its type, its dependencies, and the requirements and design sections it
 implements. A task is written so that someone who has not seen the rest of the
 project can implement it from the task text, going to the referenced documents
 for exact definitions.
@@ -23,32 +23,22 @@ later the classifier use, and the data collection application itself.
 
 ### 2.1 Task format
 
-Every task has:
+Tasks follow the format in `docs/standards.md` section 1.1. Each task here
+has a type, status, dependencies, requirements, design references, a
+description, acceptance criteria and implementation notes. The description and
+the acceptance criteria are binding; the implementation notes are suggestions.
 
-- **Branch**: the branch it is developed on, merged after review.
-- **Status**: `Not started`, `In progress` or `Completed`.
-- **Depends on**: tasks that must be complete before this one starts. Tasks
-  with no dependency between them can be done in parallel.
-- **Requirements** and **Design**: where the behavior is specified.
-- **Description**: what to build and how it behaves.
-- **Acceptance criteria**: checks that decide whether the task is done.
-- **Implementation notes**: suggestions on structure, libraries and pitfalls.
-  They are suggestions; the description and criteria are binding.
+- The **branch** of a task is named from its type, ID and title
+  (`docs/standards.md` section 1.2). Task L2, "Tracker", of type `feat` is
+  developed on `feat/l2-tracker`.
+- The **definition of done** (`docs/standards.md` section 1.4) applies to every
+  task.
+- Each task is written with enough information for an independent agent to
+  implement it successfully, using only the task and the documents it
+  references (`docs/standards.md` section 1.1).
+- Tasks with no dependency between them can be done in parallel.
 
-### 2.2 Definition of done
-
-Every task is also complete only when:
-
-- `uv run ruff format` and `uv run ruff check` report nothing to fix;
-- the task's tests pass with `uv run pytest`, and they need no camera;
-- every new dependency is declared in the relevant `pyproject.toml`, and
-  `uv.lock` is up to date;
-- lines in code and text are within 80 columns, and names follow the naming
-  standards in `docs/standards.md`;
-- the behavior matches the approved design. A needed change to an approved
-  document is made on a branch of its own first and reviewed.
-
-### 2.3 References
+### 2.2 References
 
 Short names are used for documents:
 
@@ -58,7 +48,7 @@ Short names are used for documents:
 - **DH**: `docs/data-handling.md`
 - **Arch**: `docs/architecture.md`
 
-### 2.4 Technology and layout (suggested)
+### 2.3 Technology and layout (suggested)
 
 - Python 3.11 or later, managed with uv; packages in a `src` layout.
 - Shared library `wand-core`, imported as `wand_core`, under `lib/src`. It uses
@@ -83,7 +73,7 @@ data-collection/src/wand_collect/
   static/  (index.html, style.css, app/, vendor/)
 ```
 
-### 2.5 Shared types
+### 2.4 Shared types
 
 Tasks use these names so independently built parts fit together. In Python the
 fields are snake case; in JSON and YAML they are camel case
@@ -116,7 +106,7 @@ fields are snake case; in JSON and YAML they are camel case
   `active_label`, `latest_sample`, `last_discard`, `counts`, `samples_revision`
   and `labels`.
 
-### 2.6 HTTP conventions
+### 2.5 HTTP conventions
 
 - Request and response bodies are JSON with camel case keys. Timestamps are
   ISO 8601 with a UTC offset. Durations are seconds, with an `S` suffix.
@@ -244,26 +234,26 @@ them the tasks cover R1.1 to R7.6 and N1 to N5. R7.5 is P2 (task U7).
 
 ### D0 Project documents
 
-- **Branch**: merged (`docs/*`)
+- **Type**: docs
 - **Status**: Completed
 - **Description**: The architecture, data handling, standards, glossary, notes
   and the shared library design.
 
 ### D1 Requirements
 
-- **Branch**: merged (`docs/requirements`)
+- **Type**: docs
 - **Status**: Completed
 - **Description**: `data-collection/docs/requirements.md`, Version 7, approved.
 
 ### D2 Design
 
-- **Branch**: merged
+- **Type**: docs
 - **Status**: Completed
 - **Description**: `data-collection/docs/design.md`, Version 6, approved.
 
 ### D3 Task list
 
-- **Branch**: `docs/tasks`
+- **Type**: docs
 - **Status**: In progress
 - **Description**: This document.
 
@@ -271,7 +261,7 @@ them the tasks cover R1.1 to R7.6 and N1 to N5. R7.5 is P2 (task U7).
 
 ### F1 Workspace and tooling
 
-- **Branch**: `chore/workspace`
+- **Type**: chore
 - **Status**: Not started
 - **Depends on**: none
 - **Requirements**: N1, N4
@@ -313,7 +303,7 @@ workspace with two packages, `lib` (the shared library) and `data-collection`
 
 ### F2 Configuration and settings models
 
-- **Branch**: `feat/config`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: F1
 - **Requirements**: R3.4, R6.7
@@ -357,7 +347,7 @@ place.
 
 ### S1 H.264 encoding spike
 
-- **Branch**: `chore/h264-spike`
+- **Type**: chore
 - **Status**: Not started
 - **Depends on**: F1
 - **Requirements**: R6.6, R6.9
@@ -393,7 +383,7 @@ decides how the Clip Writer (A7) is built.
 
 ### L1 Frame sources
 
-- **Branch**: `feat/frame-sources`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: F1
 - **Requirements**: R1.1, R6.7, N3, N5
@@ -439,7 +429,7 @@ machine.
 
 ### L2 Tracker
 
-- **Branch**: `feat/tracker`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: F2
 - **Requirements**: R1.2, R1.7, N1, N5
@@ -486,7 +476,7 @@ the one nearest the previous tip; report the center of its enclosing circle.
 
 ### L3 Segmenter
 
-- **Branch**: `feat/segmenter`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: F2
 - **Requirements**: R4.5, N1, N5
@@ -547,7 +537,7 @@ Behavior:
 
 ### L4 Vector builder
 
-- **Branch**: `feat/vectors`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: F1
 - **Requirements**: R6.1, N1
@@ -573,7 +563,7 @@ stored; training and inference both call this function.
 
 ### L5 Path renderer
 
-- **Branch**: `feat/path-renderer`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: F1
 - **Requirements**: R5.2, R6.5
@@ -601,7 +591,7 @@ helper that encodes an image to PNG bytes for the server.
 
 ### L6 Color calibrator
 
-- **Branch**: `feat/color-calibrator`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: L2
 - **Requirements**: R1.2, R1.7
@@ -642,7 +632,7 @@ view will show.
 
 ### L7 Motion calibrator
 
-- **Branch**: `feat/motion-calibrator`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: L3
 - **Requirements**: R1.5
@@ -672,7 +662,7 @@ the typical speed. The values are provisional; V3 tunes them.
 
 ### L8 Dataset store: formats and safe writes
 
-- **Branch**: `feat/dataset-formats`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: F2
 - **Requirements**: R6.1, R6.2, R6.3, R6.4, R2.3
@@ -710,7 +700,7 @@ by killing processes.
 
 ### L9 Dataset store: sessions and samples
 
-- **Branch**: `feat/dataset-operations`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: L8
 - **Requirements**: R2.1, R2.3, R2.4, R2.7, R6.2, R6.8, R7.3, R7.6
@@ -756,7 +746,7 @@ into memory is fine.
 
 ### L10 Dataset store: check, export and load
 
-- **Branch**: `feat/dataset-export`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: L9
 - **Requirements**: R2.3, R6.3
@@ -790,7 +780,7 @@ the export line by line so large datasets do not need to fit in memory.
 
 ### L11 Dataset store: merge
 
-- **Branch**: `feat/dataset-merge`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: L9
 - **Requirements**: R2.5
@@ -824,7 +814,7 @@ half-copied session.
 
 ### A1 Application State
 
-- **Branch**: `feat/app-state`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: F1
 - **Requirements**: R2.2
@@ -866,7 +856,7 @@ Listener callbacks must not block; the server's listener only enqueues.
 
 ### A2 Application Server
 
-- **Branch**: `feat/app-server`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: A1, F2, L8
 - **Requirements**: R6.3, N4
@@ -898,7 +888,7 @@ files, startup, the event stream, the state endpoint, error handling, and the
       `state` event is replaced by the newer one (no snapshot is lost in
       effect), and old `motion` events are dropped.
 - [ ] A disconnected browser's queue is removed.
-- [ ] Errors follow section 2.6: unknown ids return 404, bad input returns 400,
+- [ ] Errors follow section 2.5: unknown ids return 404, bad input returns 400,
       rule violations return 409 with a code.
 - [ ] Each service registers its own routes through a common mechanism, so later
       tasks add endpoints without editing the server core.
@@ -919,7 +909,7 @@ files, startup, the event stream, the state endpoint, error handling, and the
 
 ### A3 Capture Engine
 
-- **Branch**: `feat/capture-engine`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: A1, L1, L2, L3
 - **Requirements**: R4.5, R4.8, R6.6, R6.7, N3
@@ -978,7 +968,7 @@ and the motion reading.
 
 ### A4 Live video stream
 
-- **Branch**: `feat/live-stream`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: A2, A3
 - **Requirements**: R1.4, R4.8
@@ -1009,7 +999,7 @@ client disconnect on each loop pass.
 
 ### A5 Calibration Service
 
-- **Branch**: `feat/calibration-service`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: A1, A3, L6, L7, F2
 - **Requirements**: R1.1, R1.2, R1.3, R1.4, R1.5, R1.6, R1.7, R2.2
@@ -1020,7 +1010,7 @@ field of the Application State: the working vision and motion settings and the
 loaded profile name. It refuses every change while a session is loaded for
 capture.
 
-Functions and endpoints (JSON, section 2.6):
+Functions and endpoints (JSON, section 2.5):
 
 - Cameras: `GET /api/cameras` lists them (index, name, device identifier,
   modes) using the library; `PUT /api/camera` with the index asks the Capture
@@ -1075,7 +1065,7 @@ engine publishes (a short-lived subscription to its detections). The
 
 ### A6 Label Service
 
-- **Branch**: `feat/label-service`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: A1, A8, F2
 - **Requirements**: R3.1, R3.2, R3.3
@@ -1110,7 +1100,7 @@ helpers so a crash cannot truncate the file.
 
 ### A7 Clip Writer
 
-- **Branch**: `feat/clip-writer`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: S1
 - **Requirements**: R6.6, R6.9
@@ -1139,7 +1129,7 @@ hold the whole clip's decoded frames in memory at once if it can be avoided.
 
 ### A8 Sample Library
 
-- **Branch**: `feat/sample-library`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: A1, L5, L9
 - **Requirements**: R5.2, R6.5, R6.8, R6.9, R7.1, R7.2, R7.3, R7.4, R7.6
@@ -1194,7 +1184,7 @@ capture order. Decode the overlay frame with `cv2.VideoCapture` seeking to the
 
 ### A9 Session Service
 
-- **Branch**: `feat/session-service`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: A1, A3, A5, L9
 - **Requirements**: R2.1, R2.2, R2.4, R2.6, R2.7
@@ -1250,7 +1240,7 @@ failed start or resume leaves the state unchanged.
 
 ### A10 Capture Controller
 
-- **Branch**: `feat/capture-controller`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: A1, A3, A7, A9, L9
 - **Requirements**: R4.1, R4.2, R4.3, R4.4, R4.5, R4.6, R4.7, R4.9, R5.6, R6.4
@@ -1327,7 +1317,7 @@ completion.
 
 ### A11 Command-line tools
 
-- **Branch**: `feat/cli-tools`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: L10, L11, A2
 - **Requirements**: R2.3, R2.5
@@ -1366,7 +1356,7 @@ hand.
 
 ### U1 Web UI shell
 
-- **Branch**: `feat/ui-shell`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: A2
 - **Requirements**: N2
@@ -1409,7 +1399,7 @@ the state so they stay simple. No Node tooling is used.
 
 ### U2 Setup page
 
-- **Branch**: `feat/ui-setup`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: U1, A5, A9
 - **Requirements**: R1.1, R2.1, R2.6, R6.7
@@ -1442,7 +1432,7 @@ opens an existing one.
 
 ### U3 Calibrate page
 
-- **Branch**: `feat/ui-calibrate`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: U1, A4, A5
 - **Requirements**: R1.2, R1.3, R1.4, R1.5, R1.6
@@ -1481,7 +1471,7 @@ Throttle slider requests (about 10 per second) while dragging.
 
 ### U4 Record page
 
-- **Branch**: `feat/ui-record`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: U1, A4, A10
 - **Requirements**: R4.1, R4.7, R4.8, R5.6
@@ -1509,7 +1499,7 @@ Throttle slider requests (about 10 per second) while dragging.
 
 ### U5 Review page
 
-- **Branch**: `feat/ui-review`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: U1, A8, A10
 - **Requirements**: R4.7, R5.1, R5.2, R5.3, R5.4, R5.5
@@ -1544,7 +1534,7 @@ the samples revision changes. The selected sample is local page state.
 
 ### U6 Browse page
 
-- **Branch**: `feat/ui-browse`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: U1, A8
 - **Requirements**: R6.9, R7.1, R7.2, R7.3, R7.4
@@ -1573,7 +1563,7 @@ the samples revision changes. The selected sample is local page state.
 
 ### U7 Scrubbing view (P2)
 
-- **Branch**: `feat/ui-scrubbing`
+- **Type**: feat
 - **Status**: Not started
 - **Depends on**: U6, A8
 - **Requirements**: R7.5
@@ -1601,7 +1591,7 @@ canvas on top. Frame positions come from the sample's `positions` and
 
 ### V1 Whole-application test
 
-- **Branch**: `feat/e2e-test`
+- **Type**: test
 - **Status**: Not started
 - **Depends on**: A10, A11, U5
 - **Requirements**: all P1 requirements, N2
@@ -1634,7 +1624,7 @@ countdown in the test configuration.
 
 ### V2 Real-camera testing
 
-- **Branch**: `chore/camera-testing`
+- **Type**: chore
 - **Status**: Not started
 - **Depends on**: U6
 - **Requirements**: R1.7, N3, N4, R6.7
@@ -1660,7 +1650,7 @@ camera permission step on macOS.
 
 ### V3 Motion threshold tuning
 
-- **Branch**: `chore/tune-thresholds`
+- **Type**: chore
 - **Status**: Not started
 - **Depends on**: V2
 - **Requirements**: R1.5, R4.5
