@@ -27,8 +27,26 @@ from wand_core.dataset.models import (
     from_disk,
     to_disk,
 )
+from wand_core.dataset.store import (
+    Change,
+    ChangeKind,
+    DatasetStore,
+    SampleNotFoundError,
+    SessionEndedError,
+    SessionNotFoundError,
+    make_sample_id,
+    split_sample_id,
+)
 
 __all__ = [
+    "Change",
+    "ChangeKind",
+    "DatasetStore",
+    "SampleNotFoundError",
+    "SessionEndedError",
+    "SessionNotFoundError",
+    "make_sample_id",
+    "split_sample_id",
     "FORMAT_VERSION",
     "CameraRecord",
     "DataFolder",
