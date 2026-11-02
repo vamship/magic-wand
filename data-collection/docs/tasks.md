@@ -151,7 +151,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A6 | Label Service | Not started |
 | DC-A7 | Clip Writer | Not started |
 | DC-A8 | Sample Library | Not started |
-| DC-A9 | Session Service | Not started |
+| DC-A9 | Session Service | In progress |
 | DC-A10 | Capture Controller | Not started |
 | DC-A11 | Command-line tools | Not started |
 | DC-U1 | Web UI shell | Completed |
@@ -1236,7 +1236,7 @@ capture order. Decode the overlay frame with `cv2.VideoCapture` seeking to the
 ### DC-A9 Session Service
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-A1, DC-A3, DC-A5, DC-L9
 - **Requirements**: R2.1, R2.2, R2.4, R2.6, R2.7
 - **Design**: DC 3.2, 4.5
