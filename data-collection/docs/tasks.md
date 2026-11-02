@@ -144,7 +144,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L10 | Dataset store: check, export and load | Not started |
 | DC-L11 | Dataset store: merge | Not started |
 | DC-A1 | Application State | Completed |
-| DC-A2 | Application Server | Not started |
+| DC-A2 | Application Server | In progress |
 | DC-A3 | Capture Engine | Completed |
 | DC-A4 | Live video stream | Not started |
 | DC-A5 | Calibration Service | Not started |
@@ -908,7 +908,7 @@ Listener callbacks must not block; the server's listener only enqueues.
 ### DC-A2 Application Server
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-A1, DC-F2, DC-L8
 - **Requirements**: R6.3, N4
 - **Design**: DC 4.2, 5.1, 5.3 (`serve`)
@@ -1365,6 +1365,14 @@ time, not a loop that wakes every tick (the Web UI counts down locally). Active
 label changes are allowed in any state and take effect for the next gesture.
 The save job runs on a worker thread and posts a message to the loop on
 completion.
+
+**Note from DC-L9 (sample numbers).** `DatasetStore.next_sample_number` and
+`add_sample` are separate calls, so two writers could be given the same
+number. The controller handles one gesture at a time, so this is unlikely, but
+the controller must reserve a number and save the sample without another
+writer in between (for example by remembering the numbers it has handed out,
+or by adding a reserve call to the store). Do not reach into the store's
+private lock.
 
 ### DC-A11 Command-line tools
 
