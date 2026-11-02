@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 3 | **Updated** 2026-11-01 | **Draft**
+> **Version** 4 | **Updated** 2026-11-01 | **Approved**
 
 ## 1. Overview
 
@@ -28,9 +28,12 @@ has a type, status, dependencies, requirements, design references, a
 description, acceptance criteria and implementation notes. The description and
 the acceptance criteria are binding; the implementation notes are suggestions.
 
+- The **ID** of every task here starts with the component code `DC` (data
+  collection), which makes it unique across the repository
+  (`docs/standards.md` section 1.1).
 - The **branch** of a task is named from its type, ID and title
-  (`docs/standards.md` section 1.2). Task L2, "Tracker", of type `feat` is
-  developed on `feat/l2-tracker`.
+  (`docs/standards.md` section 1.2). Task DC-L2, "Tracker", of type `feat` is
+  developed on `feat/dc-l2-tracker`.
 - The **definition of done** (`docs/standards.md` section 1.4) applies to every
   task.
 - Each task is written with enough information for an independent agent to
@@ -121,45 +124,45 @@ fields are snake case; in JSON and YAML they are camel case
 
 | ID | Task | Status |
 |---|---|---|
-| D0 | Project documents | Completed |
-| D1 | Requirements | Completed |
-| D2 | Design | Completed |
-| D3 | Task list | In progress |
-| F1 | Workspace and tooling | Not started |
-| F2 | Configuration and settings models | Not started |
-| S1 | H.264 encoding spike | Not started |
-| L1 | Frame sources | Not started |
-| L2 | Tracker | Not started |
-| L3 | Segmenter | Not started |
-| L4 | Vector builder | Not started |
-| L5 | Path renderer | Not started |
-| L6 | Color calibrator | Not started |
-| L7 | Motion calibrator | Not started |
-| L8 | Dataset store: formats and safe writes | Not started |
-| L9 | Dataset store: sessions and samples | Not started |
-| L10 | Dataset store: check, export and load | Not started |
-| L11 | Dataset store: merge | Not started |
-| A1 | Application State | Not started |
-| A2 | Application Server | Not started |
-| A3 | Capture Engine | Not started |
-| A4 | Live video stream | Not started |
-| A5 | Calibration Service | Not started |
-| A6 | Label Service | Not started |
-| A7 | Clip Writer | Not started |
-| A8 | Sample Library | Not started |
-| A9 | Session Service | Not started |
-| A10 | Capture Controller | Not started |
-| A11 | Command-line tools | Not started |
-| U1 | Web UI shell | Not started |
-| U2 | Setup page | Not started |
-| U3 | Calibrate page | Not started |
-| U4 | Record page | Not started |
-| U5 | Review page | Not started |
-| U6 | Browse page | Not started |
-| U7 | Scrubbing view (P2) | Not started |
-| V1 | Whole-application test | Not started |
-| V2 | Real-camera testing | Not started |
-| V3 | Motion threshold tuning | Not started |
+| DC-D0 | Project documents | Completed |
+| DC-D1 | Requirements | Completed |
+| DC-D2 | Design | Completed |
+| DC-D3 | Task list | In progress |
+| DC-F1 | Workspace and tooling | Not started |
+| DC-F2 | Configuration and settings models | Not started |
+| DC-S1 | H.264 encoding spike | Not started |
+| DC-L1 | Frame sources | Not started |
+| DC-L2 | Tracker | Not started |
+| DC-L3 | Segmenter | Not started |
+| DC-L4 | Vector builder | Not started |
+| DC-L5 | Path renderer | Not started |
+| DC-L6 | Color calibrator | Not started |
+| DC-L7 | Motion calibrator | Not started |
+| DC-L8 | Dataset store: formats and safe writes | Not started |
+| DC-L9 | Dataset store: sessions and samples | Not started |
+| DC-L10 | Dataset store: check, export and load | Not started |
+| DC-L11 | Dataset store: merge | Not started |
+| DC-A1 | Application State | Not started |
+| DC-A2 | Application Server | Not started |
+| DC-A3 | Capture Engine | Not started |
+| DC-A4 | Live video stream | Not started |
+| DC-A5 | Calibration Service | Not started |
+| DC-A6 | Label Service | Not started |
+| DC-A7 | Clip Writer | Not started |
+| DC-A8 | Sample Library | Not started |
+| DC-A9 | Session Service | Not started |
+| DC-A10 | Capture Controller | Not started |
+| DC-A11 | Command-line tools | Not started |
+| DC-U1 | Web UI shell | Not started |
+| DC-U2 | Setup page | Not started |
+| DC-U3 | Calibrate page | Not started |
+| DC-U4 | Record page | Not started |
+| DC-U5 | Review page | Not started |
+| DC-U6 | Browse page | Not started |
+| DC-U7 | Scrubbing view (P2) | Not started |
+| DC-V1 | Whole-application test | Not started |
+| DC-V2 | Real-camera testing | Not started |
+| DC-V3 | Motion threshold tuning | Not started |
 
 ## 4. Coverage of the design
 
@@ -169,89 +172,89 @@ Every part of the approved designs is assigned to at least one task.
 
 | DC section | Tasks |
 |---|---|
-| 2.1, 2.2 Components | A1 to A11, U1 |
-| 3.1 Journey | U1 to U6, A9, A10 |
-| 3.2 Session lifecycle | A9, A1, L9 |
-| 3.3 Calibration | A5, U3, L6, L7 |
-| 3.4 Capture cycle | A10, A3, A7, U4, U5 |
-| 4.1 Web UI | U1 to U7 |
-| 4.2 Application Server | A2, A4 |
-| 4.3 Application State | A1 |
-| 4.4 Calibration Service | A5 |
-| 4.5 Session Service | A9 |
-| 4.6 Capture Engine | A3 |
-| 4.7 Capture Controller | A10 |
-| 4.8 Clip Writer | A7, S1 |
-| 4.9 Sample Library | A8 |
-| 4.10 Label Service | A6 |
-| 4.11 Dataset Store | L8 to L11 |
-| 5.1 Event stream | A2, U1 |
-| 5.3 Command line | A2 (serve), A11 |
-| 5.4 Application settings | F2 |
-| 6 Data | L8, L9, A9, A10 |
-| 7 Testing | every task, V1, V2 |
+| 2.1, 2.2 Components | DC-A1 to DC-A11, DC-U1 |
+| 3.1 Journey | DC-U1 to DC-U6, DC-A9, DC-A10 |
+| 3.2 Session lifecycle | DC-A9, DC-A1, DC-L9 |
+| 3.3 Calibration | DC-A5, DC-U3, DC-L6, DC-L7 |
+| 3.4 Capture cycle | DC-A10, DC-A3, DC-A7, DC-U4, DC-U5 |
+| 4.1 Web UI | DC-U1 to DC-U7 |
+| 4.2 Application Server | DC-A2, DC-A4 |
+| 4.3 Application State | DC-A1 |
+| 4.4 Calibration Service | DC-A5 |
+| 4.5 Session Service | DC-A9 |
+| 4.6 Capture Engine | DC-A3 |
+| 4.7 Capture Controller | DC-A10 |
+| 4.8 Clip Writer | DC-A7, DC-S1 |
+| 4.9 Sample Library | DC-A8 |
+| 4.10 Label Service | DC-A6 |
+| 4.11 Dataset Store | DC-L8 to DC-L11 |
+| 5.1 Event stream | DC-A2, DC-U1 |
+| 5.3 Command line | DC-A2 (serve), DC-A11 |
+| 5.4 Application settings | DC-F2 |
+| 6 Data | DC-L8, DC-L9, DC-A9, DC-A10 |
+| 7 Testing | every task, DC-V1, DC-V2 |
 
 **HTTP interface (DC 5.2)**
 
 | Endpoints | Task |
 |---|---|
-| `/api/stream` | A4 |
-| `/api/events`, `/api/state` | A2 |
-| `/api/cameras`, `/api/camera` | A5 |
-| `/api/calibration/*`, `/api/settings` | A5 |
-| `/api/profiles*` | A5 |
-| `/api/sessions*` | A9 |
-| `/api/labels*` | A6 |
-| `/api/recording/*` | A10 |
-| `/api/samples*` except video | A8 |
-| `/api/samples/{id}/video` | U7 |
+| `/api/stream` | DC-A4 |
+| `/api/events`, `/api/state` | DC-A2 |
+| `/api/cameras`, `/api/camera` | DC-A5 |
+| `/api/calibration/*`, `/api/settings` | DC-A5 |
+| `/api/profiles*` | DC-A5 |
+| `/api/sessions*` | DC-A9 |
+| `/api/labels*` | DC-A6 |
+| `/api/recording/*` | DC-A10 |
+| `/api/samples*` except video | DC-A8 |
+| `/api/samples/{id}/video` | DC-U7 |
 
 **Library design (Lib) and data handling (DH)**
 
 | Section | Tasks |
 |---|---|
-| Lib 5 Frame source | L1 |
-| Lib 6 Tracker and vision settings | L2, F2 |
-| Lib 7 Color calibrator | L6 |
-| Lib 8 Segmenter and motion settings | L3, F2 |
-| Lib 9 Motion calibrator | L7 |
-| Lib 10 Vector builder | L4 |
-| Lib 11 Path renderer | L5 |
-| Lib 12 Dataset store | L8 to L11 |
-| DH 2, 3 Rules, data folder | L8, L9, A8 (delete) |
-| DH 4 Identifiers | L9 |
-| DH 5 File formats | L8 |
-| DH 6 Writing safely | L8 |
-| DH 7.1 Consistency check | L10, A11 |
-| DH 7.2 Export | L10, A11 |
-| DH 7.3 Merge | L11, A11 |
-| DH 9 Versioning | L8 |
+| Lib 5 Frame source | DC-L1 |
+| Lib 6 Tracker and vision settings | DC-L2, DC-F2 |
+| Lib 7 Color calibrator | DC-L6 |
+| Lib 8 Segmenter and motion settings | DC-L3, DC-F2 |
+| Lib 9 Motion calibrator | DC-L7 |
+| Lib 10 Vector builder | DC-L4 |
+| Lib 11 Path renderer | DC-L5 |
+| Lib 12 Dataset store | DC-L8 to DC-L11 |
+| DH 2, 3 Rules, data folder | DC-L8, DC-L9, DC-A8 (delete) |
+| DH 4 Identifiers | DC-L9 |
+| DH 5 File formats | DC-L8 |
+| DH 6 Writing safely | DC-L8 |
+| DH 7.1 Consistency check | DC-L10, DC-A11 |
+| DH 7.2 Export | DC-L10, DC-A11 |
+| DH 7.3 Merge | DC-L11, DC-A11 |
+| DH 9 Versioning | DC-L8 |
 
 **Requirements.** Each task lists the requirement IDs it implements. Between
-them the tasks cover R1.1 to R7.6 and N1 to N5. R7.5 is P2 (task U7).
+them the tasks cover R1.1 to R7.6 and N1 to N5. R7.5 is P2 (task DC-U7).
 
 ## 5. Documentation tasks
 
-### D0 Project documents
+### DC-D0 Project documents
 
 - **Type**: docs
 - **Status**: Completed
 - **Description**: The architecture, data handling, standards, glossary, notes
   and the shared library design.
 
-### D1 Requirements
+### DC-D1 Requirements
 
 - **Type**: docs
 - **Status**: Completed
 - **Description**: `data-collection/docs/requirements.md`, Version 7, approved.
 
-### D2 Design
+### DC-D2 Design
 
 - **Type**: docs
 - **Status**: Completed
 - **Description**: `data-collection/docs/design.md`, Version 6, approved.
 
-### D3 Task list
+### DC-D3 Task list
 
 - **Type**: docs
 - **Status**: In progress
@@ -259,7 +262,7 @@ them the tasks cover R1.1 to R7.6 and N1 to N5. R7.5 is P2 (task U7).
 
 ## 6. Foundation tasks
 
-### F1 Workspace and tooling
+### DC-F1 Workspace and tooling
 
 - **Type**: chore
 - **Status**: Not started
@@ -301,11 +304,11 @@ workspace with two packages, `lib` (the shared library) and `data-collection`
 - Define the `wand-collect` command in the application's `[project.scripts]`
   pointing to a `main` function in `cli.py` built with `argparse`.
 
-### F2 Configuration and settings models
+### DC-F2 Configuration and settings models
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: F1
+- **Depends on**: DC-F1
 - **Requirements**: R3.4, R6.7
 - **Design**: Arch 4.3; Lib 4, 6, 8.2; DC 5.4
 
@@ -338,24 +341,24 @@ place.
 **Implementation notes.**
 
 - Use `pydantic` models in `wand_core/settings.py`. The helper lives in
-  `wand_core/casing.py` and is reused by the dataset store (L8).
+  `wand_core/casing.py` and is reused by the dataset store (DC-L8).
 - `hue_center` and `hue_half_width` are in OpenCV hue units (0 to 179) and
   describe an interval on a circle. A suggested default for an orange ball:
   `hue_center` 15, `hue_half_width` 10, `sat_min` 120, `val_min` 120.
 - Dummy label ids are lowercase slugs, for example `spell_one`.
 - Keep file reading separate from validation so both can be tested alone.
 
-### S1 H.264 encoding spike
+### DC-S1 H.264 encoding spike
 
 - **Type**: chore
 - **Status**: Not started
-- **Depends on**: F1
+- **Depends on**: DC-F1
 - **Requirements**: R6.6, R6.9
 - **Design**: DC 4.8
 
 **Description.** Find out whether the planned encoder produces H.264 MP4 files
 that browsers play, on macOS and Linux, and fast enough to keep up. The result
-decides how the Clip Writer (A7) is built.
+decides how the Clip Writer (DC-A7) is built.
 
 **Acceptance criteria.**
 
@@ -381,11 +384,11 @@ decides how the Clip Writer (A7) is built.
 
 ## 7. Shared library tasks
 
-### L1 Frame sources
+### DC-L1 Frame sources
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: F1
+- **Depends on**: DC-F1
 - **Requirements**: R1.1, R6.7, N3, N5
 - **Design**: Lib 5
 
@@ -415,7 +418,7 @@ machine.
 **Implementation notes.**
 
 - Define a small interface (open, read, close, frame size, nominal rate) that
-  both sources implement, so tests and the Capture Engine (A3) can substitute
+  both sources implement, so tests and the Capture Engine (DC-A3) can substitute
   the video-file source for a camera.
 - `cv2.VideoCapture` with the default backend. Grab then retrieve, taking the
   timestamp between the two.
@@ -427,11 +430,11 @@ machine.
 - Unit tests must not open real cameras: use the file source, and fake
   `VideoCapture` with a stand-in for the camera tests.
 
-### L2 Tracker
+### DC-L2 Tracker
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: F2
+- **Depends on**: DC-F2
 - **Requirements**: R1.2, R1.7, N1, N5
 - **Design**: Lib 6, 13
 
@@ -469,16 +472,17 @@ the one nearest the previous tip; report the center of its enclosing circle.
   to the contour area divided by the frame area.
 - Keep the tracker free of camera and file access: it takes a frame. Its
   previous-tip memory is internal state with a reset method.
-- The synthetic generator (`wand_core/testing/synthetic.py`) renders a disk of
-  a given color, radius and path over a background, with optional noise, and
-  returns frames and ground-truth centers. Provide path builders for a circle,
-  a line and a figure-eight. L3, L6, V1 and the application tests reuse it.
+- The synthetic generator (`wand_core/testing/synthetic.py`) renders a disk of a
+  given color, radius and path over a background, with optional noise, and
+  returns frames and ground-truth centers. Provide path builders for a circle, a
+  line and a figure-eight. DC-L3, DC-L6, DC-V1 and the application tests reuse
+  it.
 
-### L3 Segmenter
+### DC-L3 Segmenter
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: F2
+- **Depends on**: DC-F2
 - **Requirements**: R4.5, N1, N5
 - **Design**: Lib 8, 13
 
@@ -535,11 +539,11 @@ Behavior:
 - Use a small enumeration for states and discard reasons; the reason strings
   are snake case values.
 
-### L4 Vector builder
+### DC-L4 Vector builder
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: F1
+- **Depends on**: DC-F1
 - **Requirements**: R6.1, N1
 - **Design**: Lib 10; Arch 4.2
 
@@ -561,11 +565,11 @@ stored; training and inference both call this function.
 **Implementation notes.** Return NumPy arrays (one row per step with columns
 `dx`, `dy`, `dt`, `speed`). Put it in `wand_core/motion/vectors.py`.
 
-### L5 Path renderer
+### DC-L5 Path renderer
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: F1
+- **Depends on**: DC-F1
 - **Requirements**: R5.2, R6.5
 - **Design**: Lib 11
 
@@ -589,11 +593,11 @@ end so direction is clear.
 build the gradient by drawing short segments with an interpolated color. Add a
 helper that encodes an image to PNG bytes for the server.
 
-### L6 Color calibrator
+### DC-L6 Color calibrator
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: L2
+- **Depends on**: DC-L2
 - **Requirements**: R1.2, R1.7
 - **Design**: Lib 7
 
@@ -630,11 +634,11 @@ the spread, minimum margins of about 8 hue units and 40 on saturation and
 brightness. Reuse the tracker for the check run so the result is what the live
 view will show.
 
-### L7 Motion calibrator
+### DC-L7 Motion calibrator
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: L3
+- **Depends on**: DC-L3
 - **Requirements**: R1.5
 - **Design**: Lib 9
 
@@ -658,13 +662,13 @@ shows the speeds of real gestures.
 **Implementation notes.** Compute speeds with the same smoothing as the
 segmenter (reuse its function). Suggested: `end_speed` is 3 times the idle
 ceiling, at least 0.05; `start_speed` is the geometric mean of `end_speed` and
-the typical speed. The values are provisional; V3 tunes them.
+the typical speed. The values are provisional; DC-V3 tunes them.
 
-### L8 Dataset store: formats and safe writes
+### DC-L8 Dataset store: formats and safe writes
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: F2
+- **Depends on**: DC-F2
 - **Requirements**: R6.1, R6.2, R6.3, R6.4, R2.3
 - **Design**: DH 4, 5, 6, 9; Lib 12
 
@@ -698,11 +702,11 @@ on the file and on the directory. Position columns are `timeS`, `horizontal`
 and `vertical` (DH 5.2). Generate crash tests by writing partial content, not
 by killing processes.
 
-### L9 Dataset store: sessions and samples
+### DC-L9 Dataset store: sessions and samples
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: L8
+- **Depends on**: DC-L8
 - **Requirements**: R2.1, R2.3, R2.4, R2.7, R6.2, R6.8, R7.3, R7.6
 - **Design**: DH 2, 3, 4; Lib 12
 
@@ -744,11 +748,11 @@ folder (the application is the only writer); no file locking is required.
 Samples files are small (about 3 MB per 1,000 samples), so reading a whole file
 into memory is fine.
 
-### L10 Dataset store: check, export and load
+### DC-L10 Dataset store: check, export and load
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: L9
+- **Depends on**: DC-L9
 - **Requirements**: R2.3, R6.3
 - **Design**: DH 7.1, 7.2
 
@@ -778,11 +782,11 @@ into the same in-memory form, with filters, for the classifier.
 **Implementation notes.** `dataset/check.py` and `dataset/export.py`. Stream
 the export line by line so large datasets do not need to fit in memory.
 
-### L11 Dataset store: merge
+### DC-L11 Dataset store: merge
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: L9
+- **Depends on**: DC-L9
 - **Requirements**: R2.5
 - **Design**: DH 7.3
 
@@ -812,11 +816,11 @@ half-copied session.
 
 ## 8. Application tasks
 
-### A1 Application State
+### DC-A1 Application State
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: F1
+- **Depends on**: DC-F1
 - **Requirements**: R2.2
 - **Design**: DC 4.3
 
@@ -854,11 +858,11 @@ fields; a mutex around the swap; listeners called one at a time in update order
 (a small dispatcher keeps ordering if several threads update). `state.py`.
 Listener callbacks must not block; the server's listener only enqueues.
 
-### A2 Application Server
+### DC-A2 Application Server
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: A1, F2, L8
+- **Depends on**: DC-A1, DC-F2, DC-L8
 - **Requirements**: R6.3, N4
 - **Design**: DC 4.2, 5.1, 5.3 (`serve`)
 
@@ -907,11 +911,11 @@ files, startup, the event stream, the state endpoint, error handling, and the
   `--data-folder` overrides.
 - Test with the FastAPI test client and an event-stream reader.
 
-### A3 Capture Engine
+### DC-A3 Capture Engine
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: A1, L1, L2, L3
+- **Depends on**: DC-A1, DC-L1, DC-L2, DC-L3
 - **Requirements**: R4.5, R4.8, R6.6, R6.7, N3
 - **Design**: DC 4.6
 
@@ -966,11 +970,11 @@ and the motion reading.
 - Frame timing is measured from the timestamps, not assumed from the requested
   rate.
 
-### A4 Live video stream
+### DC-A4 Live video stream
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: A2, A3
+- **Depends on**: DC-A2, DC-A3
 - **Requirements**: R1.4, R4.8
 - **Design**: DC 4.2
 
@@ -997,11 +1001,11 @@ the last one sent, encodes it with `cv2.imencode` at quality about 80, and
 yields the multipart bytes. A 640x480 frame is about 30 to 50 KB. Check for a
 client disconnect on each loop pass.
 
-### A5 Calibration Service
+### DC-A5 Calibration Service
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: A1, A3, L6, L7, F2
+- **Depends on**: DC-A1, DC-A3, DC-L6, DC-L7, DC-F2
 - **Requirements**: R1.1, R1.2, R1.3, R1.4, R1.5, R1.6, R1.7, R2.2
 - **Design**: DC 3.3, 4.4
 
@@ -1035,7 +1039,7 @@ Functions and endpoints (JSON, section 2.5):
 - Profiles: `GET /api/profiles`, `PUT /api/profiles/{name}` (save the current
   settings), `POST /api/profiles/{name}/load` (set them from the profile) and
   `DELETE /api/profiles/{name}`, as YAML files in `config/profiles/`.
-- Accepting recorded settings from the Session Service on resume (A9), and
+- Accepting recorded settings from the Session Service on resume (DC-A9), and
   writing them to the state.
 
 **Acceptance criteria.**
@@ -1053,7 +1057,7 @@ Functions and endpoints (JSON, section 2.5):
       `start_speed` above `end_speed`.
 - [ ] Saved profiles survive a restart, contain a full set of vision and motion
       settings, and use camel case keys.
-- [ ] The working settings start from the resolved defaults (F2), or a loaded
+- [ ] The working settings start from the resolved defaults (DC-F2), or a loaded
       profile.
 - [ ] Applying recorded settings from the Session Service works even though the
       session is not yet loaded for capture.
@@ -1063,11 +1067,11 @@ memory only. Run the measurement as a timed collection of the positions the
 engine publishes (a short-lived subscription to its detections). The
 `clicks` response may be built as JSON with the mask as a base64 PNG.
 
-### A6 Label Service
+### DC-A6 Label Service
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: A1, A8, F2
+- **Depends on**: DC-A1, DC-A8, DC-F2
 - **Requirements**: R3.1, R3.2, R3.3
 - **Design**: DC 4.10
 
@@ -1095,14 +1099,14 @@ read from the state.
 
 **Implementation notes.** `services/labels.py`. `ruamel.yaml` preserves
 comments. Poll the file's modification time (about every 2 seconds) rather
-than using a file-watching library. Write through the replace routine of L8's
+than using a file-watching library. Write through the replace routine of DC-L8's
 helpers so a crash cannot truncate the file.
 
-### A7 Clip Writer
+### DC-A7 Clip Writer
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: S1
+- **Depends on**: DC-S1
 - **Requirements**: R6.6, R6.9
 - **Design**: DC 4.8
 
@@ -1120,18 +1124,18 @@ background thread, without blocking the caller.
 - [ ] On any failure (encoder missing, bad input, disk error) the result says
       failure, no partial file remains, and nothing is raised on the caller's
       thread.
-- [ ] The produced file plays in a browser (the format chosen in S1).
+- [ ] The produced file plays in a browser (the format chosen in DC-S1).
 - [ ] Several clips queued back to back are written one after another.
 
 **Implementation notes.** `clip_writer.py`. One worker thread and a queue.
-Decode each JPEG to an image, then encode with PyAV as decided in S1. Do not
+Decode each JPEG to an image, then encode with PyAV as decided in DC-S1. Do not
 hold the whole clip's decoded frames in memory at once if it can be avoided.
 
-### A8 Sample Library
+### DC-A8 Sample Library
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: A1, L5, L9
+- **Depends on**: DC-A1, DC-L5, DC-L9
 - **Requirements**: R5.2, R6.5, R6.8, R6.9, R7.1, R7.2, R7.3, R7.4, R7.6
 - **Design**: DC 4.9
 
@@ -1182,11 +1186,11 @@ cache location. Keep the index in a dictionary plus per-session lists in
 capture order. Decode the overlay frame with `cv2.VideoCapture` seeking to the
 `gestureStartS` time.
 
-### A9 Session Service
+### DC-A9 Session Service
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: A1, A3, A5, L9
+- **Depends on**: DC-A1, DC-A3, DC-A5, DC-L9
 - **Requirements**: R2.1, R2.2, R2.4, R2.6, R2.7
 - **Design**: DC 3.2, 4.5
 
@@ -1238,11 +1242,11 @@ the library's camera listing, matched on the stored device identifier. The
 session is only recorded in the state after every earlier step succeeds, so a
 failed start or resume leaves the state unchanged.
 
-### A10 Capture Controller
+### DC-A10 Capture Controller
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: A1, A3, A7, A9, L9
+- **Depends on**: DC-A1, DC-A3, DC-A7, DC-A9, DC-L9
 - **Requirements**: R4.1, R4.2, R4.3, R4.4, R4.5, R4.6, R4.7, R4.9, R5.6, R6.4
 - **Design**: DC 3.4, 4.7
 
@@ -1315,11 +1319,11 @@ label changes are allowed in any state and take effect for the next gesture.
 The save job runs on a worker thread and posts a message to the loop on
 completion.
 
-### A11 Command-line tools
+### DC-A11 Command-line tools
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: L10, L11, A2
+- **Depends on**: DC-L10, DC-L11, DC-A2
 - **Requirements**: R2.3, R2.5
 - **Design**: DC 5.3
 
@@ -1354,11 +1358,11 @@ a user action is an HTTP request whose response only says whether it was
 accepted (DC 4.1, "Data flow"). JavaScript and CSS are wrapped at 80 columns by
 hand.
 
-### U1 Web UI shell
+### DC-U1 Web UI shell
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: A2
+- **Depends on**: DC-A2
 - **Requirements**: N2
 - **Design**: DC 4.1
 
@@ -1397,11 +1401,11 @@ with one module per concern (`main.js`, `state.js`, `api.js`, `shortcuts.js`,
 `countdown.js`). Use `EventSource` for the stream. Keep pages as functions of
 the state so they stay simple. No Node tooling is used.
 
-### U2 Setup page
+### DC-U2 Setup page
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: U1, A5, A9
+- **Depends on**: DC-U1, DC-A5, DC-A9
 - **Requirements**: R1.1, R2.1, R2.6, R6.7
 - **Design**: DC 3.1, 4.1
 
@@ -1430,11 +1434,11 @@ opens an existing one.
 `GET /api/sessions` (a query), fetched when the page opens and after any
 `session` change in the state.
 
-### U3 Calibrate page
+### DC-U3 Calibrate page
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: U1, A4, A5
+- **Depends on**: DC-U1, DC-A4, DC-A5
 - **Requirements**: R1.2, R1.3, R1.4, R1.5, R1.6
 - **Design**: DC 3.3, 4.1
 
@@ -1469,11 +1473,11 @@ opens an existing one.
 drawn on a canvas from the `motion` readings in a ring of the last few seconds.
 Throttle slider requests (about 10 per second) while dragging.
 
-### U4 Record page
+### DC-U4 Record page
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: U1, A4, A10
+- **Depends on**: DC-U1, DC-A4, DC-A10
 - **Requirements**: R4.1, R4.7, R4.8, R5.6
 - **Design**: DC 3.4, 4.1
 
@@ -1497,11 +1501,11 @@ Throttle slider requests (about 10 per second) while dragging.
 **Implementation notes.** `static/app/record.js`. The latest sample's image is
 `GET /api/samples/{id}/image?mode=path`.
 
-### U5 Review page
+### DC-U5 Review page
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: U1, A8, A10
+- **Depends on**: DC-U1, DC-A8, DC-A10
 - **Requirements**: R4.7, R5.1, R5.2, R5.3, R5.4, R5.5
 - **Design**: DC 3.4, 4.1
 
@@ -1532,11 +1536,11 @@ for review.
 with `GET /api/samples?session=<id>&order=capture` and repeat the query when
 the samples revision changes. The selected sample is local page state.
 
-### U6 Browse page
+### DC-U6 Browse page
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: U1, A8
+- **Depends on**: DC-U1, DC-A8
 - **Requirements**: R6.9, R7.1, R7.2, R7.3, R7.4
 - **Design**: DC 4.1
 
@@ -1561,11 +1565,11 @@ the samples revision changes. The selected sample is local page state.
 **Implementation notes.** `static/app/browse.js`. Thumbnails are
 `GET /api/samples/{id}/thumbnail`, loaded lazily as rows scroll into view.
 
-### U7 Scrubbing view (P2)
+### DC-U7 Scrubbing view (P2)
 
 - **Type**: feat
 - **Status**: Not started
-- **Depends on**: U6, A8
+- **Depends on**: DC-U6, DC-A8
 - **Requirements**: R7.5
 - **Design**: DC 5.2 (video endpoint)
 
@@ -1589,11 +1593,11 @@ canvas on top. Frame positions come from the sample's `positions` and
 
 ## 10. Verification tasks
 
-### V1 Whole-application test
+### DC-V1 Whole-application test
 
 - **Type**: test
 - **Status**: Not started
-- **Depends on**: A10, A11, U5
+- **Depends on**: DC-A10, DC-A11, DC-U5
 - **Requirements**: all P1 requirements, N2
 - **Design**: DC 7
 
@@ -1618,15 +1622,15 @@ HTTP interface.
 - [ ] A capture cycle takes about the gesture duration plus the countdown (N2).
 - [ ] The test runs with `uv run pytest` and needs no camera.
 
-**Implementation notes.** Use the synthetic generator (L2) to write a video
+**Implementation notes.** Use the synthetic generator (DC-L2) to write a video
 file, and inject a video-file frame source into the Capture Engine. Use a short
 countdown in the test configuration.
 
-### V2 Real-camera testing
+### DC-V2 Real-camera testing
 
 - **Type**: chore
 - **Status**: Not started
-- **Depends on**: U6
+- **Depends on**: DC-U6
 - **Requirements**: R1.7, N3, N4, R6.7
 - **Design**: DC 7
 
@@ -1648,11 +1652,11 @@ Linux, following a written checklist.
 **Implementation notes.** `data-collection/docs/manual-tests.md`. Include the
 camera permission step on macOS.
 
-### V3 Motion threshold tuning
+### DC-V3 Motion threshold tuning
 
 - **Type**: chore
 - **Status**: Not started
-- **Depends on**: V2
+- **Depends on**: DC-V2
 - **Requirements**: R1.5, R4.5
 - **Design**: Lib 8.2
 
@@ -1673,4 +1677,4 @@ real recordings.
 
 **Implementation notes.** Replay the recordings through the Segmenter with
 candidate values and count gestures against known counts. The guided
-measurement (L7) can supply a starting point for each user.
+measurement (DC-L7) can supply a starting point for each user.

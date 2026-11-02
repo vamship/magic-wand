@@ -1,6 +1,6 @@
 # Standards
 
-> **Version** 2 | **Updated** 2026-11-01 | **Approved**
+> **Version** 3 | **Updated** 2026-11-01 | **Approved**
 
 ## Overview
 
@@ -17,9 +17,18 @@ single source for the rules.
 
 Work is organized as tasks in the component's `tasks.md`. A task has:
 
-- an **ID** and a **title**. The ID is a letter for the task's group followed
-  by a number: `D` documentation, `F` foundation, `S` spike, `L` library, `A`
-  application, `U` Web UI, `V` verification. IDs are unique within the file.
+- an **ID** and a **title**. The ID is unique across the whole repository. It
+  has three parts: the component code, a letter for the task's group, and a
+  number, for example `DC-L2`.
+  - The **component code** is two or three uppercase letters chosen once for a
+    component's `tasks.md` (`DC` for data collection). It is never shared with
+    another component.
+  - The **group letter** is `D` documentation, `F` foundation, `S` spike, `L`
+    library, `A` application, `U` Web UI or `V` verification. A component may
+    add letters for its own groups.
+  - The **number** counts up within the group.
+  - An ID is never reused or changed once assigned, so references to it stay
+    valid.
 - a **Type**: the conventional commit type of the work (section 1.3), such as
   `feat`, `fix`, `docs`, `refactor`, `test`, `build` or `chore`. It names the
   branch (section 1.2).
@@ -51,9 +60,9 @@ starts.
   commit directly to `main`.
 - A branch is named `<type>/<task id>-<short name>`. The type is the task's
   type, the id is lowercase, and the short name is the task title in lowercase
-  words joined by hyphens. Task L2, "Tracker", of type `feat` gives
-  `feat/l2-tracker`. Task F1, "Workspace and tooling", of type `chore` gives
-  `chore/f1-workspace-and-tooling`.
+  words joined by hyphens. Task DC-L2, "Tracker", of type `feat` gives
+  `feat/dc-l2-tracker`. Task DC-F1, "Workspace and tooling", of type `chore`
+  gives `chore/dc-f1-workspace-and-tooling`.
 - Work that is not a task, such as a change to a document, uses
   `<type>/<short name>`, for example `docs/glossary`.
 - Create the branch from an up-to-date `main`.
@@ -77,7 +86,7 @@ Commit messages follow Conventional Commits
   `perf`, `test`, `build` (dependencies and tooling), `chore` (anything else
   that changes no behavior) or `revert`.
 - **Scope** (optional): the lowercase ID of the task being worked on, for
-  example `feat(l2): handle hues that wrap around`.
+  example `feat(dc-l2): handle hues that wrap around`.
 - **Summary**: imperative mood ("add", not "added"), no trailing period, at
   most 72 characters.
 - **Body** (optional): what changed and why, wrapped at 80 columns.
