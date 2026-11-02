@@ -1,6 +1,6 @@
 # Standards
 
-> **Version** 3 | **Updated** 2026-11-01 | **Approved**
+> **Version** 4 | **Updated** 2026-11-01 | **Draft**
 
 ## Overview
 
@@ -54,6 +54,20 @@ parts, how each acceptance criterion is checked, and which documents define the
 rest. A task that leaves such a gap is incomplete and is fixed before work
 starts.
 
+**Keep task statuses current.** The status in the component's `tasks.md`
+(including its summary table) is part of the work, so whoever works on a task
+updates it as the work happens:
+
+- set it to `In progress` in the first commit of the task's branch;
+- set it to `Completed` in the last commit of the branch, once the definition
+  of done (section 1.4) is met apart from the merge, and tick the acceptance
+  criteria that are met;
+- if work stops or is abandoned, set the status back to reflect the truth,
+  and note why in the task.
+
+Status changes are the one change to an approved task list that needs no
+separate document branch or version bump; they travel with the task's branch.
+
 ### 1.2 Branches
 
 - All development takes place in a branch, with one branch per task. Never
@@ -106,6 +120,7 @@ A task is complete only when:
 - the behavior matches the approved design. A needed change to an approved
   document is made on a branch of its own first and reviewed;
 - every acceptance criterion of the task is met;
+- the task's status and acceptance checklist in `tasks.md` are up to date;
 - the branch has been reviewed and merged into `main`.
 
 ## 2. Python tooling
