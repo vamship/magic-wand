@@ -144,7 +144,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L10 | Dataset store: check, export and load | Not started |
 | DC-L11 | Dataset store: merge | Not started |
 | DC-A1 | Application State | Completed |
-| DC-A2 | Application Server | Not started |
+| DC-A2 | Application Server | Completed |
 | DC-A3 | Capture Engine | Completed |
 | DC-A4 | Live video stream | Not started |
 | DC-A5 | Calibration Service | Not started |
@@ -908,7 +908,7 @@ Listener callbacks must not block; the server's listener only enqueues.
 ### DC-A2 Application Server
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-A1, DC-F2, DC-L8
 - **Requirements**: R6.3, N4
 - **Design**: DC 4.2, 5.1, 5.3 (`serve`)
@@ -919,31 +919,31 @@ files, startup, the event stream, the state endpoint, error handling, and the
 
 **Acceptance criteria.**
 
-- [ ] `uv run wand-collect serve` starts the server on the host and port from
+- [x] `uv run wand-collect serve` starts the server on the host and port from
       `data-collection.yaml` (default `127.0.0.1:8000`) and serves the Web UI
       files at `/`.
-- [ ] If the configured host is not a loopback address, startup prints a clear
+- [x] If the configured host is not a loopback address, startup prints a clear
       warning.
-- [ ] Startup loads the configuration, opens (creating if needed) the data
+- [x] Startup loads the configuration, opens (creating if needed) the data
       folder with the dataset store, loads the labels, and creates the
       Application State, services and Capture Engine in the right order. The
       engine runs in preview mode when a camera is available, and the server
       still starts when none is.
-- [ ] `GET /api/state` returns the current snapshot.
-- [ ] `GET /api/events` is a Server-Sent Events stream. A new connection first
+- [x] `GET /api/state` returns the current snapshot.
+- [x] `GET /api/events` is a Server-Sent Events stream. A new connection first
       receives one `state` event with the current snapshot. Every later state
       change sends a `state` event. `motion` events carry the readings the
       Capture Engine publishes. A comment line is sent every 15 seconds as a
       heartbeat.
-- [ ] Each browser has its own bounded queue. If it falls behind, a waiting
+- [x] Each browser has its own bounded queue. If it falls behind, a waiting
       `state` event is replaced by the newer one (no snapshot is lost in
       effect), and old `motion` events are dropped.
-- [ ] A disconnected browser's queue is removed.
-- [ ] Errors follow section 2.5: unknown ids return 404, bad input returns 400,
+- [x] A disconnected browser's queue is removed.
+- [x] Errors follow section 2.5: unknown ids return 404, bad input returns 400,
       rule violations return 409 with a code.
-- [ ] Each service registers its own routes through a common mechanism, so later
+- [x] Each service registers its own routes through a common mechanism, so later
       tasks add endpoints without editing the server core.
-- [ ] The README has instructions to install and run the application.
+- [x] The README has instructions to install and run the application.
 
 **Implementation notes.**
 
@@ -1365,6 +1365,14 @@ time, not a loop that wakes every tick (the Web UI counts down locally). Active
 label changes are allowed in any state and take effect for the next gesture.
 The save job runs on a worker thread and posts a message to the loop on
 completion.
+
+**Note from DC-L9 (sample numbers).** `DatasetStore.next_sample_number` and
+`add_sample` are separate calls, so two writers could be given the same
+number. The controller handles one gesture at a time, so this is unlikely, but
+the controller must reserve a number and save the sample without another
+writer in between (for example by remembering the numbers it has handed out,
+or by adding a reserve call to the store). Do not reach into the store's
+private lock.
 
 ### DC-A11 Command-line tools
 
