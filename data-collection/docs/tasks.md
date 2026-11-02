@@ -130,7 +130,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-D3 | Task list | In progress |
 | DC-F1 | Workspace and tooling | Completed |
 | DC-F2 | Configuration and settings models | Completed |
-| DC-S1 | H.264 encoding spike | Not started |
+| DC-S1 | H.264 encoding spike | In progress |
 | DC-L1 | Frame sources | Not started |
 | DC-L2 | Tracker | Not started |
 | DC-L3 | Segmenter | Not started |
@@ -351,7 +351,7 @@ place.
 ### DC-S1 H.264 encoding spike
 
 - **Type**: chore
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-F1
 - **Requirements**: R6.6, R6.9
 - **Design**: DC 4.8
