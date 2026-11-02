@@ -134,7 +134,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-S2 | Linux verification | Not started |
 | DC-L1 | Frame sources | Not started |
 | DC-L2 | Tracker | Completed |
-| DC-L3 | Segmenter | Not started |
+| DC-L3 | Segmenter | Completed |
 | DC-L4 | Vector builder | Not started |
 | DC-L5 | Path renderer | Not started |
 | DC-L6 | Color calibrator | Not started |
@@ -528,7 +528,7 @@ the one nearest the previous tip; report the center of its enclosing circle.
 ### DC-L3 Segmenter
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-F2
 - **Requirements**: R4.5, N1, N5
 - **Design**: Lib 8, 13
@@ -565,17 +565,17 @@ Behavior:
 
 **Acceptance criteria.**
 
-- [ ] A stationary tip stays idle and produces no result.
-- [ ] Tremor below `start_speed` produces no result.
-- [ ] A synthetic circle produces one gesture with the expected positions.
-- [ ] Each discard reason is produced by a matching input: too long, too short,
+- [x] A stationary tip stays idle and produces no result.
+- [x] Tremor below `start_speed` produces no result.
+- [x] A synthetic circle produces one gesture with the expected positions.
+- [x] Each discard reason is produced by a matching input: too long, too short,
       too small, and a tip lost for too long.
-- [ ] A pause shorter than `end_hold_s` in the middle of a gesture does not
+- [x] A pause shorter than `end_hold_s` in the middle of a gesture does not
       split it.
-- [ ] After a discard, a new gesture is detected only after the tip is idle
+- [x] After a discard, a new gesture is detected only after the tip is idle
       again.
-- [ ] Switched off, a moving tip gives speed and `moving` but no result.
-- [ ] Results do not depend on the camera's resolution or frame rate beyond the
+- [x] Switched off, a moving tip gives speed and `moving` but no result.
+- [x] Results do not depend on the camera's resolution or frame rate beyond the
       timestamps.
 
 **Implementation notes.**
