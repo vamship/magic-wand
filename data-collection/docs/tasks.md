@@ -149,7 +149,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A4 | Live video stream | Completed |
 | DC-A5 | Calibration Service | Completed |
 | DC-A6 | Label Service | Not started |
-| DC-A7 | Clip Writer | Not started |
+| DC-A7 | Clip Writer | Completed |
 | DC-A8 | Sample Library | Not started |
 | DC-A9 | Session Service | Completed |
 | DC-A10 | Capture Controller | Not started |
@@ -1152,7 +1152,7 @@ helpers so a crash cannot truncate the file.
 ### DC-A7 Clip Writer
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-S1
 - **Requirements**: R6.6, R6.9
 - **Design**: DC 4.8
@@ -1162,17 +1162,17 @@ background thread, without blocking the caller.
 
 **Acceptance criteria.**
 
-- [ ] Given frames (JPEG bytes with timestamps), a frame rate and a target path,
+- [x] Given frames (JPEG bytes with timestamps), a frame rate and a target path,
       it returns a result that completes later with the path or a failure.
-- [ ] The video is written to a temporary file in the same folder, then renamed,
+- [x] The video is written to a temporary file in the same folder, then renamed,
       so a clip is complete or absent.
-- [ ] The frame rate is the measured one; the clip duration matches the frames
+- [x] The frame rate is the measured one; the clip duration matches the frames
       within one frame interval.
-- [ ] On any failure (encoder missing, bad input, disk error) the result says
+- [x] On any failure (encoder missing, bad input, disk error) the result says
       failure, no partial file remains, and nothing is raised on the caller's
       thread.
-- [ ] The produced file plays in a browser (the format chosen in DC-S1).
-- [ ] Several clips queued back to back are written one after another.
+- [x] The produced file plays in a browser (the format chosen in DC-S1).
+- [x] Several clips queued back to back are written one after another.
 
 **Implementation notes.** `clip_writer.py`. One worker thread and a queue.
 Decode each JPEG to an image, then encode with PyAV as decided in DC-S1. Do not
