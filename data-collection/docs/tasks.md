@@ -133,7 +133,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-S1 | H.264 encoding spike | Completed |
 | DC-S2 | Linux verification | Not started |
 | DC-L1 | Frame sources | Not started |
-| DC-L2 | Tracker | In progress |
+| DC-L2 | Tracker | Completed |
 | DC-L3 | Segmenter | Not started |
 | DC-L4 | Vector builder | Not started |
 | DC-L5 | Path renderer | Not started |
@@ -480,7 +480,7 @@ machine.
 ### DC-L2 Tracker
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-F2
 - **Requirements**: R1.2, R1.7, N1, N5
 - **Design**: Lib 6, 13
@@ -498,19 +498,19 @@ the one nearest the previous tip; report the center of its enclosing circle.
 
 **Acceptance criteria.**
 
-- [ ] `process(frame, timestamp_s)` returns a TipDetection with the tip as
+- [x] `process(frame, timestamp_s)` returns a TipDetection with the tip as
       fractions of the frame and the radius in frame-heights, or `found` false.
-- [ ] A synthetic disk moving along known paths is tracked with an average error
+- [x] A synthetic disk moving along known paths is tracked with an average error
       under 1.5% of the frame height, and found in at least 95% of frames,
       including with noise and varied backgrounds and brightness.
-- [ ] A disk whose hue lies across the wrap-around (red) is found with a hue
+- [x] A disk whose hue lies across the wrap-around (red) is found with a hue
       interval that straddles 0.
-- [ ] Specks below `min_area`, regions above `max_area`, and non-round regions
+- [x] Specks below `min_area`, regions above `max_area`, and non-round regions
       are ignored. With two candidate regions, the one nearest the previous tip
       wins.
-- [ ] A frame with no ball returns `found` false.
-- [ ] `mask(frame)` returns the binary mask used for detection, for display.
-- [ ] Areas in the settings are fractions of the frame area, so the same
+- [x] A frame with no ball returns `found` false.
+- [x] `mask(frame)` returns the binary mask used for detection, for display.
+- [x] Areas in the settings are fractions of the frame area, so the same
       settings work at different resolutions.
 
 **Implementation notes.**
