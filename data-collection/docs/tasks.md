@@ -140,7 +140,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L6 | Color calibrator | Not started |
 | DC-L7 | Motion calibrator | Not started |
 | DC-L8 | Dataset store: formats and safe writes | Completed |
-| DC-L9 | Dataset store: sessions and samples | Not started |
+| DC-L9 | Dataset store: sessions and samples | In progress |
 | DC-L10 | Dataset store: check, export and load | Not started |
 | DC-L11 | Dataset store: merge | Not started |
 | DC-A1 | Application State | Completed |
@@ -752,7 +752,7 @@ by killing processes.
 ### DC-L9 Dataset store: sessions and samples
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-L8
 - **Requirements**: R2.1, R2.3, R2.4, R2.7, R6.2, R6.8, R7.3, R7.6
 - **Design**: DH 2, 3, 4; Lib 12
