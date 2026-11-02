@@ -139,7 +139,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L5 | Path renderer | Not started |
 | DC-L6 | Color calibrator | Not started |
 | DC-L7 | Motion calibrator | Not started |
-| DC-L8 | Dataset store: formats and safe writes | Not started |
+| DC-L8 | Dataset store: formats and safe writes | In progress |
 | DC-L9 | Dataset store: sessions and samples | Not started |
 | DC-L10 | Dataset store: check, export and load | Not started |
 | DC-L11 | Dataset store: merge | Not started |
@@ -714,7 +714,7 @@ the typical speed. The values are provisional; DC-V3 tunes them.
 ### DC-L8 Dataset store: formats and safe writes
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-F2
 - **Requirements**: R6.1, R6.2, R6.3, R6.4, R2.3
 - **Design**: DH 4, 5, 6, 9; Lib 12
