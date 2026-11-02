@@ -130,7 +130,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-D3 | Task list | In progress |
 | DC-F1 | Workspace and tooling | Completed |
 | DC-F2 | Configuration and settings models | Completed |
-| DC-S1 | H.264 encoding spike | Not started |
+| DC-S1 | H.264 encoding spike | In progress |
 | DC-L1 | Frame sources | Not started |
 | DC-L2 | Tracker | Not started |
 | DC-L3 | Segmenter | Not started |
@@ -351,7 +351,7 @@ place.
 ### DC-S1 H.264 encoding spike
 
 - **Type**: chore
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-F1
 - **Requirements**: R6.6, R6.9
 - **Design**: DC 4.8
@@ -363,9 +363,10 @@ decides how the Clip Writer (DC-A7) is built.
 **Acceptance criteria.**
 
 - [ ] A script encodes 150 frames of 640x480 at 30 fps to an MP4 file with PyAV,
-      on macOS and on Linux.
-- [ ] The file plays in a `<video>` element in at least two browsers.
-- [ ] Encoding the 6-second clip takes well under 6 seconds.
+      on macOS and on Linux. (macOS done; Linux outstanding, see the progress
+      notes below.)
+- [x] The file plays in a `<video>` element in at least two browsers.
+- [x] Encoding the 6-second clip takes well under 6 seconds.
 - [ ] If PyAV cannot encode H.264 on a platform, the fallbacks (the OpenCV
       writer with the `avc1` codec, or MJPEG in an AVI file) are tried and the
       outcome recorded.
@@ -381,6 +382,30 @@ decides how the Clip Writer (DC-A7) is built.
   compression work.
 - Keep the script in the branch under a `spikes` folder; it need not be
   production quality.
+
+**Progress notes (for the next agent).**
+
+- Done on macOS (Apple Silicon): the script is
+  `data-collection/spikes/h264_spike.py`. PyAV `libx264` encoded the clip in
+  1.1 s with `faststart`; OpenCV `avc1` took 2.6 s and has no `faststart`;
+  OpenCV MJPG took 1.3 s with files almost twice as large. The PyAV file
+  played in Safari and Chrome (confirmed by the user by eye).
+- **Outstanding: Linux.** The spike has not been run on Linux. Run
+  `uv run python data-collection/spikes/h264_spike.py <output-folder>` on a
+  Linux machine, or in a Linux container (Docker was not running when this was
+  written). Check that PyAV's wheel includes `libx264` there, that encoding
+  stays well under 6 seconds, and, if PyAV cannot encode H.264, try the
+  fallbacks named in the acceptance criteria. Then play the output in a
+  Linux browser if one is available.
+- **Outstanding: findings in `docs/notes.md`.** Write the macOS results above
+  and the Linux results there (version bump and review).
+- **Finding to record:** importing PyAV and OpenCV in one process on macOS
+  prints an Objective-C warning that both bundle their own `libavdevice` and
+  that this "may cause spurious casting failures and mysterious crashes".
+  Nothing crashed in the spike. The application uses both together with a
+  live camera, so DC-A7 or DC-V2 should check it.
+- Leave the status `In progress` until the Linux run is done and the notes
+  are written.
 
 ## 7. Shared library tasks
 

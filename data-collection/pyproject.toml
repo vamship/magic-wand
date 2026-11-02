@@ -3,7 +3,10 @@ name = "wand-collect"
 version = "0.1.0"
 description = "Data collection application for the magic wand."
 requires-python = ">=3.11"
-dependencies = ["wand-core"]
+dependencies = [
+    "av>=18.1.0",
+    "wand-core",
+]
 
 [project.scripts]
 wand-collect = "wand_collect.cli:main"
