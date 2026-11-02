@@ -138,7 +138,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L4 | Vector builder | Not started |
 | DC-L5 | Path renderer | Not started |
 | DC-L6 | Color calibrator | Completed |
-| DC-L7 | Motion calibrator | Not started |
+| DC-L7 | Motion calibrator | In progress |
 | DC-L8 | Dataset store: formats and safe writes | Completed |
 | DC-L9 | Dataset store: sessions and samples | Completed |
 | DC-L10 | Dataset store: check, export and load | Not started |
@@ -684,7 +684,7 @@ view will show.
 ### DC-L7 Motion calibrator
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-L3
 - **Requirements**: R1.5
 - **Design**: Lib 9
