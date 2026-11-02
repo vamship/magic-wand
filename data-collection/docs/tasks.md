@@ -139,7 +139,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L5 | Path renderer | Not started |
 | DC-L6 | Color calibrator | Not started |
 | DC-L7 | Motion calibrator | Not started |
-| DC-L8 | Dataset store: formats and safe writes | Not started |
+| DC-L8 | Dataset store: formats and safe writes | Completed |
 | DC-L9 | Dataset store: sessions and samples | Not started |
 | DC-L10 | Dataset store: check, export and load | Not started |
 | DC-L11 | Dataset store: merge | Not started |
@@ -714,7 +714,7 @@ the typical speed. The values are provisional; DC-V3 tunes them.
 ### DC-L8 Dataset store: formats and safe writes
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-F2
 - **Requirements**: R6.1, R6.2, R6.3, R6.4, R2.3
 - **Design**: DH 4, 5, 6, 9; Lib 12
@@ -725,23 +725,23 @@ data folder uses these.
 
 **Acceptance criteria.**
 
-- [ ] Models exist for the session record and the sample record with the fields
+- [x] Models exist for the session record and the sample record with the fields
       in DH 5.1 and 5.2.
-- [ ] JSON files and the JSON Lines file are read and written as UTF-8, with
+- [x] JSON files and the JSON Lines file are read and written as UTF-8, with
       camel case keys on disk and snake case in Python.
-- [ ] `dataset.json` carries a `formatVersion`. Opening a folder with a version
+- [x] `dataset.json` carries a `formatVersion`. Opening a folder with a version
       the code does not know fails with a clear error.
-- [ ] The replace routine writes a temporary file in the same folder, flushes it
+- [x] The replace routine writes a temporary file in the same folder, flushes it
       to disk, renames it over the target, then flushes the folder.
-- [ ] The append routine writes a complete line and its newline in one write and
+- [x] The append routine writes a complete line and its newline in one write and
       flushes it.
-- [ ] Reading a samples file ignores a last line that lacks its newline or is
+- [x] Reading a samples file ignores a last line that lacks its newline or is
       not valid JSON.
-- [ ] Opening a data folder removes leftover temporary files and truncates an
+- [x] Opening a data folder removes leftover temporary files and truncates an
       incomplete last line. Opening a missing folder creates it only when asked.
-- [ ] Simulated crashes pass: a leftover temporary file, and a truncated last
+- [x] Simulated crashes pass: a leftover temporary file, and a truncated last
       line.
-- [ ] A round trip of a session and a sample gives equal records.
+- [x] A round trip of a session and a sample gives equal records.
 
 **Implementation notes.** Put the models in `dataset/models.py` and the file
 routines in `dataset/fileio.py`. Use `os.replace` for the rename and `os.fsync`
