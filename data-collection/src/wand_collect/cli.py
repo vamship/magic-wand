@@ -10,6 +10,7 @@ import uvicorn
 from wand_collect.app import build_application, is_loopback
 from wand_collect.server import create_app
 from wand_collect.services.calibration import CalibrationService
+from wand_collect.services.session import SessionService
 from wand_collect.stream import StreamService
 
 
@@ -45,17 +46,26 @@ def serve(args: argparse.Namespace) -> int:
             "The application starts without a live view.",
             file=sys.stderr,
         )
+    calibration = CalibrationService(
+        application.state,
+        application.engine,
+        application.config_dir,
+        application.settings,
+    )
+    sessions = SessionService(
+        application.state,
+        application.engine,
+        application.store,
+        calibration,
+        application.settings,
+    )
     app = create_app(
         application.state,
         application.engine,
         routers=[
             StreamService(application.engine, application.state).router,
-            CalibrationService(
-                application.state,
-                application.engine,
-                application.config_dir,
-                application.settings,
-            ).router,
+            calibration.router,
+            sessions.router,
         ],
         on_shutdown=application.shutdown,
         app_settings=application.settings,

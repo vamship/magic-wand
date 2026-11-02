@@ -151,7 +151,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A6 | Label Service | Not started |
 | DC-A7 | Clip Writer | Not started |
 | DC-A8 | Sample Library | Not started |
-| DC-A9 | Session Service | In progress |
+| DC-A9 | Session Service | Completed |
 | DC-A10 | Capture Controller | Not started |
 | DC-A11 | Command-line tools | Not started |
 | DC-U1 | Web UI shell | Completed |
@@ -1236,7 +1236,7 @@ capture order. Decode the overlay frame with `cv2.VideoCapture` seeking to the
 ### DC-A9 Session Service
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-A1, DC-A3, DC-A5, DC-L9
 - **Requirements**: R2.1, R2.2, R2.4, R2.6, R2.7
 - **Design**: DC 3.2, 4.5
@@ -1270,19 +1270,19 @@ Application State.
 
 **Acceptance criteria.**
 
-- [ ] Starting records author, handedness, name, notes, time, camera and
+- [x] Starting records author, handedness, name, notes, time, camera and
       settings as in DH 5.1, and locks the settings.
-- [ ] A second start while one is loaded for capture is refused.
-- [ ] Ending sets `endedAt`, stops capture and unlocks settings. Closing the
+- [x] A second start while one is loaded for capture is refused.
+- [x] Ending sets `endedAt`, stops capture and unlocks settings. Closing the
       application leaves the session open on disk, and it is listed as open.
-- [ ] An ended session cannot be resumed, but can be loaded for review and its
+- [x] An ended session cannot be resumed, but can be loaded for review and its
       samples edited.
-- [ ] Resume is refused when the recorded camera is unavailable, and the refusal
+- [x] Resume is refused when the recorded camera is unavailable, and the refusal
       names the camera. It succeeds with the camera present and applies the
       recorded settings, which the Calibrate page then shows.
-- [ ] Sample numbers continue from the highest number after a delete and after a
+- [x] Sample numbers continue from the highest number after a delete and after a
       resume.
-- [ ] A load while another session is loaded for capture is refused.
+- [x] A load while another session is loaded for capture is refused.
 
 **Implementation notes.** `services/session.py`. Camera availability comes from
 the library's camera listing, matched on the stored device identifier. The
