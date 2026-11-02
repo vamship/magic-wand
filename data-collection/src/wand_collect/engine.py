@@ -202,8 +202,10 @@ class CaptureEngine:
         receiver: Receiver | None = None,
         clip_padding: tuple[float, float] = (2.0, 2.0),
         camera_factory: CameraFactory | None = None,
+        mirror_preview: bool = False,
     ) -> None:
         self._state = state
+        self._mirror = mirror_preview
         self._receiver = receiver
         self._motion_listeners: list[Callable[[MotionReading], None]] = []
         self._padding = clip_padding
@@ -440,10 +442,14 @@ class CaptureEngine:
         if ok:
             self.buffer.add(frame.timestamp_s, jpeg.tobytes())
 
+        # Only what is shown is mirrored. Detections, the buffered frames
+        # (and so the clips) stay as the camera saw them.
         self._frames["camera"].publish(
-            _annotate(frame.image, detection, update, self._armed)
+            _annotate(frame.image, detection, update, self._armed, self._mirror)
         )
-        self._frames["mask"].publish(_mask_view(self._tracker.last_mask))
+        self._frames["mask"].publish(
+            _mask_view(self._tracker.last_mask, self._mirror)
+        )
 
         motion = self._state.snapshot.settings.motion
         reading = MotionReading(
@@ -523,13 +529,22 @@ def _annotate(
     detection: TipDetection,
     update: SegmenterUpdate,
     armed: bool,
+    mirror: bool = False,
 ) -> np.ndarray:
-    """A copy of the frame with the tip marked and the motion state written."""
-    canvas = image.copy()
+    """A copy of the frame with the tip marked and the motion state written.
+
+    When ``mirror`` is true the picture is flipped left to right, like a
+    mirror, and the marker is placed to match. The text is written after the
+    flip, so it still reads normally.
+    """
+    canvas = cv2.flip(image, 1) if mirror else image.copy()
     height, width = canvas.shape[:2]
     if detection.found:
+        horizontal = (
+            1 - detection.horizontal if mirror else detection.horizontal
+        )
         center = (
-            round(detection.horizontal * width),
+            round(horizontal * width),
             round(detection.vertical * height),
         )
         radius = max(2, round(detection.radius * height))
@@ -553,8 +568,10 @@ def _annotate(
     return canvas
 
 
-def _mask_view(mask: np.ndarray | None) -> np.ndarray:
+def _mask_view(mask: np.ndarray | None, mirror: bool = False) -> np.ndarray:
     """The detection mask as a white-on-black color image."""
     if mask is None:
         return np.zeros((1, 1, 3), dtype=np.uint8)
+    if mirror:
+        mask = cv2.flip(mask, 1)
     return cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)

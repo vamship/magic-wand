@@ -1,6 +1,6 @@
 # Data Collection Application - Design
 
-> **Version** 7 | **Updated** 2026-11-01 | **Approved**
+> **Version** 8 | **Updated** 2026-11-01 | **Draft**
 
 ## 1. Overview
 
@@ -549,7 +549,10 @@ positions, detects gestures, and keeps recent frames for video clips.
   5. adds the frame to a ring buffer of recent frames;
   6. draws the annotations (tip marker and motion state, or the detection
      mask when the user asks for it) and publishes the annotated frame as the
-     latest frame.
+     latest frame. By default the published picture is mirrored left to right,
+     so the user sees it as in a mirror (`mirrorPreview`). Only the picture
+     shown is mirrored: the tip positions, the buffered frames and so the
+     clips stay as the camera saw them, as `docs/data-handling.md` requires.
 - The ring buffer holds enough frames for the padding before a gesture, the
   longest valid gesture and the padding after it: about 8 seconds at the
   defaults. Frames are stored JPEG-compressed, which keeps the buffer near
@@ -801,6 +804,7 @@ Set in `config/data-collection.yaml`, with camel case keys:
 | `countdownS` | Countdown length in seconds | 3.0 |
 | `clipPadding.preS`, `.postS` | Clip padding in seconds | 2.0, 2.0 |
 | `endThresholdRatio` | End threshold as a fraction of start | 0.6 |
+| `mirrorPreview` | Show the live view mirrored, like a mirror | true |
 | `shortcuts` | Key bindings | as in 4.1 |
 
 ## 6. Data

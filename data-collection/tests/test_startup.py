@@ -212,3 +212,13 @@ def test_serve_accepts_a_data_folder_override(config, served, tmp_path):
 def test_no_command_prints_help(capsys):
     assert cli.main([]) == 0
     assert "serve" in capsys.readouterr().out
+
+
+def test_startup_passes_the_mirror_setting_to_the_engine(config):
+    on = build_application(config, open_camera=False)
+    on.shutdown()
+    assert on.engine._mirror is True
+    (config / "data-collection.local.yaml").write_text("mirrorPreview: false\n")
+    off = build_application(config, open_camera=False)
+    off.shutdown()
+    assert off.engine._mirror is False

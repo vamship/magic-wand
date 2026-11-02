@@ -35,3 +35,9 @@ def test_invalid_values_name_key():
         validate(DataCollectionSettings, {"server": {"port": 0}})
     with pytest.raises(SettingsError, match="countdownS"):
         validate(DataCollectionSettings, {"countdownS": -1})
+
+
+def test_the_preview_is_mirrored_by_default_and_the_option_is_read(tmp_path):
+    assert DataCollectionSettings().mirror_preview is True
+    (tmp_path / "data-collection.yaml").write_text("mirrorPreview: false\n")
+    assert load_app_settings(tmp_path).mirror_preview is False

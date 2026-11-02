@@ -22,6 +22,10 @@ clipPadding:
   postS: 2.0
 # End threshold as a fraction of the start threshold.
 endThresholdRatio: 0.6
+# Show the live view mirrored, like a mirror, so your right hand appears on the
+# right side of the picture. Only what is shown is mirrored: tracking, stored
+# positions and video clips are never mirrored.
+mirrorPreview: true
 # Keyboard shortcuts (browser key names). Keys 1 to 9 always select labels.
 shortcuts:
   pause: Escape

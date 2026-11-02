@@ -72,6 +72,7 @@ class DataCollectionSettings(SettingsModel):
     clip_padding: ClipPadding = ClipPadding()
     end_threshold_ratio: float = 0.6
     shortcuts: Shortcuts = Shortcuts()
+    mirror_preview: bool = True
 
     @model_validator(mode="after")
     def _check(self) -> DataCollectionSettings:
