@@ -1,23 +1,95 @@
 # Standards
 
-> **Version** 1 | **Updated** 2026-11-01 | **Approved**
+> **Version** 2 | **Updated** 2026-11-01 | **Draft**
 
 ## Overview
 
 This document defines how work is done in every component of the repository:
-the branching workflow, Python tooling, code and text formatting, and the
-rules for writing documentation. After reading it you will know what is
-required of any change and of any document. The root `CLAUDE.md` points
-here; this file is the single source for the rules.
+what a task looks like, how branches and commits are named, what makes a task
+done, the Python tooling, code and text formatting, naming, and the rules for
+writing documentation. After reading it you will know what is required of any
+change and of any document. The root `CLAUDE.md` points here; this file is the
+single source for the rules.
 
 ## 1. Workflow
 
+### 1.1 Tasks
+
+Work is organized as tasks in the component's `tasks.md`. A task has:
+
+- an **ID** and a **title**. The ID is a letter for the task's group followed
+  by a number: `D` documentation, `F` foundation, `S` spike, `L` library, `A`
+  application, `U` Web UI, `V` verification. IDs are unique within the file.
+- a **Type**: the conventional commit type of the work (section 1.3), such as
+  `feat`, `fix`, `docs`, `refactor`, `test`, `build` or `chore`. It names the
+  branch (section 1.2).
+- a **Status**: `Not started`, `In progress` or `Completed`.
+- **Depends on**: the tasks that must be complete first.
+- **Requirements** and **Design**: the requirement IDs it implements and the
+  design sections that define it.
+- a **Description**: what to build and how it behaves, written so that someone
+  who has not seen the rest of the project can build it, with references for
+  exact definitions.
+- **Acceptance criteria**: a checklist. Each item can be verified by a test or
+  an inspection.
+- **Implementation notes**: suggestions on structure, libraries and pitfalls.
+  The description and the acceptance criteria are binding; the notes are not.
+
+A task is sized to fit one branch.
+
+### 1.2 Branches
+
 - All development takes place in a branch, with one branch per task. Never
   commit directly to `main`.
-- Branch names are `<kind>/<short-name>`, where kind is `docs`, `feat`, `fix`
-  or `chore` (for example `docs/requirements` or `feat/tracker`).
-- Each task in a component's `tasks.md` is sized to fit one branch and names
-  that branch.
+- A branch is named `<type>/<task id>-<short name>`. The type is the task's
+  type, the id is lowercase, and the short name is the task title in lowercase
+  words joined by hyphens. Task L2, "Tracker", of type `feat` gives
+  `feat/l2-tracker`. Task F1, "Workspace and tooling", of type `chore` gives
+  `chore/f1-workspace-and-tooling`.
+- Work that is not a task, such as a change to a document, uses
+  `<type>/<short name>`, for example `docs/glossary`.
+- Create the branch from an up-to-date `main`.
+- After review, merge the branch into `main` with a merge commit, so the branch
+  stays visible in the history.
+
+### 1.3 Commits
+
+Commit messages follow Conventional Commits
+(https://www.conventionalcommits.org):
+
+```text
+<type>(<scope>): <summary>
+
+<body>
+
+<footer>
+```
+
+- **Type**: `feat` (new behavior), `fix` (a bug fix), `docs`, `refactor`,
+  `perf`, `test`, `build` (dependencies and tooling), `chore` (anything else
+  that changes no behavior) or `revert`.
+- **Scope** (optional): the lowercase ID of the task being worked on, for
+  example `feat(l2): handle hues that wrap around`.
+- **Summary**: imperative mood ("add", not "added"), no trailing period, at
+  most 72 characters.
+- **Body** (optional): what changed and why, wrapped at 80 columns.
+- **Footer** (optional): a breaking change is marked with `!` after the type
+  (or scope) and described in a `BREAKING CHANGE:` footer.
+- Make each commit one small, logical change, and leave the tests passing.
+
+### 1.4 Definition of done
+
+A task is complete only when:
+
+- `uv run ruff format` and `uv run ruff check` report nothing to fix;
+- the task's tests pass with `uv run pytest`, and they need no camera;
+- every new dependency is declared in the relevant `pyproject.toml`, and
+  `uv.lock` is up to date;
+- lines in code and text are within 80 columns, and names follow section 4;
+- the behavior matches the approved design. A needed change to an approved
+  document is made on a branch of its own first and reviewed;
+- every acceptance criterion of the task is met;
+- the branch has been reviewed and merged into `main`.
 
 ## 2. Python tooling
 
@@ -78,7 +150,7 @@ here; this file is the single source for the rules.
 | Notes | Assumptions and constraints that need no action | `docs/` |
 | Requirements | What a component must do | `<component>/docs/` |
 | Design | How a component does it | `<component>/docs/` |
-| Tasks | Work breakdown, status, links to requirements | `<component>/docs/` |
+| Tasks | Work breakdown in the format of section 1.1 | `<component>/docs/` |
 
 The shared library is a component and keeps its own design in `lib/docs/`.
 
