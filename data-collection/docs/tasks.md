@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 4 | **Updated** 2026-11-01 | **Approved**
+> **Version** 5 | **Updated** 2026-11-01 | **Draft**
 
 ## 1. Overview
 
@@ -130,7 +130,8 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-D3 | Task list | In progress |
 | DC-F1 | Workspace and tooling | Completed |
 | DC-F2 | Configuration and settings models | Completed |
-| DC-S1 | H.264 encoding spike | In progress |
+| DC-S1 | H.264 encoding spike | Completed |
+| DC-S2 | Linux verification | Not started |
 | DC-L1 | Frame sources | Not started |
 | DC-L2 | Tracker | Not started |
 | DC-L3 | Segmenter | Not started |
@@ -192,7 +193,7 @@ Every part of the approved designs is assigned to at least one task.
 | 5.3 Command line | DC-A2 (serve), DC-A11 |
 | 5.4 Application settings | DC-F2 |
 | 6 Data | DC-L8, DC-L9, DC-A9, DC-A10 |
-| 7 Testing | every task, DC-V1, DC-V2 |
+| 7 Testing | every task, DC-V1, DC-V2, DC-S2 |
 
 **HTTP interface (DC 5.2)**
 
@@ -277,7 +278,8 @@ workspace with two packages, `lib` (the shared library) and `data-collection`
 
 **Acceptance criteria.**
 
-- [x] On a clean checkout, on macOS and Linux, `uv sync` succeeds.
+- [x] On a clean checkout on macOS, `uv sync` succeeds. (Linux is checked
+      by DC-S2.)
 - [x] `uv run pytest` runs and passes with at least one placeholder test in each
       package.
 - [x] `uv run ruff format --check` and `uv run ruff check` pass. Ruff uses a
@@ -351,26 +353,26 @@ place.
 ### DC-S1 H.264 encoding spike
 
 - **Type**: chore
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-F1
 - **Requirements**: R6.6, R6.9
 - **Design**: DC 4.8
 
 **Description.** Find out whether the planned encoder produces H.264 MP4 files
-that browsers play, on macOS and Linux, and fast enough to keep up. The result
-decides how the Clip Writer (DC-A7) is built.
+that browsers play, on macOS, and fast enough to keep up. The result decides
+how the Clip Writer (DC-A7) is built. Linux is checked by DC-S2.
 
 **Acceptance criteria.**
 
-- [ ] A script encodes 150 frames of 640x480 at 30 fps to an MP4 file with PyAV,
-      on macOS and on Linux. (macOS done; Linux outstanding, see the progress
-      notes below.)
+- [x] A script encodes 150 frames of 640x480 at 30 fps to an MP4 file with PyAV,
+      on macOS. (Linux is checked by DC-S2.)
 - [x] The file plays in a `<video>` element in at least two browsers.
 - [x] Encoding the 6-second clip takes well under 6 seconds.
-- [ ] If PyAV cannot encode H.264 on a platform, the fallbacks (the OpenCV
+- [x] If PyAV cannot encode H.264 on a platform, the fallbacks (the OpenCV
       writer with the `avc1` codec, or MJPEG in an AVI file) are tried and the
-      outcome recorded.
-- [ ] The findings and the chosen approach are written in `docs/notes.md`, which
+      outcome recorded. (PyAV worked on macOS; the fallbacks were tried
+      anyway and are recorded.)
+- [x] The findings and the chosen approach are written in `docs/notes.md`, which
       is an approved document, so the change goes through a version bump and
       review.
 
@@ -383,29 +385,49 @@ decides how the Clip Writer (DC-A7) is built.
 - Keep the script in the branch under a `spikes` folder; it need not be
   production quality.
 
-**Progress notes (for the next agent).**
+**Outcome.** On macOS (Apple Silicon) PyAV `libx264` encoded the clip in 1.1 s
+with `faststart`, and the file played in Safari and Chrome. The results,
+the fallbacks and the PyAV and OpenCV library clash are in `docs/notes.md`.
+The spike script is `data-collection/spikes/h264_spike.py`.
 
-- Done on macOS (Apple Silicon): the script is
-  `data-collection/spikes/h264_spike.py`. PyAV `libx264` encoded the clip in
-  1.1 s with `faststart`; OpenCV `avc1` took 2.6 s and has no `faststart`;
-  OpenCV MJPG took 1.3 s with files almost twice as large. The PyAV file
-  played in Safari and Chrome (confirmed by the user by eye).
-- **Outstanding: Linux.** The spike has not been run on Linux. Run
-  `uv run python data-collection/spikes/h264_spike.py <output-folder>` on a
-  Linux machine, or in a Linux container (Docker was not running when this was
-  written). Check that PyAV's wheel includes `libx264` there, that encoding
-  stays well under 6 seconds, and, if PyAV cannot encode H.264, try the
-  fallbacks named in the acceptance criteria. Then play the output in a
-  Linux browser if one is available.
-- **Outstanding: findings in `docs/notes.md`.** Write the macOS results above
-  and the Linux results there (version bump and review).
-- **Finding to record:** importing PyAV and OpenCV in one process on macOS
-  prints an Objective-C warning that both bundle their own `libavdevice` and
-  that this "may cause spurious casting failures and mysterious crashes".
-  Nothing crashed in the spike. The application uses both together with a
-  live camera, so DC-A7 or DC-V2 should check it.
-- Leave the status `In progress` until the Linux run is done and the notes
-  are written.
+### DC-S2 Linux verification
+
+- **Type**: chore
+- **Status**: Not started
+- **Depends on**: DC-S1
+- **Requirements**: N4, R6.6, R6.9
+- **Design**: DC 4.8, DC 7
+
+**Description.** Linux is a supported platform, but the tasks above were
+verified on macOS only. This task checks on Linux what was deferred, and
+records the results. Steps 1 to 3 can be done any time after DC-S1 when a Linux
+machine or container is available; step 4 needs DC-V2.
+
+1. Workspace (DC-F1): on a clean Linux checkout, `uv sync`,
+   `uv run ruff format --check`, `uv run ruff check`, `uv run pytest` and
+   `uv run wand-collect --help` all succeed.
+2. Encoding (DC-S1): run `data-collection/spikes/h264_spike.py` on Linux.
+3. Playback (DC-S1): play the produced MP4 in a Linux browser.
+4. Cameras (DC-V2): run the DC-V2 checklist with a real camera on Linux, and
+   fill in its Linux column.
+
+**Acceptance criteria.**
+
+- [ ] The commands in step 1 succeed on Linux.
+- [ ] PyAV's wheel on Linux can encode H.264 with `libx264`, and the 150-frame
+      clip encodes in well under 6 seconds. If it cannot, the fallbacks
+      named in DC-S1 are tried and the outcome is recorded.
+- [ ] The MP4 plays in at least one Linux browser.
+- [ ] The DC-V2 checklist has been run on Linux and its results recorded.
+- [ ] The findings are written in `docs/notes.md` (a version bump and review),
+      and problems found are recorded as follow-up tasks. If the chosen video
+      approach does not work on Linux, DC-A7 is changed accordingly.
+
+**Implementation notes.**
+
+- Docker with a `python` or `ubuntu` image is enough for steps 1 and 2.
+  Steps 3 and 4 need a Linux desktop with a camera.
+- Camera names on Linux come from `/sys/class/video4linux/` (see DC-A5).
 
 ## 7. Shared library tasks
 
@@ -1659,8 +1681,9 @@ countdown in the test configuration.
 - **Requirements**: R1.7, N3, N4, R6.7
 - **Design**: DC 7
 
-**Description.** Check the application with real laptop cameras on macOS and
-Linux, following a written checklist.
+**Description.** Check the application with real laptop cameras on macOS,
+following a written checklist. Linux is checked by DC-S2, which reuses the
+checklist.
 
 **Acceptance criteria.**
 
@@ -1668,8 +1691,8 @@ Linux, following a written checklist.
       covering camera selection, calibration under different lighting and
       backgrounds, motion tuning, a capture run, pause and review, resume,
       missing-camera resume refusal, merge, and the missing-clip behavior.
-- [ ] It has been run on macOS and on Linux, and the results are recorded in the
-      document.
+- [ ] It has been run on macOS, and the results are recorded in the document
+      with a column left for Linux (filled in by DC-S2).
 - [ ] The live view keeps up with the camera, and no dropped frames corrupt
       tracking (N3).
 - [ ] Problems found are recorded as follow-up tasks.

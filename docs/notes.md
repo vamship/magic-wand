@@ -1,6 +1,6 @@
 # Notes
 
-> **Version** 1 | **Updated** 2026-11-01 | **Approved**
+> **Version** 2 | **Updated** 2026-11-01 | **Draft**
 
 ## Overview
 
@@ -23,6 +23,8 @@ are tasks in the owning component's `tasks.md`, not notes.
 ## Platforms
 
 - macOS and Linux are supported. Windows is best effort and untested.
+- Everything so far was verified on macOS only. Linux verification is task
+  DC-S2.
 - WSL2 does not expose webcams by default, so Windows users may not be able
   to capture from a camera there.
 
@@ -35,3 +37,24 @@ are tasks in the owning component's `tasks.md`, not notes.
 
 - Left-handed users' gestures may be mirrored versions of right-handed ones.
   Data collection only records handedness; training decides what to do.
+
+## Video clips
+
+Findings of the H.264 encoding spike (task DC-S1), run on macOS (Apple
+Silicon) with 150 frames of 640x480 at 30 fps. The frames were random noise
+with moving shapes, a worst case for compression.
+
+| Encoder | Time | Result |
+|---|---|---|
+| PyAV `libx264` (chosen) | 1.1 s | H.264, `yuv420p`, `faststart` set |
+| OpenCV `avc1` | 2.6 s | H.264, but no `faststart` |
+| OpenCV `MJPG` in AVI | 1.3 s | Works, files almost twice as large |
+
+- The PyAV file played in Safari and Chrome. The clip writer encodes with
+  PyAV, using `libx264`, `yuv420p` and `faststart`.
+- Importing PyAV and OpenCV in one process on macOS prints an Objective-C
+  warning that both bundle their own `libavdevice`, which "may cause spurious
+  casting failures and mysterious crashes". Nothing crashed in the spike.
+  Watch for it when the application runs the camera and the clip writer
+  together.
+- Linux has not been tested (task DC-S2).
