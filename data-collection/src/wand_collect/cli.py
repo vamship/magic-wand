@@ -51,6 +51,7 @@ def serve(args: argparse.Namespace) -> int:
             StreamService(application.engine, application.state).router,
         ],
         on_shutdown=application.shutdown,
+        app_settings=application.settings,
     )
     print(f"Open http://{server.host}:{server.port}/ in a browser.")
     uvicorn.run(app, host=server.host, port=server.port)

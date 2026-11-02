@@ -26,8 +26,9 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from wand_collect.engine import CaptureEngine, MotionReading
+from wand_collect.settings import DataCollectionSettings
 from wand_collect.state import ApplicationState
-from wand_core.casing import to_camel
+from wand_core.casing import camel_keys, to_camel
 
 logger = logging.getLogger(__name__)
 
@@ -186,6 +187,7 @@ def create_app(
     static_dir: Path | None = STATIC_DIR,
     heartbeat_s: float = HEARTBEAT_S,
     on_shutdown: Callable[[], None] | None = None,
+    app_settings: DataCollectionSettings | None = None,
 ) -> FastAPI:
     """Build the web application.
 
@@ -218,6 +220,12 @@ def create_app(
     @api.get("/state")
     def get_state() -> dict:
         return state.snapshot.to_json_dict()
+
+    @api.get("/config")
+    def get_config() -> dict:
+        """The application settings the page needs (shortcuts, countdown)."""
+        settings = app_settings or DataCollectionSettings()
+        return camel_keys(settings.model_dump())
 
     @api.get("/events")
     async def get_events(request: Request) -> StreamingResponse:

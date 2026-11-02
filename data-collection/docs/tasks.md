@@ -154,7 +154,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A9 | Session Service | Not started |
 | DC-A10 | Capture Controller | Not started |
 | DC-A11 | Command-line tools | Not started |
-| DC-U1 | Web UI shell | Not started |
+| DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Not started |
 | DC-U3 | Calibrate page | Not started |
 | DC-U4 | Record page | Not started |
@@ -1416,7 +1416,7 @@ hand.
 ### DC-U1 Web UI shell
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-A2
 - **Requirements**: N2
 - **Design**: DC 4.1
@@ -1428,27 +1428,27 @@ re-renders when they change.
 
 **Acceptance criteria.**
 
-- [ ] The server's `/` serves `index.html`, which loads the application as ES
+- [x] The server's `/` serves `index.html`, which loads the application as ES
       modules with no build step.
-- [ ] Preact, its hooks, and htm are vendored as exact files under
+- [x] Preact, its hooks, and htm are vendored as exact files under
       `static/vendor/`, and a `VERSIONS.md` lists each file's name, version and
       source URL.
-- [ ] The page connects to `/api/events`, shows a connection indicator, keeps
+- [x] The page connects to `/api/events`, shows a connection indicator, keeps
       the latest `state` snapshot (as camel case JSON) and the latest `motion`
       reading, and reconnects after a drop. After a reconnect it shows the new
       snapshot.
-- [ ] Navigation shows Setup, Calibrate, Record, Review and Browse. It moves to
+- [x] Navigation shows Setup, Calibrate, Record, Review and Browse. It moves to
       Record when capture starts, to Review when the capture state is `PAUSED`
       or a session is loaded for review, and to Setup when no session is loaded.
       The user can always open Browse.
-- [ ] An API helper sends requests and, on an error response, exposes the `code`
+- [x] An API helper sends requests and, on an error response, exposes the `code`
       and `message`, which the shell shows as a dismissible notice.
-- [ ] A shortcut helper registers keys from the application settings, ignores
+- [x] A shortcut helper registers keys from the application settings, ignores
       keys typed into input fields, and offers each shortcut's key for display
       on its button.
-- [ ] The countdown helper computes the time left from the end time in the state
+- [x] The countdown helper computes the time left from the end time in the state
       and updates the display locally.
-- [ ] A test (Python) fails if any file under `static/` outside `vendor/` has a
+- [x] A test (Python) fails if any file under `static/` outside `vendor/` has a
       line over 80 columns, except HTML.
 
 **Implementation notes.** `static/index.html`, `static/style.css`, `static/app/`
