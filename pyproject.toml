@@ -16,7 +16,13 @@ wand-collect = { workspace = true }
 members = ["lib", "data-collection"]
 
 [dependency-groups]
-dev = ["pytest", "ruff", "httpx"]
+dev = [
+    "pytest",
+    "ruff",
+    "httpx",
+    "numpy>=2.4.6",
+    "opencv-python-headless>=5.0.0.93",
+]
 
 [tool.ruff]
 line-length = 80
