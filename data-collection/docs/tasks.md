@@ -132,7 +132,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-F2 | Configuration and settings models | Completed |
 | DC-S1 | H.264 encoding spike | Completed |
 | DC-S2 | Linux verification | Not started |
-| DC-L1 | Frame sources | Not started |
+| DC-L1 | Frame sources | In progress |
 | DC-L2 | Tracker | Completed |
 | DC-L3 | Segmenter | Completed |
 | DC-L4 | Vector builder | Not started |
@@ -434,7 +434,7 @@ machine or container is available; step 4 needs DC-V2.
 ### DC-L1 Frame sources
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-F1
 - **Requirements**: R1.1, R6.7, N3, N5
 - **Design**: Lib 5
