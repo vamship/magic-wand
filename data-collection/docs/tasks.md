@@ -156,7 +156,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A11 | Command-line tools | Not started |
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Not started |
-| DC-U3 | Calibrate page | Not started |
+| DC-U3 | Calibrate page | Completed |
 | DC-U4 | Record page | Not started |
 | DC-U5 | Review page | Not started |
 | DC-U6 | Browse page | Not started |
@@ -1492,7 +1492,7 @@ opens an existing one.
 ### DC-U3 Calibrate page
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-U1, DC-A4, DC-A5
 - **Requirements**: R1.2, R1.3, R1.4, R1.5, R1.6
 - **Design**: DC 3.3, 4.1
@@ -1501,27 +1501,27 @@ opens an existing one.
 
 **Acceptance criteria.**
 
-- [ ] **Color calibration.** A button freezes the frame and shows it. Clicking
+- [x] **Color calibration.** A button freezes the frame and shows it. Clicking
       the tip sends the point (as fractions of the image); the page shows the
       returned detection mask and the detected tip, and says how many other
       regions are also marked. More clicks refine the result. A tolerance
       control re-runs the calibration. A button returns to the live view.
-- [ ] **Manual adjustment.** Sliders for the vision settings (hue center and
+- [x] **Manual adjustment.** Sliders for the vision settings (hue center and
       half-width, saturation and brightness ranges, and the others) send partial
       settings changes and take effect on the live view. A toggle switches the
       live view between the camera and the mask.
-- [ ] **Motion tuning.** The live view clearly shows motion versus idle (for
+- [x] **Motion tuning.** The live view clearly shows motion versus idle (for
       example a colored border and label), the current speed as a number, and a
       short history graph of the speed with the start and end thresholds drawn.
       A slider sets the start threshold, and the end threshold follows at the
       configured ratio. Numeric fields set the valid time window and minimum
       size.
-- [ ] **Guided measurement.** A guided sequence tells the user to hold still,
+- [x] **Guided measurement.** A guided sequence tells the user to hold still,
       then to wave, calls the measurement endpoint for each phase, and shows
       that the proposed thresholds replaced the motion settings.
-- [ ] **Profiles.** Save the current settings as a named profile, load, and
+- [x] **Profiles.** Save the current settings as a named profile, load, and
       delete from a list.
-- [ ] Every control shows the current value from the state, and all controls are
+- [x] Every control shows the current value from the state, and all controls are
       disabled with a notice while a session is loaded for capture.
 
 **Implementation notes.** `static/app/calibrate.js`. The history graph is

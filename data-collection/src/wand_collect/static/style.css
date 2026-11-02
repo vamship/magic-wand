@@ -158,3 +158,208 @@ kbd {
   padding: 0 5px;
   font-size: 0.8em;
 }
+
+/* Calibrate page */
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.panel h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.locked {
+  background: #3a3220;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  border: 4px solid transparent;
+  border-radius: 8px;
+}
+
+.stage.idle {
+  border-color: var(--border);
+}
+
+.stage.moving {
+  border-color: var(--accent);
+}
+
+.stage .live {
+  display: block;
+  max-width: none;
+}
+
+.stage .badge {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+}
+
+.stage.frozen {
+  border-color: var(--muted);
+  cursor: crosshair;
+}
+
+.stage .overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.tip-marker {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border: 2px solid var(--ok);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+button {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+
+button[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+button:disabled,
+input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input[type="text"],
+input[type="number"] {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: inherit;
+}
+
+.control {
+  display: grid;
+  grid-template-columns: 9.5rem 1fr 4rem;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.control .name {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.control output {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.control input[type="number"] {
+  width: 6rem;
+  grid-column: 2;
+}
+
+.outcome {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.outcome .good,
+p.good {
+  color: var(--ok);
+}
+
+.outcome .bad {
+  color: var(--bad);
+}
+
+.hint,
+.legend {
+  color: var(--muted);
+}
+
+.graph {
+  width: 100%;
+  max-width: 600px;
+  height: 120px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.legend .start {
+  color: var(--accent);
+  margin-right: 16px;
+}
+
+.legend .end {
+  color: var(--ok);
+}
+
+.speed strong {
+  font-size: 1.4rem;
+  margin: 0 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.instruction {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.profiles {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.profiles li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.profiles li span {
+  flex: 1;
+}

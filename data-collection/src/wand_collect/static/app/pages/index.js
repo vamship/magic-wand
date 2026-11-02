@@ -2,6 +2,7 @@
 // yet use the placeholder.
 
 import { html } from "../html.js";
+import { Calibrate } from "../calibrate/index.js";
 import { Placeholder } from "./placeholder.js";
 
 const NOTES = {
@@ -13,6 +14,7 @@ const NOTES = {
 };
 
 export function renderPage(id, title, props) {
+  if (id === "calibrate") return html`<${Calibrate} ...${props} />`;
   return html`<${Placeholder}
     title=${title}
     note=${NOTES[id]}

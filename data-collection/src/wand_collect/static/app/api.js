@@ -12,7 +12,9 @@ export class ApiError extends Error {
   }
 }
 
-export async function request(method, path, body, fetchFunction = fetch) {
+// Sends a request and resolves with the response, or rejects with an
+// ApiError if the request failed.
+async function send(method, path, body, fetchFunction = fetch) {
   const options = { method, headers: {} };
   if (body !== undefined) {
     options.headers["Content-Type"] = "application/json";
@@ -24,10 +26,7 @@ export async function request(method, path, body, fetchFunction = fetch) {
   } catch (error) {
     throw new ApiError("network_error", "Cannot reach the application.", 0);
   }
-  if (response.ok) {
-    if (response.status === 204) return null;
-    return response.json().catch(() => null);
-  }
+  if (response.ok) return response;
   let code = "error";
   let message = response.statusText || "The request failed.";
   try {
@@ -42,10 +41,23 @@ export async function request(method, path, body, fetchFunction = fetch) {
   throw new ApiError(code, message, response.status);
 }
 
+export async function request(method, path, body, fetchFunction = fetch) {
+  const response = await send(method, path, body, fetchFunction);
+  if (response.status === 204) return null;
+  return response.json().catch(() => null);
+}
+
+// Like request, but resolves with the body as a Blob (for images).
+export async function requestBlob(method, path, body, fetchFunction = fetch) {
+  const response = await send(method, path, body, fetchFunction);
+  return response.blob();
+}
+
 export const api = {
   get: (path) => request("GET", path),
   post: (path, body) => request("POST", path, body ?? {}),
   put: (path, body) => request("PUT", path, body ?? {}),
   patch: (path, body) => request("PATCH", path, body ?? {}),
   delete: (path) => request("DELETE", path),
+  blob: (method, path) => requestBlob(method, path),
 };
