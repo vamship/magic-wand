@@ -1,6 +1,6 @@
 # Data Collection Application - Design
 
-> **Version** 8 | **Updated** 2026-11-01 | **Draft**
+> **Version** 8 | **Updated** 2026-11-01 | **Approved**
 
 ## 1. Overview
 
