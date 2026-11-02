@@ -5,5 +5,21 @@ from wand_core.calibration.color import (
     ColorCalibrator,
     UnusableColorError,
 )
+from wand_core.calibration.motion import (
+    MotionCalibration,
+    MotionCalibrationError,
+    calibrate_from_speeds,
+    calibrate_motion,
+    speeds_of,
+)
 
-__all__ = ["ColorCalibration", "ColorCalibrator", "UnusableColorError"]
+__all__ = [
+    "ColorCalibration",
+    "ColorCalibrator",
+    "MotionCalibration",
+    "MotionCalibrationError",
+    "UnusableColorError",
+    "calibrate_from_speeds",
+    "calibrate_motion",
+    "speeds_of",
+]

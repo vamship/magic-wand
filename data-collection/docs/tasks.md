@@ -138,7 +138,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L4 | Vector builder | Not started |
 | DC-L5 | Path renderer | Not started |
 | DC-L6 | Color calibrator | Completed |
-| DC-L7 | Motion calibrator | Not started |
+| DC-L7 | Motion calibrator | Completed |
 | DC-L8 | Dataset store: formats and safe writes | Completed |
 | DC-L9 | Dataset store: sessions and samples | Completed |
 | DC-L10 | Dataset store: check, export and load | Not started |
@@ -684,7 +684,7 @@ view will show.
 ### DC-L7 Motion calibrator
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-L3
 - **Requirements**: R1.5
 - **Design**: Lib 9
@@ -696,15 +696,15 @@ shows the speeds of real gestures.
 
 **Acceptance criteria.**
 
-- [ ] From still positions it computes the idle ceiling, a high percentile
+- [x] From still positions it computes the idle ceiling, a high percentile
       (about the 95th) of the measured speeds.
-- [ ] From waving positions it computes a typical gesture speed.
-- [ ] It returns `end_speed` as a multiple of the idle ceiling, and
+- [x] From waving positions it computes a typical gesture speed.
+- [x] It returns `end_speed` as a multiple of the idle ceiling, and
       `start_speed` between that and the typical gesture speed, with
       `start_speed` greater than `end_speed`.
-- [ ] Synthetic still and waving streams give thresholds in that order, and
+- [x] Synthetic still and waving streams give thresholds in that order, and
       noisier still data gives a higher `end_speed`.
-- [ ] Too little data, or waving no faster than the noise, gives a clear error.
+- [x] Too little data, or waving no faster than the noise, gives a clear error.
 
 **Implementation notes.** Compute speeds with the same smoothing as the
 segmenter (reuse its function). Suggested: `end_speed` is 3 times the idle
