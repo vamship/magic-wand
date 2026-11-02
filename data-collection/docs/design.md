@@ -1,6 +1,6 @@
 # Data Collection Application - Design
 
-> **Version** 6 | **Updated** 2026-11-01 | **Approved**
+> **Version** 7 | **Updated** 2026-11-01 | **Draft**
 
 ## 1. Overview
 
@@ -842,7 +842,11 @@ writes:
   on the event stream checks the snapshot after each command, and a second
   client sees the same snapshots.
 - **Manual**: a checklist for real cameras on macOS and Linux, including
-  camera selection, the motion tuning screen and resuming a session.
+  camera selection, the motion tuning screen and resuming a session. Only the
+  macOS run is done as part of the main work; the Linux run, and the Linux
+  checks of the build and the video encoding, are deferred (requirement N4)
+  and tracked as task DC-S2 in `tasks.md`. The design is meant to work
+  unchanged on Linux, but that is unverified until then.
 - The shared library's tests are described in `lib/docs/design.md`.
 
 ## 8. Requirement coverage

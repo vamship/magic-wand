@@ -1,6 +1,6 @@
 # Data Collection Application - Requirements
 
-> **Version** 7 | **Updated** 2026-11-01 | **Approved**
+> **Version** 8 | **Updated** 2026-11-01 | **Draft**
 
 ## 1. Overview
 
@@ -212,6 +212,10 @@ this document:
   no dropped frames severe enough to corrupt tracking.
 - N4. **Platform**: macOS and Linux supported. Windows is best effort (e.g.
   via WSL2, noting that WSL2 does not expose webcams by default); not tested.
+  *Deferment:* development and verification so far are on macOS only. The
+  application is written to be platform independent and Linux remains a
+  requirement, but Linux verification is deferred to task DC-S2 in
+  `tasks.md`. Until it is done, Linux support is unverified.
 - N5. **Offline testability**: the shared vision and motion code takes frames
   or position data as input, so it can be tested without a live camera, using
   saved video files or synthetic `(x, y, t)` data. Stored video snippets can
