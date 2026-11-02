@@ -136,7 +136,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L2 | Tracker | Completed |
 | DC-L3 | Segmenter | Completed |
 | DC-L4 | Vector builder | Not started |
-| DC-L5 | Path renderer | Not started |
+| DC-L5 | Path renderer | Completed |
 | DC-L6 | Color calibrator | Completed |
 | DC-L7 | Motion calibrator | Completed |
 | DC-L8 | Dataset store: formats and safe writes | Completed |
@@ -615,7 +615,7 @@ stored; training and inference both call this function.
 ### DC-L5 Path renderer
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-F1
 - **Requirements**: R5.2, R6.5
 - **Design**: Lib 11
@@ -627,14 +627,14 @@ end so direction is clear.
 
 **Acceptance criteria.**
 
-- [ ] Given positions, a size and a mode, it returns an image of that size.
-- [ ] The gradient makes the start and end distinguishable, and the markers are
+- [x] Given positions, a size and a mode, it returns an image of that size.
+- [x] The gradient makes the start and end distinguishable, and the markers are
       visible at thumbnail size (about 96x72) and at large size.
-- [ ] Overlay mode draws on a copy of the supplied frame, resized to the
+- [x] Overlay mode draws on a copy of the supplied frame, resized to the
       requested size, and never changes the input.
-- [ ] A one-position or empty gesture draws without error.
-- [ ] Rendering a typical gesture at 640x480 takes a few milliseconds.
-- [ ] Stored positions are drawn as they are, never mirrored.
+- [x] A one-position or empty gesture draws without error.
+- [x] Rendering a typical gesture at 640x480 takes a few milliseconds.
+- [x] Stored positions are drawn as they are, never mirrored.
 
 **Implementation notes.** `cv2.polylines` and `cv2.circle` on a NumPy canvas;
 build the gradient by drawing short segments with an interpolated color. Add a
