@@ -146,7 +146,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A1 | Application State | Completed |
 | DC-A2 | Application Server | Completed |
 | DC-A3 | Capture Engine | Completed |
-| DC-A4 | Live video stream | Not started |
+| DC-A4 | Live video stream | In progress |
 | DC-A5 | Calibration Service | Not started |
 | DC-A6 | Label Service | Not started |
 | DC-A7 | Clip Writer | Not started |
@@ -1020,7 +1020,7 @@ and the motion reading.
 ### DC-A4 Live video stream
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-A2, DC-A3
 - **Requirements**: R1.4, R4.8
 - **Design**: DC 4.2
