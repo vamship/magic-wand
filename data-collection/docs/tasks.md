@@ -147,7 +147,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A2 | Application Server | Completed |
 | DC-A3 | Capture Engine | Completed |
 | DC-A4 | Live video stream | Completed |
-| DC-A5 | Calibration Service | Not started |
+| DC-A5 | Calibration Service | In progress |
 | DC-A6 | Label Service | Not started |
 | DC-A7 | Clip Writer | Not started |
 | DC-A8 | Sample Library | Not started |
@@ -1051,7 +1051,7 @@ client disconnect on each loop pass.
 ### DC-A5 Calibration Service
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-A1, DC-A3, DC-L6, DC-L7, DC-F2
 - **Requirements**: R1.1, R1.2, R1.3, R1.4, R1.5, R1.6, R1.7, R2.2
 - **Design**: DC 3.3, 4.4

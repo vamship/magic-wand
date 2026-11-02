@@ -208,6 +208,7 @@ class CaptureEngine:
         self._mirror = mirror_preview
         self._receiver = receiver
         self._motion_listeners: list[Callable[[MotionReading], None]] = []
+        self._detection_listeners: list[Callable[[TipDetection], None]] = []
         self._padding = clip_padding
         self._camera_factory = camera_factory or _default_camera_factory
         self._commands: queue.Queue[tuple[Callable[[], Any], Future]] = (
@@ -221,6 +222,7 @@ class CaptureEngine:
         self.buffer = RingBuffer(sum(clip_padding) + 4.0)
         self.latest_motion: MotionReading | None = None
         self.latest_detection: TipDetection | None = None
+        self.latest_raw: Frame | None = None  # as the camera saw it
 
         # Engine-thread state.
         self._source: FrameSource | None = None
@@ -297,6 +299,18 @@ class CaptureEngine:
         self, listener: Callable[[MotionReading], None]
     ) -> None:
         self._motion_listeners.append(listener)
+
+    def add_detection_listener(
+        self, listener: Callable[[TipDetection], None]
+    ) -> None:
+        """Call ``listener`` with every tip detection, on the engine thread."""
+        self._detection_listeners.append(listener)
+
+    def remove_detection_listener(
+        self, listener: Callable[[TipDetection], None]
+    ) -> None:
+        if listener in self._detection_listeners:
+            self._detection_listeners.remove(listener)
 
     # --- Reading what the engine publishes -------------------------------
 
@@ -435,6 +449,9 @@ class CaptureEngine:
         detection = self._tracker.process(frame.image, frame.timestamp_s)
         update = self._segmenter.update(detection)
         self.latest_detection = detection
+        self.latest_raw = frame
+        for listener in list(self._detection_listeners):
+            self._call(listener, detection)
 
         ok, jpeg = cv2.imencode(
             ".jpg", frame.image, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY]
