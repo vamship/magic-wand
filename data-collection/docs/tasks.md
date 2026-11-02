@@ -137,7 +137,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L3 | Segmenter | Completed |
 | DC-L4 | Vector builder | Not started |
 | DC-L5 | Path renderer | Not started |
-| DC-L6 | Color calibrator | In progress |
+| DC-L6 | Color calibrator | Completed |
 | DC-L7 | Motion calibrator | Not started |
 | DC-L8 | Dataset store: formats and safe writes | Completed |
 | DC-L9 | Dataset store: sessions and samples | Completed |
@@ -643,7 +643,7 @@ helper that encodes an image to PNG bytes for the server.
 ### DC-L6 Color calibrator
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-L2
 - **Requirements**: R1.2, R1.7
 - **Design**: Lib 7
@@ -662,17 +662,17 @@ changes. It then runs the tracker on the frame with the new settings.
 
 **Acceptance criteria.**
 
-- [ ] Given a frame and one or more points, it returns vision settings, the
+- [x] Given a frame and one or more points, it returns vision settings, the
       detection mask, and the tracker's detection of the tip.
-- [ ] On synthetic frames, the settings make the tracker find the disk, and find
+- [x] On synthetic frames, the settings make the tracker find the disk, and find
       little else.
-- [ ] A red disk (hue near 0 or 179) gives a hue interval that straddles the
+- [x] A red disk (hue near 0 or 179) gives a hue interval that straddles the
       wrap without special input from the caller.
-- [ ] Adding clicks widens the ranges to cover the new samples.
-- [ ] It reports how many other regions of the frame the mask also marks, so the
+- [x] Adding clicks widens the ranges to cover the new samples.
+- [x] It reports how many other regions of the frame the mask also marks, so the
       user can tighten the tolerance or click a more distinctive spot.
-- [ ] Changing the tolerance changes the margins in the expected direction.
-- [ ] A click on a spot with no usable color (for example pure black) gives a
+- [x] Changing the tolerance changes the margins in the expected direction.
+- [x] A click on a spot with no usable color (for example pure black) gives a
       clear error.
 
 **Implementation notes.** Circular mean: average the unit vectors of the hue
