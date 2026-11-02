@@ -31,6 +31,7 @@ class Tracker:
     def __init__(self, settings: VisionSettings | None = None) -> None:
         self.settings = settings or VisionSettings()
         self._previous: tuple[float, float] | None = None  # pixels
+        self.last_mask: np.ndarray | None = None  # mask of the last frame
 
     def reset(self) -> None:
         """Forget the previous tip."""
@@ -65,7 +66,8 @@ class Tracker:
     def process(self, frame: np.ndarray, timestamp_s: float) -> TipDetection:
         """Find the tip in ``frame``, taken at ``timestamp_s``."""
         height, width = frame.shape[:2]
-        regions = self._candidates(self.mask(frame), width, height)
+        self.last_mask = self.mask(frame)
+        regions = self._candidates(self.last_mask, width, height)
         if not regions:
             return TipDetection(timestamp_s=timestamp_s, found=False)
         (x, y), radius = self._choose(regions)
