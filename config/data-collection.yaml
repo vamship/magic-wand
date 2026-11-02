@@ -1,0 +1,32 @@
+# Settings of the data collection application. Override per machine in
+# data-collection.local.yaml (not in git), for example to store datasets
+# elsewhere.
+
+# Where datasets are stored.
+dataFolder: data
+server:
+  # Where the application listens. Local only by default.
+  host: 127.0.0.1
+  port: 8000
+camera:
+  # Preferred camera and the requested mode.
+  index: 0
+  width: 640
+  height: 480
+  fps: 30
+# Length of the countdown before capturing starts, in seconds.
+countdownS: 3.0
+# Video clip padding before and after the gesture, in seconds.
+clipPadding:
+  preS: 2.0
+  postS: 2.0
+# End threshold as a fraction of the start threshold.
+endThresholdRatio: 0.6
+# Keyboard shortcuts (browser key names). Keys 1 to 9 always select labels.
+shortcuts:
+  pause: Escape
+  previous: ArrowLeft
+  next: ArrowRight
+  reject: r
+  delete: Backspace
+  toggleView: p

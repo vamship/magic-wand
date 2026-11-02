@@ -1,0 +1,20 @@
+# Default motion settings: how motion is cut into gestures. Speeds are in
+# frame-heights per second, durations in seconds, distances in frame-heights.
+# The values are provisional and are tuned against real recordings. Override
+# per machine in motion.local.yaml (not in git).
+
+# Speed above which motion starts, and the number of frames it must last.
+startSpeed: 0.25
+startFrames: 2
+# Speed below which motion may end, and how long it must stay below.
+endSpeed: 0.15
+endHoldS: 0.3
+# Shortest and longest valid gesture.
+minDurationS: 0.3
+maxDurationS: 4.0
+# Smallest valid path size (diagonal of its bounding box).
+minExtent: 0.10
+# Longest tolerated gap with no tip found.
+lostTimeoutS: 0.25
+# Number of frames in the smoothing average.
+smoothingFrames: 3

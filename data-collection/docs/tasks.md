@@ -128,8 +128,8 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-D1 | Requirements | Completed |
 | DC-D2 | Design | Completed |
 | DC-D3 | Task list | In progress |
-| DC-F1 | Workspace and tooling | Not started |
-| DC-F2 | Configuration and settings models | Not started |
+| DC-F1 | Workspace and tooling | Completed |
+| DC-F2 | Configuration and settings models | Completed |
 | DC-S1 | H.264 encoding spike | Not started |
 | DC-L1 | Frame sources | Not started |
 | DC-L2 | Tracker | Not started |
@@ -265,7 +265,7 @@ them the tasks cover R1.1 to R7.6 and N1 to N5. R7.5 is P2 (task DC-U7).
 ### DC-F1 Workspace and tooling
 
 - **Type**: chore
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: none
 - **Requirements**: N1, N4
 - **Design**: Arch 5; `docs/standards.md` 2
@@ -277,17 +277,17 @@ workspace with two packages, `lib` (the shared library) and `data-collection`
 
 **Acceptance criteria.**
 
-- [ ] On a clean checkout, on macOS and Linux, `uv sync` succeeds.
-- [ ] `uv run pytest` runs and passes with at least one placeholder test in each
+- [x] On a clean checkout, on macOS and Linux, `uv sync` succeeds.
+- [x] `uv run pytest` runs and passes with at least one placeholder test in each
       package.
-- [ ] `uv run ruff format --check` and `uv run ruff check` pass. Ruff uses a
+- [x] `uv run ruff format --check` and `uv run ruff check` pass. Ruff uses a
       line length of 80 and reports lines that are too long.
-- [ ] `uv run wand-collect --help` prints usage (no commands need to work yet).
-- [ ] The root `pyproject.toml` lists both packages as workspace members, and a
+- [x] `uv run wand-collect --help` prints usage (no commands need to work yet).
+- [x] The root `pyproject.toml` lists both packages as workspace members, and a
       single `uv.lock` is committed.
-- [ ] Each package declares `requires-python` as 3.11 or later and has a `src`
+- [x] Each package declares `requires-python` as 3.11 or later and has a `src`
       folder and a `tests` folder.
-- [ ] `.gitignore` excludes `data/`, `config/profiles/` and
+- [x] `.gitignore` excludes `data/`, `config/profiles/` and
       `config/*.local.yaml`.
 
 **Implementation notes.**
@@ -307,7 +307,7 @@ workspace with two packages, `lib` (the shared library) and `data-collection`
 ### DC-F2 Configuration and settings models
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-F1
 - **Requirements**: R3.4, R6.7
 - **Design**: Arch 4.3; Lib 4, 6, 8.2; DC 5.4
@@ -320,22 +320,22 @@ place.
 
 **Acceptance criteria.**
 
-- [ ] `config/` contains `labels.yaml` (three dummy labels, each with an `id`
+- [x] `config/` contains `labels.yaml` (three dummy labels, each with an `id`
       and a `name`), `vision.yaml`, `motion.yaml` and `data-collection.yaml`,
       with comments explaining each key.
-- [ ] `vision.yaml` and `motion.yaml` default to the vision settings of Lib 6
+- [x] `vision.yaml` and `motion.yaml` default to the vision settings of Lib 6
       and the starting values in Lib 8.2. `data-collection.yaml` holds the keys
       and defaults of DC 5.4.
-- [ ] Loading a file returns a validated model with snake case attributes.
+- [x] Loading a file returns a validated model with snake case attributes.
       Invalid values (for example a negative speed, or `endSpeed` above
       `startSpeed`) raise a clear error naming the key.
-- [ ] A local override (`<name>.local.yaml`) replaces keys of the file with the
+- [x] A local override (`<name>.local.yaml`) replaces keys of the file with the
       same prefix; keys it omits keep their values.
-- [ ] Saving a model writes camel case keys. Reading a saved file gives back an
+- [x] Saving a model writes camel case keys. Reading a saved file gives back an
       equal model.
-- [ ] A key conversion helper converts the keys of nested dictionaries and lists
+- [x] A key conversion helper converts the keys of nested dictionaries and lists
       between camel and snake case, and leaves values untouched.
-- [ ] A function resolves the working settings in the order of Arch 4.3: the
+- [x] A function resolves the working settings in the order of Arch 4.3: the
       defaults and local override, then a profile when given.
 
 **Implementation notes.**
