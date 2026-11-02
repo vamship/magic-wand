@@ -9,6 +9,7 @@ import uvicorn
 
 from wand_collect.app import build_application, is_loopback
 from wand_collect.server import create_app
+from wand_collect.services.calibration import CalibrationService
 from wand_collect.stream import StreamService
 
 
@@ -49,6 +50,12 @@ def serve(args: argparse.Namespace) -> int:
         application.engine,
         routers=[
             StreamService(application.engine, application.state).router,
+            CalibrationService(
+                application.state,
+                application.engine,
+                application.config_dir,
+                application.settings,
+            ).router,
         ],
         on_shutdown=application.shutdown,
         app_settings=application.settings,
