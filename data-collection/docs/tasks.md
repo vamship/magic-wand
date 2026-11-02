@@ -156,7 +156,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A11 | Command-line tools | Not started |
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Not started |
-| DC-U3 | Calibrate page | Not started |
+| DC-U3 | Calibrate page | In progress |
 | DC-U4 | Record page | Not started |
 | DC-U5 | Review page | Not started |
 | DC-U6 | Browse page | Not started |
@@ -1492,7 +1492,7 @@ opens an existing one.
 ### DC-U3 Calibrate page
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-U1, DC-A4, DC-A5
 - **Requirements**: R1.2, R1.3, R1.4, R1.5, R1.6
 - **Design**: DC 3.3, 4.1
