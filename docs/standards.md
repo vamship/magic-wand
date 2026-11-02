@@ -37,6 +37,14 @@ Work is organized as tasks in the component's `tasks.md`. A task has:
 
 A task is sized to fit one branch.
 
+**A task must be written with enough information for an independent agent to
+implement it successfully.** The agent has only the task and the documents the
+task references. It must not have to ask questions or guess, so the task states
+the behavior to build, the names and shapes of what it exchanges with other
+parts, how each acceptance criterion is checked, and which documents define the
+rest. A task that leaves such a gap is incomplete and is fixed before work
+starts.
+
 ### 1.2 Branches
 
 - All development takes place in a branch, with one branch per task. Never
