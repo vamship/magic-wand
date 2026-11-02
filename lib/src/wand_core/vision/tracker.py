@@ -43,11 +43,7 @@ class Tracker:
         This is the mask used for detection, after cleanup.
         """
         s = self.settings
-        smoothed = frame
-        if s.blur_size > 0:
-            size = s.blur_size if s.blur_size % 2 else s.blur_size + 1
-            smoothed = cv2.GaussianBlur(frame, (size, size), 0)
-        hsv = cv2.cvtColor(smoothed, cv2.COLOR_BGR2HSV)
+        hsv = cv2.cvtColor(smooth(frame, s.blur_size), cv2.COLOR_BGR2HSV)
         marked = np.zeros(frame.shape[:2], dtype=np.uint8)
         for low, high in _hue_bands(s.hue_center, s.hue_half_width):
             marked |= cv2.inRange(
@@ -117,6 +113,14 @@ class Tracker:
                 key=lambda r: (r[1][0] - px) ** 2 + (r[1][1] - py) ** 2,
             )
         return center, radius
+
+
+def smooth(frame: np.ndarray, blur_size: int) -> np.ndarray:
+    """Reduce sensor noise; ``blur_size`` 0 leaves the frame as it is."""
+    if blur_size <= 0:
+        return frame
+    size = blur_size if blur_size % 2 else blur_size + 1
+    return cv2.GaussianBlur(frame, (size, size), 0)
 
 
 def _hue_bands(center: int, half_width: int) -> list[tuple[int, int]]:
