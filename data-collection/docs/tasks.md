@@ -145,7 +145,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L11 | Dataset store: merge | Not started |
 | DC-A1 | Application State | Completed |
 | DC-A2 | Application Server | Not started |
-| DC-A3 | Capture Engine | Not started |
+| DC-A3 | Capture Engine | In progress |
 | DC-A4 | Live video stream | Not started |
 | DC-A5 | Calibration Service | Not started |
 | DC-A6 | Label Service | Not started |
@@ -961,7 +961,7 @@ files, startup, the event stream, the state endpoint, error handling, and the
 ### DC-A3 Capture Engine
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-A1, DC-L1, DC-L2, DC-L3
 - **Requirements**: R4.5, R4.8, R6.6, R6.7, N3
 - **Design**: DC 4.6
