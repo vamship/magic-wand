@@ -143,7 +143,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L9 | Dataset store: sessions and samples | Not started |
 | DC-L10 | Dataset store: check, export and load | Not started |
 | DC-L11 | Dataset store: merge | Not started |
-| DC-A1 | Application State | Not started |
+| DC-A1 | Application State | Completed |
 | DC-A2 | Application Server | Not started |
 | DC-A3 | Capture Engine | Not started |
 | DC-A4 | Live video stream | Not started |
@@ -866,7 +866,7 @@ half-copied session.
 ### DC-A1 Application State
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-F1
 - **Requirements**: R2.2
 - **Design**: DC 4.3
@@ -884,20 +884,20 @@ derived: they are locked while the session is loaded for capture.
 
 **Acceptance criteria.**
 
-- [ ] A reader gets a snapshot that is immutable and internally consistent.
+- [x] A reader gets a snapshot that is immutable and internally consistent.
       Reading is safe from any thread without the caller taking a lock.
-- [ ] An update names its owner and the fields; an owner writing a field it does
+- [x] An update names its owner and the fields; an owner writing a field it does
       not own is rejected.
-- [ ] An update builds a new snapshot, swaps it in under a lock, and notifies
+- [x] An update builds a new snapshot, swaps it in under a lock, and notifies
       all listeners with the new snapshot, in order.
-- [ ] Concurrent updates from several threads never lose an update or expose a
+- [x] Concurrent updates from several threads never lose an update or expose a
       half-applied one (tested with threads).
-- [ ] The snapshot serializes to JSON with camel case keys, ready to send to a
+- [x] The snapshot serializes to JSON with camel case keys, ready to send to a
       browser.
-- [ ] A helper says whether settings are locked for a given snapshot.
-- [ ] A new instance starts with no session, empty counts and labels, capture
+- [x] A helper says whether settings are locked for a given snapshot.
+- [x] A new instance starts with no session, empty counts and labels, capture
       state `STOPPED`, and default settings.
-- [ ] Instances are independent: it is created once and passed in, never a
+- [x] Instances are independent: it is created once and passed in, never a
       module global.
 
 **Implementation notes.** Frozen dataclasses for the snapshot and nested
