@@ -150,7 +150,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A5 | Calibration Service | Completed |
 | DC-A6 | Label Service | Not started |
 | DC-A7 | Clip Writer | Completed |
-| DC-A8 | Sample Library | Not started |
+| DC-A8 | Sample Library | In progress |
 | DC-A9 | Session Service | Completed |
 | DC-A10 | Capture Controller | Not started |
 | DC-A11 | Command-line tools | Not started |
@@ -1181,7 +1181,7 @@ hold the whole clip's decoded frames in memory at once if it can be avoided.
 ### DC-A8 Sample Library
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-A1, DC-L5, DC-L9
 - **Requirements**: R5.2, R6.5, R6.8, R6.9, R7.1, R7.2, R7.3, R7.4, R7.6
 - **Design**: DC 4.9
