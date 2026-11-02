@@ -134,7 +134,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-S2 | Linux verification | Not started |
 | DC-L1 | Frame sources | Not started |
 | DC-L2 | Tracker | Completed |
-| DC-L3 | Segmenter | Not started |
+| DC-L3 | Segmenter | In progress |
 | DC-L4 | Vector builder | Not started |
 | DC-L5 | Path renderer | Not started |
 | DC-L6 | Color calibrator | Not started |
@@ -528,7 +528,7 @@ the one nearest the previous tip; report the center of its enclosing circle.
 ### DC-L3 Segmenter
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-F2
 - **Requirements**: R4.5, N1, N5
 - **Design**: Lib 8, 13
