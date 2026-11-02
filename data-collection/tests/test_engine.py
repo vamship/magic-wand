@@ -404,3 +404,69 @@ def test_runs_on_a_recorded_video(tmp_path):
     engine.stop()
     assert [type(m) for m in messages] == [MotionStarted, GestureFound]
     assert state.snapshot.camera.device is None  # released at stop
+
+
+# --- Mirrored preview -------------------------------------------------------
+
+
+def disk_columns(image):
+    """The columns where the orange disk (or its white mask) is, as a mean.
+
+    Only rows below the label text are looked at.
+    """
+    image = image[60:]
+    orange = (image[:, :, 2] > 150) & (image[:, :, 1] < 200)
+    white = image.min(axis=2) > 200
+    hits = orange | white
+    return np.nonzero(hits.any(axis=0))[0].mean() / image.shape[1]
+
+
+def test_the_preview_is_not_mirrored_by_default(rig):
+    rig.feed((0.2, 0.5))
+    rig.wait_frames(1)
+    assert disk_columns(rig.engine.latest_frame("camera")[1]) < 0.3
+    assert disk_columns(rig.engine.latest_frame("mask")[1]) < 0.3
+
+
+def test_a_mirrored_preview_flips_the_picture_and_the_mask_only():
+    rig = Rig(mirror_preview=True)
+    rig.feed((0.2, 0.5))
+    rig.wait_frames(1)
+    # What is shown: the disk on the right, as in a mirror.
+    assert disk_columns(rig.engine.latest_frame("camera")[1]) > 0.7
+    assert disk_columns(rig.engine.latest_frame("mask")[1]) > 0.7
+    # What is measured and kept: as the camera saw it.
+    assert rig.engine.latest_detection.horizontal == pytest.approx(
+        0.2, abs=0.01
+    )
+    stored = rig.engine.frames_between(0.0, 1.0)[0]
+    image = cv2.imdecode(np.frombuffer(stored.jpeg, np.uint8), cv2.IMREAD_COLOR)
+    assert disk_columns(image) < 0.3
+    rig.close()
+
+
+def test_the_marker_follows_the_mirrored_disk():
+    rig = Rig(mirror_preview=True)
+    rig.feed((0.2, 0.5))
+    rig.wait_frames(1)
+    shown = rig.engine.latest_frame("camera")[1]
+    green = (
+        (shown[:, :, 1] > 200) & (shown[:, :, 2] < 80) & (shown[:, :, 0] < 80)
+    )
+    assert np.nonzero(green.any(axis=0))[0].mean() / 640 > 0.7
+    rig.close()
+
+
+def test_mirroring_does_not_mirror_the_label_text():
+    plain, mirrored = Rig(), Rig(mirror_preview=True)
+    for rig in (plain, mirrored):
+        rig.feed(None)  # no ball: nothing but the background and the label
+        rig.wait_frames(1)
+    # A flipped background is the same picture, so the images are equal only
+    # if the text was drawn after the flip and still reads normally.
+    assert np.array_equal(
+        plain.engine.latest_frame("camera")[1],
+        mirrored.engine.latest_frame("camera")[1],
+    )
+    plain.close()
+    mirrored.close()

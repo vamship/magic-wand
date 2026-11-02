@@ -87,6 +87,7 @@ def build_application(
         state,
         clip_padding=(padding.pre_s, padding.post_s),
         camera_factory=camera_factory,
+        mirror_preview=settings.mirror_preview,
     )
     engine.start()
     application = Application(config_dir, settings, state, store, engine)
