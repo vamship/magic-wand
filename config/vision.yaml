@@ -1,0 +1,24 @@
+# Default vision settings: how the tracker finds the ball. Calibration starts
+# from these values; a saved profile replaces them. Override per machine in
+# vision.local.yaml (not in git).
+
+# Color range of the ball, in OpenCV units. Hue is 0 to 179 and is a center
+# and half-width on a circle, so ranges that straddle red need no special
+# handling. The defaults suit an orange ball.
+hueCenter: 15
+hueHalfWidth: 10
+# Saturation range (0 to 255).
+satMin: 120
+satMax: 255
+# Brightness range (0 to 255).
+valMin: 120
+valMax: 255
+# Smoothing strength applied before color filtering (0 turns it off).
+blurSize: 5
+# Strength of speck removal and hole filling on the marked area (0 is off).
+cleanupSize: 3
+# Allowed size of the ball's region, as fractions of the frame area.
+minArea: 0.0003
+maxArea: 0.05
+# How close to circular a region must be, from 0 to 1.
+minRoundness: 0.6

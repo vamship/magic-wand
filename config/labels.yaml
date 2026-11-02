@@ -1,0 +1,13 @@
+# Spell labels. Each label has an `id` (a lowercase slug, stored in samples
+# and used in classifier output; never change it once data exists) and a
+# `name` (the display name shown to users; free to rename).
+#
+# These three are dummy entries for development. Replace them with the real
+# spell list when it is decided.
+labels:
+  - id: spell_one
+    name: Spell One
+  - id: spell_two
+    name: Spell Two
+  - id: spell_three
+    name: Spell Three
