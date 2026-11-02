@@ -132,7 +132,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-F2 | Configuration and settings models | Completed |
 | DC-S1 | H.264 encoding spike | Completed |
 | DC-S2 | Linux verification | Not started |
-| DC-L1 | Frame sources | Not started |
+| DC-L1 | Frame sources | Completed |
 | DC-L2 | Tracker | Completed |
 | DC-L3 | Segmenter | Completed |
 | DC-L4 | Vector builder | Not started |
@@ -434,7 +434,7 @@ machine or container is available; step 4 needs DC-V2.
 ### DC-L1 Frame sources
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-F1
 - **Requirements**: R1.1, R6.7, N3, N5
 - **Design**: Lib 5
@@ -447,20 +447,20 @@ machine.
 
 **Acceptance criteria.**
 
-- [ ] A video-file source yields every frame of a file in order. Timestamps
+- [x] A video-file source yields every frame of a file in order. Timestamps
       start at 0, increase by the file's frame interval, and are monotonic.
-- [ ] A camera source takes a requested width, height and frame rate, opens the
+- [x] A camera source takes a requested width, height and frame rate, opens the
       camera, and exposes both the requested mode and the mode the camera
       actually delivers.
-- [ ] A camera frame's timestamp is taken when the frame is grabbed, from a
+- [x] A camera frame's timestamp is taken when the frame is grabbed, from a
       monotonic clock.
-- [ ] Opening a camera that cannot be opened raises a specific, documented
+- [x] Opening a camera that cannot be opened raises a specific, documented
       error.
-- [ ] Listing cameras returns, for each one, an index, a name when the operating
+- [x] Listing cameras returns, for each one, an index, a name when the operating
       system provides one, a stable device identifier string, and the modes it
       supports when known. With no camera it returns an empty list without
       error.
-- [ ] All sources can be closed, and closing twice is safe.
+- [x] All sources can be closed, and closing twice is safe.
 
 **Implementation notes.**
 
