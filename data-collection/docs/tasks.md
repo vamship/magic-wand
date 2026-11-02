@@ -154,7 +154,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A9 | Session Service | Not started |
 | DC-A10 | Capture Controller | Not started |
 | DC-A11 | Command-line tools | Not started |
-| DC-U1 | Web UI shell | Not started |
+| DC-U1 | Web UI shell | In progress |
 | DC-U2 | Setup page | Not started |
 | DC-U3 | Calibrate page | Not started |
 | DC-U4 | Record page | Not started |
@@ -1416,7 +1416,7 @@ hand.
 ### DC-U1 Web UI shell
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-A2
 - **Requirements**: N2
 - **Design**: DC 4.1
