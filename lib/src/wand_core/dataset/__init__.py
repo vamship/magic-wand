@@ -1,5 +1,13 @@
 """The dataset: record models, file formats and crash-safe writes."""
 
+from wand_core.dataset.check import CheckReport, Finding, Level, check_folder
+from wand_core.dataset.export import (
+    LoadedSample,
+    SampleFilter,
+    export_samples,
+    iter_folder,
+    load_samples,
+)
 from wand_core.dataset.fileio import (
     DataFolder,
     NotADatasetError,
@@ -39,6 +47,15 @@ from wand_core.dataset.store import (
 )
 
 __all__ = [
+    "CheckReport",
+    "Finding",
+    "Level",
+    "check_folder",
+    "LoadedSample",
+    "SampleFilter",
+    "export_samples",
+    "iter_folder",
+    "load_samples",
     "Change",
     "ChangeKind",
     "DatasetStore",
