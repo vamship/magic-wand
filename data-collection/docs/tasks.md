@@ -157,7 +157,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Completed |
 | DC-U3 | Calibrate page | Completed |
-| DC-U4 | Record page | Not started |
+| DC-U4 | Record page | In progress |
 | DC-U5 | Review page | Not started |
 | DC-U6 | Browse page | Not started |
 | DC-U7 | Scrubbing view (P2) | Not started |
@@ -1534,7 +1534,7 @@ Throttle slider requests (about 10 per second) while dragging.
 ### DC-U4 Record page
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-U1, DC-A4, DC-A10
 - **Requirements**: R4.1, R4.7, R4.8, R5.6
 - **Design**: DC 3.4, 4.1
