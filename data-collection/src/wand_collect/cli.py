@@ -8,9 +8,9 @@ from pathlib import Path
 import uvicorn
 
 from wand_collect.app import build_application, is_loopback
+from wand_collect.labels import LabelsError
 from wand_collect.server import create_app
 from wand_collect.services.calibration import CalibrationService
-from wand_collect.labels import LabelsError
 from wand_collect.services.labels import LabelService
 from wand_collect.services.library import SampleLibrary
 from wand_collect.services.session import SessionService
