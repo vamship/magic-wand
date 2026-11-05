@@ -155,7 +155,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A10 | Capture Controller | Completed |
 | DC-A11 | Command-line tools | Completed |
 | DC-U1 | Web UI shell | Completed |
-| DC-U2 | Setup page | Not started |
+| DC-U2 | Setup page | In progress |
 | DC-U3 | Calibrate page | Completed |
 | DC-U4 | Record page | Not started |
 | DC-U5 | Review page | Not started |
@@ -1462,7 +1462,7 @@ the state so they stay simple. No Node tooling is used.
 ### DC-U2 Setup page
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-U1, DC-A5, DC-A9
 - **Requirements**: R1.1, R2.1, R2.6, R6.7
 - **Design**: DC 3.1, 4.1
