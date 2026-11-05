@@ -160,7 +160,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-U4 | Record page | Completed |
 | DC-U5 | Review page | Completed |
 | DC-U6 | Browse page | Completed |
-| DC-U7 | Scrubbing view (P2) | Not started |
+| DC-U7 | Scrubbing view (P2) | In progress |
 | DC-V1 | Whole-application test | Not started |
 | DC-V2 | Real-camera testing | Not started |
 | DC-V3 | Motion threshold tuning | Not started |
@@ -1626,7 +1626,7 @@ the samples revision changes. The selected sample is local page state.
 ### DC-U7 Scrubbing view (P2)
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-U6, DC-A8
 - **Requirements**: R7.5
 - **Design**: DC 5.2 (video endpoint)
