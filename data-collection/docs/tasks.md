@@ -148,7 +148,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A3 | Capture Engine | Completed |
 | DC-A4 | Live video stream | Completed |
 | DC-A5 | Calibration Service | Completed |
-| DC-A6 | Label Service | Not started |
+| DC-A6 | Label Service | In progress |
 | DC-A7 | Clip Writer | Completed |
 | DC-A8 | Sample Library | Completed |
 | DC-A9 | Session Service | Completed |
@@ -1117,7 +1117,7 @@ engine publishes (a short-lived subscription to its detections). The
 ### DC-A6 Label Service
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-A1, DC-A8, DC-F2
 - **Requirements**: R3.1, R3.2, R3.3
 - **Design**: DC 4.10
