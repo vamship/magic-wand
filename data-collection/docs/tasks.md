@@ -141,7 +141,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L7 | Motion calibrator | Completed |
 | DC-L8 | Dataset store: formats and safe writes | Completed |
 | DC-L9 | Dataset store: sessions and samples | Completed |
-| DC-L10 | Dataset store: check, export and load | Not started |
+| DC-L10 | Dataset store: check, export and load | In progress |
 | DC-L11 | Dataset store: merge | Not started |
 | DC-A1 | Application State | Completed |
 | DC-A2 | Application Server | Completed |
@@ -798,7 +798,7 @@ into memory is fine.
 ### DC-L10 Dataset store: check, export and load
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-L9
 - **Requirements**: R2.3, R6.3
 - **Design**: DH 7.1, 7.2
