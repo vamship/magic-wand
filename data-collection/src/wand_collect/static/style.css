@@ -420,3 +420,63 @@ table.sessions td:last-child {
   text-align: right;
   white-space: nowrap;
 }
+
+/* Record page */
+
+.stage.countdown {
+  border-color: var(--accent);
+}
+
+.stage.ready {
+  border-color: var(--ok);
+}
+
+.stage.recording {
+  border-color: var(--bad);
+}
+
+.cue {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-top: 12px;
+  min-height: 4.5rem;
+}
+
+.cue .big {
+  font-size: 3.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cue.ready .big {
+  color: var(--ok);
+}
+
+.cue.recording .big {
+  color: var(--bad);
+}
+
+.cue.countdown .big {
+  color: var(--accent);
+}
+
+.count strong {
+  font-size: 1.4rem;
+}
+
+.latest img,
+.latest .saving {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  border-radius: 6px;
+  display: block;
+}
+
+.latest .saving {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}

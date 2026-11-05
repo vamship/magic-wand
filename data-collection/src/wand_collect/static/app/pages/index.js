@@ -3,6 +3,7 @@
 
 import { html } from "../html.js";
 import { Calibrate } from "../calibrate/index.js";
+import { Record } from "../record.js";
 import { Setup } from "../setup.js";
 import { Placeholder } from "./placeholder.js";
 
@@ -16,6 +17,7 @@ const NOTES = {
 
 export function renderPage(id, title, props) {
   if (id === "setup") return html`<${Setup} ...${props} />`;
+  if (id === "record") return html`<${Record} ...${props} />`;
   if (id === "calibrate") return html`<${Calibrate} ...${props} />`;
   return html`<${Placeholder}
     title=${title}
