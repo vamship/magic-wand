@@ -148,7 +148,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A3 | Capture Engine | Completed |
 | DC-A4 | Live video stream | Completed |
 | DC-A5 | Calibration Service | Completed |
-| DC-A6 | Label Service | In progress |
+| DC-A6 | Label Service | Completed |
 | DC-A7 | Clip Writer | Completed |
 | DC-A8 | Sample Library | Completed |
 | DC-A9 | Session Service | Completed |
@@ -1117,7 +1117,7 @@ engine publishes (a short-lived subscription to its detections). The
 ### DC-A6 Label Service
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-A1, DC-A8, DC-F2
 - **Requirements**: R3.1, R3.2, R3.3
 - **Design**: DC 4.10
@@ -1131,17 +1131,17 @@ read from the state.
 
 **Acceptance criteria.**
 
-- [ ] At startup the labels are read from the file and written to the state.
-- [ ] Adding a label requires a unique lowercase-slug id and a non-empty name;
+- [x] At startup the labels are read from the file and written to the state.
+- [x] Adding a label requires a unique lowercase-slug id and a non-empty name;
       otherwise 400.
-- [ ] Renaming changes the name only; no sample file is touched.
-- [ ] Removing a label that samples use returns 409 `label_in_use`; the Sample
+- [x] Renaming changes the name only; no sample file is touched.
+- [x] Removing a label that samples use returns 409 `label_in_use`; the Sample
       Library supplies the count.
-- [ ] Changes are written to the file, keeping its comments and the order of
+- [x] Changes are written to the file, keeping its comments and the order of
       other entries, and the state is updated.
-- [ ] When the file changes on disk (for example after a git pull), the list is
+- [x] When the file changes on disk (for example after a git pull), the list is
       re-read within a few seconds and the state updated, without a restart.
-- [ ] A malformed file at startup gives a clear error and does not crash a
+- [x] A malformed file at startup gives a clear error and does not crash a
       running application on a later reload.
 
 **Implementation notes.** `services/labels.py`. `ruamel.yaml` preserves
