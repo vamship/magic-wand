@@ -160,7 +160,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-U4 | Record page | Completed |
 | DC-U5 | Review page | Completed |
 | DC-U6 | Browse page | Completed |
-| DC-U7 | Scrubbing view (P2) | In progress |
+| DC-U7 | Scrubbing view (P2) | Completed |
 | DC-V1 | Whole-application test | Not started |
 | DC-V2 | Real-camera testing | Not started |
 | DC-V3 | Motion threshold tuning | Not started |
@@ -1626,7 +1626,7 @@ the samples revision changes. The selected sample is local page state.
 ### DC-U7 Scrubbing view (P2)
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-U6, DC-A8
 - **Requirements**: R7.5
 - **Design**: DC 5.2 (video endpoint)
@@ -1636,14 +1636,14 @@ frames with the path drawn over them. Only for samples with a clip.
 
 **Acceptance criteria.**
 
-- [ ] `GET /api/samples/{id}/video` serves the clip with support for range
+- [x] `GET /api/samples/{id}/video` serves the clip with support for range
       requests, and returns 404 when there is no clip.
-- [ ] The view plays the clip and lets the user step frame by frame and scrub
+- [x] The view plays the clip and lets the user step frame by frame and scrub
       with a slider.
-- [ ] The path is drawn over the video, with the part up to the current frame
+- [x] The path is drawn over the video, with the part up to the current frame
       highlighted.
-- [ ] Full screen can be entered and left.
-- [ ] The view is not offered for a sample without a clip.
+- [x] Full screen can be entered and left.
+- [x] The view is not offered for a sample without a clip.
 
 **Implementation notes.** `static/app/scrub.js`. Use a `<video>` element and a
 canvas on top. Frame positions come from the sample's `positions` and

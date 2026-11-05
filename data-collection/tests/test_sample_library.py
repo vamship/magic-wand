@@ -424,3 +424,32 @@ def test_deleting_a_sample_removes_its_clip_and_thumbnails(rig):
     rig.client.delete(f"/api/samples/{sample.sample_id}")
     assert not rig.store.clip_path(sample.sample_id).exists()
     assert list(rig.cache.glob("*.png")) == []
+
+
+# --- Video ------------------------------------------------------------
+
+
+def test_the_video_is_served_with_range_requests(rig):
+    sample = rig.sample(rig.session(), clip=True)
+    url = f"/api/samples/{sample.sample_id}/video"
+    whole = rig.client.get(url)
+    assert whole.status_code == 200
+    assert whole.headers["content-type"] == "video/mp4"
+    assert whole.content == rig.store.clip_path(sample.sample_id).read_bytes()
+    part = rig.client.get(url, headers={"Range": "bytes=0-99"})
+    assert part.status_code == 206
+    assert part.content == whole.content[:100]
+    assert part.headers["content-range"].startswith("bytes 0-99/")
+    tail = rig.client.get(url, headers={"Range": "bytes=100-"})
+    assert tail.status_code == 206 and tail.content == whole.content[100:]
+
+
+def test_the_video_of_a_sample_without_a_clip_is_not_found(rig):
+    session = rig.session()
+    plain = rig.sample(session)
+    lost = rig.sample(session, clip=True)
+    rig.store.clip_path(lost.sample_id).unlink()
+    for sample in (plain, lost):
+        response = rig.client.get(f"/api/samples/{sample.sample_id}/video")
+        assert response.status_code == 404
+    assert rig.client.get("/api/samples/nonsense/video").status_code == 404
