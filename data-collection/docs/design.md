@@ -1,6 +1,6 @@
 # Data Collection Application - Design
 
-> **Version** 8 | **Updated** 2026-11-01 | **Approved**
+> **Version** 9 | **Updated** 2026-11-04 | **Approved**
 
 ## 1. Overview
 
@@ -645,9 +645,14 @@ it.
 **What it does.** It turns a list of frames into a video clip file.
 
 **How it works.** It takes the frames, the measured frame rate and a target
-path. On a background thread it encodes the frames as H.264 into a temporary
-file in the session's `videos` folder, then renames it to the final name, so a
-clip is either complete or absent. If encoding fails it reports failure and the
+path. A separate worker process, started by the application and used for one
+clip after another, encodes the frames as H.264 into a temporary file in the
+session's `videos` folder, then renames it to the final name, so a clip is
+either complete or absent. The encoding runs in its own process because the
+video libraries it needs clash, on some platforms, with the camera libraries
+used by the rest of the application (see `docs/notes.md`); the caller never
+waits for it. If the worker stops unexpectedly, the clip being written is
+reported as failed and a new worker is started for the next one. If encoding fails it reports failure and the
 Capture Controller saves the sample with no clip. Nothing else in the
 application depends on a clip existing.
 
