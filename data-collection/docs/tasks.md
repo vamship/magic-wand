@@ -141,7 +141,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L7 | Motion calibrator | Completed |
 | DC-L8 | Dataset store: formats and safe writes | Completed |
 | DC-L9 | Dataset store: sessions and samples | Completed |
-| DC-L10 | Dataset store: check, export and load | In progress |
+| DC-L10 | Dataset store: check, export and load | Completed |
 | DC-L11 | Dataset store: merge | Not started |
 | DC-A1 | Application State | Completed |
 | DC-A2 | Application Server | Completed |
@@ -798,7 +798,7 @@ into memory is fine.
 ### DC-L10 Dataset store: check, export and load
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-L9
 - **Requirements**: R2.3, R6.3
 - **Design**: DH 7.1, 7.2
@@ -815,15 +815,15 @@ into the same in-memory form, with filters, for the classifier.
 
 **Acceptance criteria.**
 
-- [ ] The check returns a report with errors, warnings and information, and
+- [x] The check returns a report with errors, warnings and information, and
       never writes.
-- [ ] Each problem listed in DH 7.1 is detected by a test folder built to have
+- [x] Each problem listed in DH 7.1 is detected by a test folder built to have
       it.
-- [ ] Export filters by status, label, session, author and date range, and reads
+- [x] Export filters by status, label, session, author and date range, and reads
       several folders.
-- [ ] Exporting and then loading an export file gives the same samples as
+- [x] Exporting and then loading an export file gives the same samples as
       loading the folders with the same filter.
-- [ ] Loaded samples expose positions, label, status, handedness and session
+- [x] Loaded samples expose positions, label, status, handedness and session
       data directly, as plain Python objects.
 
 **Implementation notes.** `dataset/check.py` and `dataset/export.py`. Stream
