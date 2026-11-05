@@ -8,6 +8,8 @@ from pathlib import Path
 import uvicorn
 
 from wand_collect.app import build_application, is_loopback
+from wand_collect.clip_writer import ClipWriter
+from wand_collect.controller import CaptureController
 from wand_collect.labels import LabelsError
 from wand_collect.server import create_app
 from wand_collect.services.calibration import CalibrationService
@@ -67,6 +69,20 @@ def serve(args: argparse.Namespace) -> int:
         application.settings,
     )
     library = SampleLibrary(application.state, application.store)
+    clips = ClipWriter()
+    padding = application.settings.clip_padding
+    controller = CaptureController(
+        application.state,
+        application.engine,
+        sessions,
+        application.store,
+        clips,
+        countdown_s=application.settings.countdown_s,
+        clip_padding=(padding.pre_s, padding.post_s),
+    )
+    sessions.set_controller(controller)
+    application.engine.set_receiver(controller.on_engine_message)
+    controller.start_loop()
     labels = LabelService(
         application.state,
         application.config_dir / "labels.yaml",
@@ -75,6 +91,8 @@ def serve(args: argparse.Namespace) -> int:
     labels.start()
 
     def shutdown() -> None:
+        controller.shutdown()
+        clips.close()
         labels.stop()
         application.shutdown()
 
@@ -87,6 +105,7 @@ def serve(args: argparse.Namespace) -> int:
             sessions.router,
             library.router,
             labels.router,
+            controller.router,
         ],
         on_shutdown=shutdown,
         app_settings=application.settings,
