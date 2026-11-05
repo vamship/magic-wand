@@ -13,15 +13,8 @@ from wand_collect.app import (
     default_config_dir,
     is_loopback,
 )
-from wand_collect.clip_writer import ClipWriter
-from wand_collect.controller import CaptureController
 from wand_collect.labels import LabelsError, load_labels
-from wand_collect.server import create_app
-from wand_collect.services.calibration import CalibrationService
-from wand_collect.services.labels import LabelService
-from wand_collect.services.library import SampleLibrary
-from wand_collect.services.session import SessionService
-from wand_collect.stream import StreamService
+from wand_collect.wiring import assemble
 from wand_core.dataset import (
     Action,
     DatasetError,
@@ -222,61 +215,7 @@ def serve(args: argparse.Namespace) -> int:
             "The application starts without a live view.",
             file=sys.stderr,
         )
-    calibration = CalibrationService(
-        application.state,
-        application.engine,
-        application.config_dir,
-        application.settings,
-    )
-    sessions = SessionService(
-        application.state,
-        application.engine,
-        application.store,
-        calibration,
-        application.settings,
-    )
-    library = SampleLibrary(application.state, application.store)
-    clips = ClipWriter()
-    padding = application.settings.clip_padding
-    controller = CaptureController(
-        application.state,
-        application.engine,
-        sessions,
-        application.store,
-        clips,
-        countdown_s=application.settings.countdown_s,
-        clip_padding=(padding.pre_s, padding.post_s),
-    )
-    sessions.set_controller(controller)
-    application.engine.set_receiver(controller.on_engine_message)
-    controller.start_loop()
-    labels = LabelService(
-        application.state,
-        application.config_dir / "labels.yaml",
-        library.label_use_count,
-    )
-    labels.start()
-
-    def shutdown() -> None:
-        controller.shutdown()
-        clips.close()
-        labels.stop()
-        application.shutdown()
-
-    app = create_app(
-        application.state,
-        application.engine,
-        routers=[
-            StreamService(application.engine, application.state).router,
-            calibration.router,
-            sessions.router,
-            library.router,
-            labels.router,
-            controller.router,
-        ],
-        on_shutdown=shutdown,
-        app_settings=application.settings,
-    )
+    app = assemble(application).app
     print(f"Open http://{server.host}:{server.port}/ in a browser.")
     uvicorn.run(app, host=server.host, port=server.port)
     return 0
