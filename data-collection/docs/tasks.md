@@ -161,7 +161,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-U5 | Review page | Completed |
 | DC-U6 | Browse page | Completed |
 | DC-U7 | Scrubbing view (P2) | Completed |
-| DC-V1 | Whole-application test | Not started |
+| DC-V1 | Whole-application test | In progress |
 | DC-V2 | Real-camera testing | Not started |
 | DC-V3 | Motion threshold tuning | Not started |
 
@@ -1654,7 +1654,7 @@ canvas on top. Frame positions come from the sample's `positions` and
 ### DC-V1 Whole-application test
 
 - **Type**: test
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-A10, DC-A11, DC-U5
 - **Requirements**: all P1 requirements, N2
 - **Design**: DC 7
