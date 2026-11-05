@@ -153,7 +153,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A8 | Sample Library | Completed |
 | DC-A9 | Session Service | Completed |
 | DC-A10 | Capture Controller | Completed |
-| DC-A11 | Command-line tools | Not started |
+| DC-A11 | Command-line tools | In progress |
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Not started |
 | DC-U3 | Calibrate page | Completed |
@@ -1380,7 +1380,7 @@ private lock.
 ### DC-A11 Command-line tools
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-L10, DC-L11, DC-A2
 - **Requirements**: R2.3, R2.5
 - **Design**: DC 5.3
