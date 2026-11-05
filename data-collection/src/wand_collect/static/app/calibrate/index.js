@@ -26,7 +26,16 @@ function StartSession({ snapshot, store, notices, goTo }) {
     );
     if (started) goTo("record");
   };
-  if (locked) return null;
+  const end = () =>
+    notices.attempt(() => api.post("/api/sessions/current/end"));
+  if (locked) {
+    const text = `${snapshot.session.name} is capturing, so settings are locked.`;
+    return html`<section class="panel start">
+      <h3>Session</h3>
+      <p>${text}</p>
+      <button onClick=${end}>End session to calibrate</button>
+    </section>`;
+  }
   return html`<section class="panel start">
     <h3>Start the session</h3>
     ${draft
