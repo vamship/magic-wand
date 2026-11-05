@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 9 | **Updated** 2026-11-05 | **Approved**
+> **Version** 10 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -1665,6 +1665,10 @@ the samples revision changes. The selected sample is local page state.
       delete (with confirmation), in any session including ended ones.
 - [x] The table repeats its query when the samples revision changes.
 - [x] It works while no session is loaded.
+- [x] The detail view stays in the window while the list scrolls (sticky, and
+      scrollable itself when taller than the window), so the selected sample
+      is always visible beside the list. On a narrow window, where the two
+      stack, it scrolls with the page.
 
 **Implementation notes.** `static/app/browse.js`. Thumbnails are
 `GET /api/samples/{id}/thumbnail`, loaded lazily as rows scroll into view.
@@ -1690,6 +1694,9 @@ frames with the path drawn over them. Only for samples with a clip.
       highlighted. When the sample details say `mirrored`, the video and the
       path are flipped together to match the live view.
 - [x] Full screen can be entered and left.
+- [x] A Hide video / Show video button masks the video so only the path
+      movement is shown on a black background. The video keeps playing and
+      the highlighting and controls work as before.
 - [x] The view is not offered for a sample without a clip.
 
 **Implementation notes.** `static/app/scrub.js`. Use a `<video>` element and a

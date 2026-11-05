@@ -323,7 +323,7 @@ export function Browse({ snapshot, notices }) {
           </button>
         </div>
       </div>
-      <div>
+      <div class="sticky-detail">
         ${summary
           ? html`<${Detail}
               snapshot=${snapshot}
