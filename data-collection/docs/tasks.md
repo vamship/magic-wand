@@ -142,7 +142,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L8 | Dataset store: formats and safe writes | Completed |
 | DC-L9 | Dataset store: sessions and samples | Completed |
 | DC-L10 | Dataset store: check, export and load | Completed |
-| DC-L11 | Dataset store: merge | Not started |
+| DC-L11 | Dataset store: merge | In progress |
 | DC-A1 | Application State | Completed |
 | DC-A2 | Application Server | Completed |
 | DC-A3 | Capture Engine | Completed |
@@ -832,7 +832,7 @@ the export line by line so large datasets do not need to fit in memory.
 ### DC-L11 Dataset store: merge
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-L9
 - **Requirements**: R2.5
 - **Design**: DH 7.3
