@@ -1556,6 +1556,9 @@ opens an existing one.
       delete from a list.
 - [x] Every control shows the current value from the state, and all controls are
       disabled with a notice while a session is loaded for capture.
+- [x] A Start session button creates the session from the details given on
+      Setup and opens Record. It is disabled, with a pointer back to Setup,
+      until those details exist, and while a session is loaded for capture.
 
 **Implementation notes.** `static/app/calibrate.js`. The history graph is
 drawn on a canvas from the `motion` readings in a ring of the last few seconds.
