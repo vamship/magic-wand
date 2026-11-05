@@ -72,8 +72,11 @@ def store(folder):
 def filled(store):
     ada = store.create_session("ada", Handedness.RIGHT, name="one")
     bob = store.create_session("bob", Handedness.LEFT, name="two")
-    for label, status in [("circle", "accepted"), ("zigzag", "accepted"),
-                          ("circle", "rejected")]:
+    for label, status in [
+        ("circle", "accepted"),
+        ("zigzag", "accepted"),
+        ("circle", "rejected"),
+    ]:
         add(store, ada, label, status, clip=True)
     add(store, bob, "circle")
     add(store, bob, "zigzag", "rejected", clip=True)
@@ -181,7 +184,7 @@ def test_not_a_dataset(tmp_path):
     assert report.codes() == {"not_a_dataset"} and not report.ok
 
 
-# --- Export and load ------------------------------------------------------------
+# --- Export and load --------------------------------------------------
 
 
 def test_export_writes_one_line_per_sample_with_the_session_and_no_video(
@@ -232,7 +235,9 @@ def test_export_reads_several_folders(tmp_path, filled, folder):
     assert len(load_samples([folder, tmp_path / "other"])) == 6
 
 
-def test_loading_an_export_matches_loading_the_folders(folder, filled, tmp_path):
+def test_loading_an_export_matches_loading_the_folders(
+    folder, filled, tmp_path
+):
     out = tmp_path / "e.jsonl"
     keep = SampleFilter(status=SampleStatus.ACCEPTED)
     export_samples([folder], out, keep)
