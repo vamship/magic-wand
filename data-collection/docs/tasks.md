@@ -159,7 +159,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-U3 | Calibrate page | Completed |
 | DC-U4 | Record page | Completed |
 | DC-U5 | Review page | Completed |
-| DC-U6 | Browse page | Not started |
+| DC-U6 | Browse page | In progress |
 | DC-U7 | Scrubbing view (P2) | Not started |
 | DC-V1 | Whole-application test | Not started |
 | DC-V2 | Real-camera testing | Not started |
@@ -1597,7 +1597,7 @@ the samples revision changes. The selected sample is local page state.
 ### DC-U6 Browse page
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-U1, DC-A8
 - **Requirements**: R6.9, R7.1, R7.2, R7.3, R7.4
 - **Design**: DC 4.1
