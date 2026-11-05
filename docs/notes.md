@@ -1,6 +1,6 @@
 # Notes
 
-> **Version** 2 | **Updated** 2026-11-01 | **Approved**
+> **Version** 3 | **Updated** 2026-11-04 | **Approved**
 
 ## Overview
 
@@ -54,7 +54,8 @@ with moving shapes, a worst case for compression.
   PyAV, using `libx264`, `yuv420p` and `faststart`.
 - Importing PyAV and OpenCV in one process on macOS prints an Objective-C
   warning that both bundle their own `libavdevice`, which "may cause spurious
-  casting failures and mysterious crashes". Nothing crashed in the spike.
-  Watch for it when the application runs the camera and the clip writer
-  together.
+  casting failures and mysterious crashes". Nothing crashed in the spike. To
+  avoid it, the application keeps PyAV out of its main process: the clip
+  writer encodes in a separate worker process, and the overlay image reads
+  its frame with OpenCV.
 - Linux has not been tested (task DC-S2).

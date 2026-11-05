@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 5 | **Updated** 2026-11-01 | **Approved**
+> **Version** 6 | **Updated** 2026-11-04 | **Approved**
 
 ## 1. Overview
 
@@ -1174,9 +1174,12 @@ background thread, without blocking the caller.
 - [x] The produced file plays in a browser (the format chosen in DC-S1).
 - [x] Several clips queued back to back are written one after another.
 
-**Implementation notes.** `clip_writer.py`. One worker thread and a queue.
-Decode each JPEG to an image, then encode with PyAV as decided in DC-S1. Do not
-hold the whole clip's decoded frames in memory at once if it can be avoided.
+**Implementation notes.** `clip_writer.py`. Encode with PyAV as decided in
+DC-S1, in a separate worker process (design 4.8), so that PyAV and OpenCV never
+load in the same process. The caller-side thread queues the clips and talks to
+the worker over its standard input and output. The worker must not import
+OpenCV: decode the JPEGs with PyAV too. Do not hold the whole clip's decoded
+frames in memory at once if it can be avoided.
 
 ### DC-A8 Sample Library
 
