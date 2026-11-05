@@ -106,11 +106,15 @@ def iter_folder(
     read_dataset_info(folder / DATASET_FILE)  # refuses unknown versions
     sessions = []
     sessions_dir = folder / SESSIONS_FOLDER
-    for session_dir in sorted(sessions_dir.iterdir()) if sessions_dir.is_dir() else []:
+    for session_dir in (
+        sorted(sessions_dir.iterdir()) if sessions_dir.is_dir() else []
+    ):
         if session_dir.name.endswith(TEMP_SUFFIX):
             continue
         if (session_dir / SESSION_FILE).is_file():
-            sessions.append((session_dir, read_session(session_dir / SESSION_FILE)))
+            sessions.append(
+                (session_dir, read_session(session_dir / SESSION_FILE))
+            )
     for session_dir, session in sorted(sessions, key=lambda s: s[1].started_at):
         for sample in read_samples(session_dir / SAMPLES_FILE):
             if keep is None or keep.keeps(sample, session):
@@ -161,9 +165,11 @@ def load_samples(
 
     A file is read as an export, a folder as a data folder.
     """
-    paths = [Path(source)] if isinstance(source, (str, Path)) else [
-        Path(p) for p in source
-    ]
+    paths = (
+        [Path(source)]
+        if isinstance(source, (str, Path))
+        else [Path(p) for p in source]
+    )
     loaded: list[LoadedSample] = []
     for path in paths:
         if path.is_dir():

@@ -110,7 +110,9 @@ def merge_folders(
         sessions_dir = source / SESSIONS_FOLDER
         if not sessions_dir.is_dir():
             continue
-        for session_dir in sorted(p for p in sessions_dir.iterdir() if p.is_dir()):
+        for session_dir in sorted(
+            p for p in sessions_dir.iterdir() if p.is_dir()
+        ):
             if session_dir.name.endswith(TEMP_SUFFIX):
                 continue
             result.sessions.append(
@@ -163,7 +165,9 @@ def _merge_session(
     return SessionResult(session_id, source, Action.REPLACED)
 
 
-def _place(source: Path, destination: Path, root: Path, skip_clips: bool) -> None:
+def _place(
+    source: Path, destination: Path, root: Path, skip_clips: bool
+) -> None:
     """Copy to a temporary folder beside the target's files, then rename."""
     temp = root / f".merge-{uuid.uuid4().hex}{TEMP_SUFFIX}"
     try:
