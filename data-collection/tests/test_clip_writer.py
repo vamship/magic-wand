@@ -195,3 +195,38 @@ def test_the_worker_does_not_load_opencv():
         "assert 'cv2' not in sys.modules, 'OpenCV was imported'\n"
     )
     assert result.returncode == 0, result.stderr
+
+
+def read_times(path):
+    """Each frame's time in the clip, in seconds."""
+    with av.open(str(path)) as container:
+        stream = container.streams.video[0]
+        return [
+            float(frame.pts * stream.time_base)
+            for frame in container.decode(stream)
+        ]
+
+
+def test_frames_are_placed_at_their_capture_times(writer, tmp_path):
+    # A camera that runs faster than the rate it was measured at, with jitter.
+    frames = make_frames(60, fps=30.0)
+    for i, frame in enumerate(frames):
+        frame.timestamp_s = 100.0 + i / 30.0 + (0.004 if i % 7 == 0 else 0.0)
+    target = tmp_path / "a.mp4"
+    result = writer.submit(frames, 24.8, target).result(10)  # a wrong rate
+    assert result.ok
+    times = read_times(target)
+    assert len(times) == 60
+    wanted = [f.timestamp_s - frames[0].timestamp_s for f in frames]
+    assert max(abs(a - b) for a, b in zip(times, wanted)) < 0.002
+    assert times[-1] == pytest.approx(59 / 30.0, abs=0.01)  # not 59 / 24.8
+
+
+def test_equal_capture_times_still_encode(writer, tmp_path):
+    frames = make_frames(4)
+    for frame in frames:
+        frame.timestamp_s = 5.0
+    target = tmp_path / "a.mp4"
+    assert writer.submit(frames, 30.0, target).result(10).ok
+    times = read_times(target)
+    assert times == sorted(times) and len(set(times)) == 4
