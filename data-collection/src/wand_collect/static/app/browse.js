@@ -13,6 +13,7 @@ import {
   labelName,
   pathImage,
 } from "./labels.js";
+import { Scrub } from "./scrub.js";
 
 const PAGE_SIZE = 25;
 const NO_FILTERS = {
@@ -139,6 +140,7 @@ function Detail({ snapshot, summary, notices, onClose }) {
   const [details, setDetails] = useState(null);
   const [overlay, setOverlay] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [scrubbing, setScrubbing] = useState(false);
   const id = summary.id;
   const url = `/api/samples/${encodeURIComponent(id)}`;
 
@@ -176,6 +178,13 @@ function Detail({ snapshot, summary, notices, onClose }) {
   };
 
   const showOverlay = overlay && hasClip;
+  if (scrubbing && hasClip) {
+    return html`<${Scrub}
+      id=${id}
+      details=${details}
+      onClose=${() => setScrubbing(false)}
+    />`;
+  }
   return html`<section class="panel detail">
     <h3>Sample</h3>
     <img
@@ -195,6 +204,8 @@ function Detail({ snapshot, summary, notices, onClose }) {
       >
         Overlay on camera frame
       </button>`}
+      ${hasClip &&
+      html`<button onClick=${() => setScrubbing(true)}>Scrub video</button>`}
     </div>
     ${details &&
     !hasClip &&

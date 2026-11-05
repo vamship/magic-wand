@@ -26,6 +26,7 @@ from typing import Any, Literal
 import cv2
 import numpy as np
 from fastapi import APIRouter, Query, Response
+from fastapi.responses import FileResponse
 from platformdirs import user_cache_dir
 from pydantic import BaseModel
 
@@ -121,6 +122,7 @@ class SampleLibrary:
             self.get_thumbnail,
             methods=["GET"],
         )
+        add("/samples/{sample_id}/video", self.get_video, methods=["GET"])
 
     # --- The index -------------------------------------------------------
 
@@ -369,6 +371,14 @@ class SampleLibrary:
             media_type="image/png",
             headers={"Cache-Control": "max-age=3600"},
         )
+
+    def get_video(self, sample_id: str) -> FileResponse:
+        """The clip, with support for range requests (so a player can seek)."""
+        record = self._record(sample_id)
+        if not self._store.has_clip(record):
+            raise NotFoundError(f"sample {sample_id} has no clip")
+        path = self._store.session_dir(record.session_id) / record.video.file
+        return FileResponse(path, media_type="video/mp4")
 
     def _clip_frame(self, record: SampleRecord) -> np.ndarray | None:
         """The clip's frame at the gesture start, or ``None`` without a clip."""

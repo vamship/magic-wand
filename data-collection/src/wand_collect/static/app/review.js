@@ -13,6 +13,7 @@ import {
   pathImage,
   useLabelKeys,
 } from "./labels.js";
+import { Scrub } from "./scrub.js";
 
 const PAGE_SIZE = 500; // the largest page the server gives
 
@@ -86,6 +87,7 @@ export function Review({ snapshot, shortcuts, notices }) {
   const [details, setDetails] = useState(null);
   const [overlay, setOverlay] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [scrubbing, setScrubbing] = useState(false);
   const itemsRef = useRef(items);
   itemsRef.current = items;
   const selectedRef = useRef(selected);
@@ -188,6 +190,13 @@ export function Review({ snapshot, shortcuts, notices }) {
   });
   useLabelKeys(shortcuts, snapshot, relabel);
 
+  if (scrubbing && hasClip && details) {
+    return html`<${Scrub}
+      id=${selected}
+      details=${details}
+      onClose=${() => setScrubbing(false)}
+    />`;
+  }
   const latest = snapshot.latestSample;
   const waiting = Boolean(latest) && latest.saving;
   return html`<section class="review">
@@ -236,6 +245,10 @@ export function Review({ snapshot, shortcuts, notices }) {
               Overlay on camera frame
             </button>
             <kbd>${shortcuts.keyFor("toggle_view")}</kbd>
+            ${hasClip &&
+            html`<button onClick=${() => setScrubbing(true)}>
+              Scrub video
+            </button>`}
           </div>
           ${!hasClip &&
           html`<p class="hint">
