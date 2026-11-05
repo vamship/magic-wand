@@ -161,7 +161,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-U5 | Review page | Completed |
 | DC-U6 | Browse page | Completed |
 | DC-U7 | Scrubbing view (P2) | Completed |
-| DC-V1 | Whole-application test | In progress |
+| DC-V1 | Whole-application test | Completed |
 | DC-V2 | Real-camera testing | Not started |
 | DC-V3 | Motion threshold tuning | Not started |
 
@@ -1654,7 +1654,7 @@ canvas on top. Frame positions come from the sample's `positions` and
 ### DC-V1 Whole-application test
 
 - **Type**: test
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-A10, DC-A11, DC-U5
 - **Requirements**: all P1 requirements, N2
 - **Design**: DC 7
@@ -1665,20 +1665,20 @@ HTTP interface.
 
 **Acceptance criteria.**
 
-- [ ] A synthetic video contains a known number of gestures and some motions
+- [x] A synthetic video contains a known number of gestures and some motions
       that must be discarded.
-- [ ] The test calibrates, starts a session, starts capturing, and replays the
+- [x] The test calibrates, starts a session, starts capturing, and replays the
       video. It checks the state snapshots after each command and event, that
       the right number of samples exist, and that discards created nothing.
-- [ ] It pauses, rejects one sample in review, relabels another, resumes with a
+- [x] It pauses, rejects one sample in review, relabels another, resumes with a
       different label, and checks the files on disk.
-- [ ] It stops the application mid-session, starts it again, resumes the open
+- [x] It stops the application mid-session, starts it again, resumes the open
       session, and checks that numbering continues and the settings are the
       recorded ones.
-- [ ] It ends the session and checks that resume is refused but review works.
-- [ ] A second event-stream client sees the same snapshots as the first.
-- [ ] A capture cycle takes about the gesture duration plus the countdown (N2).
-- [ ] The test runs with `uv run pytest` and needs no camera.
+- [x] It ends the session and checks that resume is refused but review works.
+- [x] A second event-stream client sees the same snapshots as the first.
+- [x] A capture cycle takes about the gesture duration plus the countdown (N2).
+- [x] The test runs with `uv run pytest` and needs no camera.
 
 **Implementation notes.** Use the synthetic generator (DC-L2) to write a video
 file, and inject a video-file frame source into the Capture Engine. Use a short
