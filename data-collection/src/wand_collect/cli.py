@@ -10,6 +10,8 @@ import uvicorn
 from wand_collect.app import build_application, is_loopback
 from wand_collect.server import create_app
 from wand_collect.services.calibration import CalibrationService
+from wand_collect.labels import LabelsError
+from wand_collect.services.labels import LabelService
 from wand_collect.services.library import SampleLibrary
 from wand_collect.services.session import SessionService
 from wand_collect.stream import StreamService
@@ -32,7 +34,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def serve(args: argparse.Namespace) -> int:
-    application = build_application(args.config, args.data_folder)
+    try:
+        application = build_application(args.config, args.data_folder)
+    except LabelsError as error:
+        print(f"Cannot start: {error}", file=sys.stderr)
+        return 1
     server = application.settings.server
     if not is_loopback(server.host):
         print(
@@ -61,6 +67,17 @@ def serve(args: argparse.Namespace) -> int:
         application.settings,
     )
     library = SampleLibrary(application.state, application.store)
+    labels = LabelService(
+        application.state,
+        application.config_dir / "labels.yaml",
+        library.label_use_count,
+    )
+    labels.start()
+
+    def shutdown() -> None:
+        labels.stop()
+        application.shutdown()
+
     app = create_app(
         application.state,
         application.engine,
@@ -69,8 +86,9 @@ def serve(args: argparse.Namespace) -> int:
             calibration.router,
             sessions.router,
             library.router,
+            labels.router,
         ],
-        on_shutdown=application.shutdown,
+        on_shutdown=shutdown,
         app_settings=application.settings,
     )
     print(f"Open http://{server.host}:{server.port}/ in a browser.")
