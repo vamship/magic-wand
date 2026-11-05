@@ -187,7 +187,9 @@ def test_serve_starts_the_server_on_the_configured_host_and_port(
     config, served, capsys
 ):
     assert cli.main(["serve", "--config", str(config)]) == 0
-    assert served == [{"host": "127.0.0.1", "port": 8000}]
+    assert len(served) == 1
+    assert (served[0]["host"], served[0]["port"]) == ("127.0.0.1", 8000)
+    assert served[0]["timeout_graceful_shutdown"] == 2
     out = capsys.readouterr()
     assert "http://127.0.0.1:8000/" in out.out
     assert "WARNING" not in out.err
@@ -199,7 +201,8 @@ def test_serve_warns_about_a_non_loopback_host(config, served, capsys):
         "server:\n  host: 0.0.0.0\n  port: 8123\n"
     )
     cli.main(["serve", "--config", str(config)])
-    assert served == [{"host": "0.0.0.0", "port": 8123}]
+    assert len(served) == 1
+    assert (served[0]["host"], served[0]["port"]) == ("0.0.0.0", 8123)
     assert "WARNING" in capsys.readouterr().err
 
 

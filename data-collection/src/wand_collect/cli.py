@@ -26,6 +26,8 @@ from wand_core.dataset import (
     merge_folders,
 )
 
+SHUTDOWN_GRACE_S = 2  # seconds open connections get after Ctrl+C
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -217,7 +219,15 @@ def serve(args: argparse.Namespace) -> int:
         )
     app = assemble(application).app
     print(f"Open http://{server.host}:{server.port}/ in a browser.")
-    uvicorn.run(app, host=server.host, port=server.port)
+    # The live view and the event stream never end on their own, so an open
+    # browser tab would keep the server waiting after Ctrl+C. Give open
+    # connections a moment, then close them.
+    uvicorn.run(
+        app,
+        host=server.host,
+        port=server.port,
+        timeout_graceful_shutdown=SHUTDOWN_GRACE_S,
+    )
     return 0
 
 

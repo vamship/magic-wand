@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 10 | **Updated** 2026-11-05 | **Approved**
+> **Version** 11 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -927,6 +927,9 @@ files, startup, the event stream, the state endpoint, error handling, and the
       files at `/`.
 - [x] Static files are sent with `Cache-Control: no-cache`, so a browser
       rechecks them and never shows a stale page after an update.
+- [x] Ctrl+C stops the server within a few seconds even while a browser tab
+      holds the live view or the event stream open; open connections get 2
+      seconds and are then closed.
 - [x] If the configured host is not a loopback address, startup prints a clear
       warning.
 - [x] Startup loads the configuration, opens (creating if needed) the data
