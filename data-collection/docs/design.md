@@ -1,6 +1,6 @@
 # Data Collection Application - Design
 
-> **Version** 9 | **Updated** 2026-11-04 | **Approved**
+> **Version** 10 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -644,8 +644,10 @@ it.
 
 **What it does.** It turns a list of frames into a video clip file.
 
-**How it works.** It takes the frames, the measured frame rate and a target
-path. A separate worker process, started by the application and used for one
+**How it works.** It takes the frames with their capture times, the measured
+frame rate and a target path. Each frame is placed in the clip at its capture
+time, so a moment in the clip is the same moment as in the recorded positions
+even when the camera's rate varies. A separate worker process, started by the application and used for one
 clip after another, encodes the frames as H.264 into a temporary file in the
 session's `videos` folder, then renames it to the final name, so a clip is
 either complete or absent. The encoding runs in its own process because the
