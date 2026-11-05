@@ -214,6 +214,8 @@ function SessionList({ snapshot, notices, goTo }) {
   const [sessions, setSessions] = useState(null);
   const session = snapshot.session;
   const locked = isCapturing(snapshot);
+  const isCurrent = (entry) =>
+    locked && Boolean(session) && session.id === entry.id;
   const key = session ? `${session.id}:${session.role}` : "none";
 
   const refresh = async () => {
@@ -231,6 +233,17 @@ function SessionList({ snapshot, notices, goTo }) {
     if (!loaded) return;
     (loaded.warnings || []).forEach((text) => notices.add(text, "warning"));
     goTo(mode === "resume" ? "record" : "review");
+  };
+
+  // The session already loaded for capture continues where it paused.
+  const continueCurrent = async () => {
+    if (snapshot.capture.state === "PAUSED") {
+      const done = await notices.attempt(() =>
+        api.post("/api/recording/resume"),
+      );
+      if (!done) return;
+    }
+    goTo("record");
   };
 
   const remove = async (entry) => {
@@ -265,8 +278,11 @@ function SessionList({ snapshot, notices, goTo }) {
               </button>
               ${entry.open &&
               html`<button
-                disabled=${locked}
-                onClick=${() => load(entry.id, "resume")}
+                disabled=${locked && !isCurrent(entry)}
+                onClick=${() =>
+                  isCurrent(entry)
+                    ? continueCurrent()
+                    : load(entry.id, "resume")}
               >
                 Resume
               </button>`}
