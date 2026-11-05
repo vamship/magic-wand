@@ -92,11 +92,13 @@ class ClipWriter:
             return ClipResult(False, error="there are no frames")
         if not job.fps > 0:
             return ClipResult(False, error=f"bad frame rate {job.fps}")
+        first = job.frames[0].timestamp_s
         header = json.dumps(
             {
                 "path": str(job.path),
                 "fps": job.fps,
                 "sizes": [len(f.jpeg) for f in job.frames],
+                "times": [f.timestamp_s - first for f in job.frames],
             }
         )
         try:

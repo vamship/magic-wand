@@ -394,15 +394,18 @@ class SampleLibrary:
         try:
             if not capture.isOpened():
                 return None
-            # Read forward to the gesture start: a short clip, and exact.
-            fps = capture.get(cv2.CAP_PROP_FPS) or 30.0
-            wanted = max(0, round(record.video.gesture_start_s * fps))
+            # Read forward to the first frame at or after the gesture start.
+            # The clip's frames sit at their capture times, which are not
+            # evenly spaced, so the position is read from the frame itself.
+            start_ms = record.video.gesture_start_s * 1000 - 1.0
             frame = None
-            for _ in range(wanted + 1):
+            while True:
                 ok, image = capture.read()
                 if not ok:
                     break  # the start is past the end: keep the last frame
                 frame = image
+                if capture.get(cv2.CAP_PROP_POS_MSEC) >= start_ms:
+                    break
             return frame
         except cv2.error as error:
             logger.warning("cannot read clip %s: %s", path, error)

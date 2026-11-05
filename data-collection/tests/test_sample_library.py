@@ -468,3 +468,44 @@ def test_thumbnails_keep_the_frame_shape(rig):
     )
     image = decode(rig.client.get(f"/api/samples/{sample.sample_id}/thumbnail"))
     assert image.shape == (54, 96, 3)  # 16:9, not stretched to 4:3
+
+
+def test_overlay_picks_the_frame_by_time_in_a_clip_of_uneven_frames(rig):
+    class F:
+        def __init__(self, t, jpeg):
+            self.timestamp_s, self.jpeg = t, jpeg
+
+    session = rig.session()
+    sample_id = rig.store.new_sample_id(session.session_id)
+    frames, t = [], 0.0
+    for i in range(40):  # slow at first (0.1 s apart), then fast (0.02 s)
+        gray = 5 * i + 20
+        image = np.full((120, 160, 3), gray, np.uint8)
+        frames.append(F(t, cv2.imencode(".jpg", image)[1].tobytes()))
+        t += 0.1 if i < 10 else 0.02
+    writer = ClipWriter()
+    assert (
+        writer.submit(frames, 30.0, rig.store.clip_path(sample_id))
+        .result(10)
+        .ok
+    )
+    writer.close()
+    for start, index in [(0.5, 5), (1.0, 10), (1.2, 20)]:
+        record = SampleRecord(
+            sample_id=sample_id,
+            session_id=session.session_id,
+            captured_at=rig.clock(),
+            updated_at=rig.clock(),
+            label="circle",
+            status=SampleStatus.ACCEPTED,
+            handedness=Handedness.RIGHT,
+            frame_size=(160, 120),
+            positions=PositionColumns(
+                time_s=[0.0, 0.1], horizontal=[0.2, 0.8], vertical=[0.5, 0.5]
+            ),
+            video=VideoRecord(
+                file=rig.store.clip_reference(sample_id), gesture_start_s=start
+            ),
+        )
+        frame = rig.library._clip_frame(record)
+        assert abs(int(frame.mean()) - (5 * index + 20)) < 8, (start, index)
