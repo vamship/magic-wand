@@ -49,5 +49,6 @@ To check the code: `uv run ruff format --check`, `uv run ruff check` and
 | `data-collection/docs/requirements.md` | Data collection requirements |
 | `data-collection/docs/design.md` | Data collection design |
 | `data-collection/docs/tasks.md` | Data collection work breakdown |
+| `data-collection/docs/manual-tests.md` | Checklist for real-camera testing |
 
 Start with `docs/architecture.md`.
