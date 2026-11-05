@@ -157,7 +157,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Completed |
 | DC-U3 | Calibrate page | Completed |
-| DC-U4 | Record page | In progress |
+| DC-U4 | Record page | Completed |
 | DC-U5 | Review page | Not started |
 | DC-U6 | Browse page | Not started |
 | DC-U7 | Scrubbing view (P2) | Not started |
@@ -1534,7 +1534,7 @@ Throttle slider requests (about 10 per second) while dragging.
 ### DC-U4 Record page
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-U1, DC-A4, DC-A10
 - **Requirements**: R4.1, R4.7, R4.8, R5.6
 - **Design**: DC 3.4, 4.1
@@ -1543,18 +1543,18 @@ Throttle slider requests (about 10 per second) while dragging.
 
 **Acceptance criteria.**
 
-- [ ] Shows the live view, the capture state (countdown, ready, recording,
+- [x] Shows the live view, the capture state (countdown, ready, recording,
       paused), the countdown as a large number counted down locally from the end
       time, the active label, and the accepted count for that label.
-- [ ] A label selector sets the active label; digits 1 to 9 set it while
+- [x] A label selector sets the active label; digits 1 to 9 set it while
       capturing. Start is disabled until a label is chosen.
-- [ ] When the state says ready, a clear "go" cue is shown.
-- [ ] The path image of the latest sample is shown as soon as it appears and
+- [x] When the state says ready, a clear "go" cue is shown.
+- [x] The path image of the latest sample is shown as soon as it appears and
       stays during the next countdown; a discard shows its reason as a notice.
-- [ ] Pressing Escape, or clicking anywhere on the page, pauses capturing. The
+- [x] Pressing Escape, or clicking anywhere on the page, pauses capturing. The
       page then moves to Review when it is available.
-- [ ] No reject, delete or relabel control is offered on this page.
-- [ ] The latest sample's saving state is shown, so the user knows it is saved.
+- [x] No reject, delete or relabel control is offered on this page.
+- [x] The latest sample's saving state is shown, so the user knows it is saved.
 
 **Implementation notes.** `static/app/record.js`. The latest sample's image is
 `GET /api/samples/{id}/image?mode=path`.
