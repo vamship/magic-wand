@@ -135,7 +135,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L1 | Frame sources | Completed |
 | DC-L2 | Tracker | Completed |
 | DC-L3 | Segmenter | Completed |
-| DC-L4 | Vector builder | Not started |
+| DC-L4 | Vector builder | Completed |
 | DC-L5 | Path renderer | Completed |
 | DC-L6 | Color calibrator | Completed |
 | DC-L7 | Motion calibrator | Completed |
@@ -589,7 +589,7 @@ Behavior:
 ### DC-L4 Vector builder
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-F1
 - **Requirements**: R6.1, N1
 - **Design**: Lib 10; Arch 4.2
@@ -602,11 +602,11 @@ stored; training and inference both call this function.
 
 **Acceptance criteria.**
 
-- [ ] For `n` positions it returns `n - 1` vectors.
-- [ ] Displacements and speed are in frame-heights and frame-heights per second.
-- [ ] The same positions at different frame sizes with the same aspect ratio
+- [x] For `n` positions it returns `n - 1` vectors.
+- [x] Displacements and speed are in frame-heights and frame-heights per second.
+- [x] The same positions at different frame sizes with the same aspect ratio
       give the same vectors.
-- [ ] Fewer than two positions return an empty result; a zero time step does not
+- [x] Fewer than two positions return an empty result; a zero time step does not
       divide by zero.
 
 **Implementation notes.** Return NumPy arrays (one row per step with columns
