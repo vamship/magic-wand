@@ -59,6 +59,10 @@ function Latest({ snapshot }) {
   if (!latest) {
     return html`<p class="hint">The latest gesture appears here.</p>`;
   }
+  const status =
+    `${labelName(snapshot, latest.label)} - ` +
+    (latest.saving ? "saving" : "saved") +
+    (!latest.saving && !latest.clipAvailable ? " (no video clip)" : "");
   return html`<div class="latest">
     ${latest.saving
       ? html`<div class="saving">Saving...</div>`
@@ -67,11 +71,7 @@ function Latest({ snapshot }) {
           src=${pathImage(latest.id)}
           alt="Path of the latest gesture"
         />`}
-    <p>
-      ${labelName(snapshot, latest.label)}
-      - ${latest.saving ? "saving" : "saved"}
-      ${!latest.saving && !latest.clipAvailable && " (no video clip)"}
-    </p>
+    <p>${status}</p>
   </div>`;
 }
 
@@ -112,6 +112,9 @@ export function Record({ snapshot, shortcuts, notices }) {
   };
 
   const count = active ? snapshot.counts[active] || 0 : 0;
+  const tail = active
+    ? ` of ${TARGET_PER_LABEL} accepted for ${labelName(snapshot, active)}`
+    : "";
   return html`<section class="record" onClick=${onPageClick}>
     <h2>Record</h2>
     <div class="columns">
@@ -139,8 +142,8 @@ export function Record({ snapshot, shortcuts, notices }) {
           </div>
           ${active &&
           html`<p class="count">
-            <strong>${count}</strong> of ${TARGET_PER_LABEL} accepted for
-            ${labelName(snapshot, active)}
+            <strong>${count}</strong>
+            ${tail}
           </p>`}
           ${capturing &&
           html`<p class="hint">

@@ -1,6 +1,6 @@
 # Data Collection Application - Design
 
-> **Version** 11 | **Updated** 2026-11-05 | **Approved**
+> **Version** 12 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -258,11 +258,15 @@ shows what the Application State says.
 - **Countdown.** The state holds the time at which the countdown ends. The page
   counts down locally from it, so no ticks are sent.
 - Pages:
-  - **Setup**: camera list and previews; the new session form (author,
-    session name, handedness, notes); the list of existing sessions, each with
-    Review and, for open sessions, Resume.
-  - **Calibrate**: frozen-frame color calibration, vision sliders, and the
-    motion tuning screen.
+  - **Setup**: camera list and previews; the form for the new session's
+    details (author, session name, handedness, notes), which the page keeps
+    until the session starts and which only leads on to Calibrate; the list of
+    existing sessions, each with Review, Delete and, for open sessions, Resume.
+    A session cannot be started from Setup.
+  - **Calibrate**: frozen-frame color calibration, vision sliders, the motion
+    tuning screen, and the Start session button, which creates the session
+    from the details given on Setup and opens Record. Settings are final
+    once it is pressed (R2.2).
   - **Record**: live view, countdown and state, active label, the latest
     sample's path image, and counts. It has no review actions.
   - **Review**: the session's samples, with the selected sample's path image

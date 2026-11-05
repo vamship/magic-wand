@@ -48,6 +48,9 @@ function CameraPanel({ snapshot, notices }) {
   const [cameras, setCameras] = useState(null);
   const camera = snapshot.camera;
   const locked = isCapturing(snapshot);
+  const inUse =
+    `In use: ${camera.device}, asked for ${describeMode(camera.requested)}, ` +
+    `delivering ${describeMode(camera.actual)}.`;
 
   const refresh = async () => {
     const list = await notices.attempt(() => api.get("/api/cameras"));
@@ -84,9 +87,7 @@ function CameraPanel({ snapshot, notices }) {
     html`<p class="hint">No cameras were found.</p>`}
     ${camera.device
       ? html`<p class="mode">
-          In use: ${camera.device}, asked for
-          ${describeMode(camera.requested)}, delivering
-          ${describeMode(camera.actual)}.
+          ${inUse}
         </p>`
       : html`<p class="hint">No camera is in use.</p>`}
     ${modesDiffer(camera.requested, camera.actual) &&
@@ -103,13 +104,13 @@ function CurrentSession({ snapshot, notices }) {
   const session = snapshot.session;
   if (!session) return null;
   const capturing = session.role === "capture";
+  const role = capturing ? "loaded for capture" : "open for review only";
   const end = () =>
     notices.attempt(() => api.post("/api/sessions/current/end"));
   return html`<section class="panel current">
     <h3>Current session</h3>
     <p>
-      ${session.name}
-      (${capturing ? "loaded for capture" : "open for review only"})
+      ${`${session.name} (${role})`}
     </p>
     ${capturing &&
     html`<p class="locked" role="status">
@@ -121,24 +122,27 @@ function CurrentSession({ snapshot, notices }) {
   </section>`;
 }
 
-function NewSession({ snapshot, notices, goTo }) {
+function NewSession({ snapshot, store, goTo }) {
+  const draft = store.get().draft || {};
   const saved = remembered();
-  const [author, setAuthor] = useState(saved.author || "");
-  const [handedness, setHandedness] = useState(saved.handedness || "");
-  const [name, setName] = useState("");
-  const [notes, setNotes] = useState("");
+  const [author, setAuthor] = useState(draft.author ?? saved.author ?? "");
+  const [handedness, setHandedness] = useState(
+    draft.handedness ?? saved.handedness ?? "",
+  );
+  const [name, setName] = useState(draft.name ?? "");
+  const [notes, setNotes] = useState(draft.notes ?? "");
   const locked = isCapturing(snapshot);
   const ready = author.trim() !== "" && handedness !== "";
 
-  const start = async (next) => {
-    remember({ author: author.trim(), handedness });
-    const body = { author: author.trim(), handedness };
-    if (name.trim()) body.name = name.trim();
-    if (notes.trim()) body.notes = notes.trim();
-    const started = await notices.attempt(() =>
-      api.post("/api/sessions", body),
-    );
-    if (started) goTo(next);
+  // Nothing is started here. The details wait on the Calibrate page, which
+  // starts the session once the settings are final.
+  const proceed = () => {
+    const details = { author: author.trim(), handedness };
+    if (name.trim()) details.name = name.trim();
+    if (notes.trim()) details.notes = notes.trim();
+    remember({ author: details.author, handedness });
+    store.set({ draft: details });
+    goTo("calibrate");
   };
 
   return html`<section class="panel">
@@ -189,12 +193,13 @@ function NewSession({ snapshot, notices, goTo }) {
         />
       </label>
     </div>
+    <p class="hint">
+      Next you calibrate the camera. The session starts from the Calibrate
+      page, and its settings are fixed from then on.
+    </p>
     <div class="row">
-      <button disabled=${locked || !ready} onClick=${() => start("calibrate")}>
-        Start and calibrate
-      </button>
-      <button disabled=${locked || !ready} onClick=${() => start("record")}>
-        Start and record (settings already calibrated)
+      <button disabled=${locked || !ready} onClick=${proceed}>
+        Continue to calibrate
       </button>
     </div>
   </section>`;
@@ -282,7 +287,7 @@ function SessionList({ snapshot, notices, goTo }) {
   </section>`;
 }
 
-export function Setup({ snapshot, notices, goTo }) {
+export function Setup({ snapshot, store, notices, goTo }) {
   return html`<section class="setup">
     <h2>Setup</h2>
     <div class="columns">
@@ -291,11 +296,7 @@ export function Setup({ snapshot, notices, goTo }) {
       </div>
       <div>
         <${CurrentSession} snapshot=${snapshot} notices=${notices} />
-        <${NewSession}
-          snapshot=${snapshot}
-          notices=${notices}
-          goTo=${goTo}
-        />
+        <${NewSession} snapshot=${snapshot} store=${store} goTo=${goTo} />
       </div>
     </div>
     <${SessionList} snapshot=${snapshot} notices=${notices} goTo=${goTo} />

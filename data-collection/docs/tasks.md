@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 7 | **Updated** 2026-11-05 | **Approved**
+> **Version** 8 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -1507,10 +1507,9 @@ opens an existing one.
 - [x] Shows the camera in use from the state, including the requested and actual
       mode, with a visible warning when they differ.
 - [x] The new session form takes the author, an optional session name, the
-      handedness (left or right) and optional notes. Starting is disabled until
-      the author and handedness are set. Starting calls the session endpoint and
-      the page moves on to Calibrate (or Record if the settings are already
-      calibrated and the user chooses so).
+      handedness (left or right) and optional notes. Continuing is disabled
+      until the author and handedness are set. It starts no session: it keeps
+      the details and moves on to Calibrate.
 - [x] Lists existing sessions (name, author, date, sample count, open or ended)
       with a Review button, and a Resume button for open sessions only.
 - [x] A refused resume (ended session or unavailable camera) shows the reason
@@ -1556,6 +1555,9 @@ opens an existing one.
       delete from a list.
 - [x] Every control shows the current value from the state, and all controls are
       disabled with a notice while a session is loaded for capture.
+- [x] A Start session button creates the session from the details given on
+      Setup and opens Record. It is disabled, with a pointer back to Setup,
+      until those details exist, and while a session is loaded for capture.
 
 **Implementation notes.** `static/app/calibrate.js`. The history graph is
 drawn on a canvas from the `motion` readings in a ring of the last few seconds.
