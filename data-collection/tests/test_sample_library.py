@@ -525,3 +525,28 @@ def test_deleting_a_session_removes_its_samples_from_the_library(rig):
     assert rig.library.label_use_count("zigzag") == 0
     assert list(rig.cache.glob("*.png")) == []
     assert rig.client.get(f"/api/samples/{gone.sample_id}").status_code == 404
+
+
+def test_a_mirrored_library_shows_images_flipped_left_to_right(rig, tmp_path):
+    import cv2
+    import numpy as np
+
+    session = rig.session()
+    sample_id = rig.sample(session).sample_id
+    plain = rig.client.get(f"/api/samples/{sample_id}/image").content
+    mirrored_library = SampleLibrary(
+        rig.state, rig.store, tmp_path / "c3", mirror=True
+    )
+    client = TestClient(
+        create_app(
+            rig.state, routers=[mirrored_library.router], static_dir=None
+        )
+    )
+    flipped = client.get(f"/api/samples/{sample_id}/image").content
+    a = cv2.imdecode(np.frombuffer(plain, np.uint8), cv2.IMREAD_COLOR)
+    b = cv2.imdecode(np.frombuffer(flipped, np.uint8), cv2.IMREAD_COLOR)
+    assert not np.array_equal(a, b)
+    assert client.get(f"/api/samples/{sample_id}").json()["mirrored"] is True
+    assert (
+        rig.client.get(f"/api/samples/{sample_id}").json()["mirrored"] is False
+    )

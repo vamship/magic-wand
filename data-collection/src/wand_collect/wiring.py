@@ -66,7 +66,11 @@ def assemble(
         application.settings,
         camera_lister=camera_lister,
     )
-    library = SampleLibrary(state, application.store)
+    library = SampleLibrary(
+        state,
+        application.store,
+        mirror=application.settings.mirror_preview,
+    )
     clips = ClipWriter()
     padding = application.settings.clip_padding
     controller = CaptureController(

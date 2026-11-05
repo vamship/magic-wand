@@ -122,7 +122,7 @@ export function Scrub({ id, details, onClose }) {
 
   return html`<section class="scrub" ref=${stage}>
     <div class="frame">
-      <div class="box">
+      <div class=${details.mirrored ? "box mirrored" : "box"}>
         <video
           ref=${video}
           src=${`/api/samples/${encodeURIComponent(id)}/video`}

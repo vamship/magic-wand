@@ -1,9 +1,10 @@
 """Path renderer: draws a gesture's path as an image.
 
 The path is a polyline whose color runs from the start color to the end
-color, with a circle at the start and a square at the end, so the direction
-is clear even in a thumbnail. Positions are fractions of the frame, drawn
-exactly as stored, never mirrored (``lib/docs/design.md`` section 11).
+color, with a small circle at the start and a small square at the end, so
+the direction is clear even in a thumbnail. Positions are fractions of the
+frame, drawn exactly as given; the caller mirrors them for display
+(``lib/docs/design.md`` section 11).
 """
 
 from __future__ import annotations
@@ -14,9 +15,9 @@ from collections.abc import Sequence
 import cv2
 import numpy as np
 
-# BGR colors: the path runs from blue to yellow.
-START_COLOR = (255, 140, 30)
-END_COLOR = (0, 215, 255)
+# BGR colors: the path runs from green to red.
+START_COLOR = (80, 200, 40)
+END_COLOR = (40, 40, 240)
 OUTLINE_COLOR = (0, 0, 0)
 MARKER_RIM_COLOR = (255, 255, 255)
 MAX_PIECES = 24  # per segment
@@ -51,7 +52,7 @@ def render_path(
         for h, v in positions
     ]
     line = max(2, height // 60)
-    marker = max(4, height // 24)
+    marker = max(3, height // 60)
 
     # A dark outline under the colored line keeps it visible on any frame.
     for a, b in zip(points, points[1:]):
