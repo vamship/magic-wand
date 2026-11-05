@@ -453,3 +453,18 @@ def test_the_video_of_a_sample_without_a_clip_is_not_found(rig):
         response = rig.client.get(f"/api/samples/{sample.sample_id}/video")
         assert response.status_code == 404
     assert rig.client.get("/api/samples/nonsense/video").status_code == 404
+
+
+def test_thumbnails_keep_the_frame_shape(rig):
+    session = rig.session()
+    sample = rig.sample(session)
+    wide = rig.store.read_samples(session.session_id)[0].model_copy(
+        update={"frame_size": (1280, 720)}
+    )
+    from wand_core.dataset import write_samples
+
+    write_samples(
+        rig.store.session_dir(session.session_id) / "samples.jsonl", [wide]
+    )
+    image = decode(rig.client.get(f"/api/samples/{sample.sample_id}/thumbnail"))
+    assert image.shape == (54, 96, 3)  # 16:9, not stretched to 4:3

@@ -131,7 +131,7 @@ main h2 {
 .live {
   width: 100%;
   max-width: 640px;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: auto 4 / 3; /* the picture's own ratio once it loads */
   background: #000;
   border-radius: 6px;
 }
@@ -469,7 +469,7 @@ table.sessions td:last-child {
 .latest .saving {
   width: 100%;
   max-width: 320px;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: auto 4 / 3;
   background: #000;
   border-radius: 6px;
   display: block;
@@ -526,6 +526,7 @@ dd.rejected {
 .strip .thumb img {
   width: 96px;
   height: 72px;
+  object-fit: contain;
   background: #000;
   border-radius: 4px;
 }
@@ -596,6 +597,7 @@ table.samples tr.selected {
 table.samples img {
   width: 96px;
   height: 72px;
+  object-fit: contain;
   background: #000;
   border-radius: 4px;
   display: block;

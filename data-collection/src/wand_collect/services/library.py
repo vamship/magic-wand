@@ -46,7 +46,7 @@ from wand_core.render import encode_png, render_path
 
 logger = logging.getLogger(__name__)
 
-THUMBNAIL_SIZE = (96, 72)
+THUMBNAIL_WIDTH = 96
 MAX_IMAGE_SIDE = 2000
 DEFAULT_PAGE_SIZE = 50
 MAX_PAGE_SIZE = 500
@@ -360,7 +360,12 @@ class SampleLibrary:
         try:
             png = cached.read_bytes()
         except OSError:
-            png = encode_png(render_path(_positions(record), THUMBNAIL_SIZE))
+            frame_width, frame_height = record.frame_size
+            size = (
+                THUMBNAIL_WIDTH,
+                max(1, round(THUMBNAIL_WIDTH * frame_height / frame_width)),
+            )
+            png = encode_png(render_path(_positions(record), size))
             try:
                 self._cache_dir.mkdir(parents=True, exist_ok=True)
                 cached.write_bytes(png)
