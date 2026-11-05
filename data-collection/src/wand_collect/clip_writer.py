@@ -1,33 +1,32 @@
 """Clip Writer: encodes buffered frames into an H.264 video clip.
 
-Work happens on one background thread, one clip after another, so the caller
-never waits. A clip is written to a temporary file in the target folder and
-renamed, so it is complete or absent. Encoding uses PyAV with ``libx264``,
-as decided in DC-S1 (``data-collection/docs/design.md`` section 4.8). A
-failure is reported in the result, never raised on the caller's thread.
+Clips are queued and handed, one after another, to a worker process
+(``clip_worker``) that does the encoding, so the caller never waits and
+PyAV is never loaded into this process: PyAV and OpenCV bundle clashing
+copies of ``libavdevice`` on macOS (``docs/notes.md``). The worker writes to a
+temporary file and renames it, so a clip is complete or absent. A failure,
+including a worker that stops unexpectedly, is reported in the result and
+never raised on the caller's thread (``data-collection/docs/design.md``
+section 4.8).
 """
 
 from __future__ import annotations
 
+import json
 import logging
-import os
 import queue
+import subprocess
+import sys
 import threading
 from collections.abc import Sequence
 from concurrent.futures import Future
 from dataclasses import dataclass
-from fractions import Fraction
 from pathlib import Path
 from typing import Protocol
 
-import av
-import cv2
-import numpy as np
-
 logger = logging.getLogger(__name__)
 
-PRESET = "veryfast"
-CRF = "23"
+WORKER_EXIT_TIMEOUT_S = 10.0
 
 
 class TimedJpeg(Protocol):
@@ -57,6 +56,7 @@ class _Job:
 class ClipWriter:
     def __init__(self) -> None:
         self._jobs: queue.Queue[_Job | None] = queue.Queue()
+        self._worker: subprocess.Popen | None = None
         self._thread = threading.Thread(
             target=self._run, name="clip-writer", daemon=True
         )
@@ -71,9 +71,12 @@ class ClipWriter:
         return future
 
     def close(self) -> None:
-        """Finish the queued clips, then stop the thread."""
+        """Finish the queued clips, then stop the thread and the worker."""
         self._jobs.put(None)
         self._thread.join()
+        self._stop_worker()
+
+    # --- The queue thread ------------------------------------------------
 
     def _run(self) -> None:
         while (job := self._jobs.get()) is not None:
@@ -89,47 +92,59 @@ class ClipWriter:
             return ClipResult(False, error="there are no frames")
         if not job.fps > 0:
             return ClipResult(False, error=f"bad frame rate {job.fps}")
-        temp = job.path.with_name(f".{job.path.name}.tmp")
+        header = json.dumps(
+            {
+                "path": str(job.path),
+                "fps": job.fps,
+                "sizes": [len(f.jpeg) for f in job.frames],
+            }
+        )
         try:
-            job.path.parent.mkdir(parents=True, exist_ok=True)
-            _encode(job.frames, job.fps, temp)
-            os.replace(temp, job.path)
-        except BaseException:
-            temp.unlink(missing_ok=True)
-            raise
-        return ClipResult(True, path=job.path)
-
-
-def _decode(jpeg: bytes) -> np.ndarray:
-    image = cv2.imdecode(np.frombuffer(jpeg, np.uint8), cv2.IMREAD_COLOR)
-    if image is None:
-        raise ValueError("a frame is not a valid JPEG image")
-    return image
-
-
-def _encode(frames: Sequence[TimedJpeg], fps: float, target: Path) -> None:
-    rate = Fraction(fps).limit_denominator(1000)
-    first = _decode(frames[0].jpeg)
-    # yuv420p needs even sizes; the odd last row or column is dropped.
-    height, width = first.shape[0] // 2 * 2, first.shape[1] // 2 * 2
-    if not width or not height:
-        raise ValueError("the frames are too small to encode")
-    with av.open(
-        str(target), "w", format="mp4", options={"movflags": "faststart"}
-    ) as out:
-        stream = out.add_stream("libx264", rate=rate)
-        stream.width, stream.height = width, height
-        stream.pix_fmt = "yuv420p"
-        stream.options = {"preset": PRESET, "crf": CRF}
-        for index, frame in enumerate(frames):
-            # One frame is decoded at a time, so memory stays small.
-            image = first if index == 0 else _decode(frame.jpeg)
-            if image.shape[:2] != first.shape[:2]:
-                raise ValueError("the frames differ in size")
-            video = av.VideoFrame.from_ndarray(
-                np.ascontiguousarray(image[:height, :width]), format="bgr24"
+            worker = self._ensure_worker()
+            worker.stdin.write(header.encode() + b"\n")
+            for frame in job.frames:
+                worker.stdin.write(frame.jpeg)
+            worker.stdin.flush()
+            reply = worker.stdout.readline()
+        except OSError as error:  # for example a broken pipe
+            self._stop_worker(kill=True)
+            return ClipResult(False, error=f"the clip encoder failed: {error}")
+        if not reply:  # the worker died; the next clip starts a new one
+            self._stop_worker(kill=True)
+            return ClipResult(
+                False, error="the clip encoder stopped unexpectedly"
             )
-            for packet in stream.encode(video):
-                out.mux(packet)
-        for packet in stream.encode():
-            out.mux(packet)
+        answer = json.loads(reply)
+        if answer["ok"]:
+            return ClipResult(True, path=job.path)
+        return ClipResult(False, error=answer["error"])
+
+    # --- The worker process ----------------------------------------------
+
+    def _ensure_worker(self) -> subprocess.Popen:
+        if self._worker is None or self._worker.poll() is not None:
+            self._worker = subprocess.Popen(
+                [sys.executable, "-m", "wand_collect.clip_worker"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+            )
+        return self._worker
+
+    def _stop_worker(self, kill: bool = False) -> None:
+        worker, self._worker = self._worker, None
+        if worker is None:
+            return
+        if kill:
+            worker.kill()
+        try:
+            if worker.stdin:
+                worker.stdin.close()
+        except OSError:
+            pass
+        try:
+            worker.wait(WORKER_EXIT_TIMEOUT_S)
+        except subprocess.TimeoutExpired:
+            worker.kill()
+            worker.wait()
+        if worker.stdout:
+            worker.stdout.close()

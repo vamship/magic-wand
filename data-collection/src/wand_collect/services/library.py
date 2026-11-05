@@ -23,7 +23,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal
 
-import av
+import cv2
 import numpy as np
 from fastapi import APIRouter, Query, Response
 from platformdirs import user_cache_dir
@@ -375,18 +375,25 @@ class SampleLibrary:
         if not self._store.has_clip(record):
             return None
         path = self._store.session_dir(record.session_id) / record.video.file
+        capture = cv2.VideoCapture(str(path))
         try:
-            with av.open(str(path)) as container:
-                stream = container.streams.video[0]
-                for frame in container.decode(stream):
-                    seconds = float(frame.pts * stream.time_base)
-                    if seconds >= record.video.gesture_start_s:
-                        return frame.to_ndarray(format="bgr24")
-                # Start is past the end: use the last frame there was.
-                return frame.to_ndarray(format="bgr24")
-        except Exception as error:  # noqa: BLE001 - an unreadable clip is no clip
+            if not capture.isOpened():
+                return None
+            # Read forward to the gesture start: a short clip, and exact.
+            fps = capture.get(cv2.CAP_PROP_FPS) or 30.0
+            wanted = max(0, round(record.video.gesture_start_s * fps))
+            frame = None
+            for _ in range(wanted + 1):
+                ok, image = capture.read()
+                if not ok:
+                    break  # the start is past the end: keep the last frame
+                frame = image
+            return frame
+        except cv2.error as error:
             logger.warning("cannot read clip %s: %s", path, error)
             return None
+        finally:
+            capture.release()
 
 
 def _positions(record: SampleRecord) -> list[tuple[float, float]]:
