@@ -152,7 +152,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A7 | Clip Writer | Completed |
 | DC-A8 | Sample Library | Completed |
 | DC-A9 | Session Service | Completed |
-| DC-A10 | Capture Controller | Not started |
+| DC-A10 | Capture Controller | In progress |
 | DC-A11 | Command-line tools | Not started |
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Not started |
@@ -1295,7 +1295,7 @@ failed start or resume leaves the state unchanged.
 ### DC-A10 Capture Controller
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-A1, DC-A3, DC-A7, DC-A9, DC-L9
 - **Requirements**: R4.1, R4.2, R4.3, R4.4, R4.5, R4.6, R4.7, R4.9, R5.6, R6.4
 - **Design**: DC 3.4, 4.7
