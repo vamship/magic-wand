@@ -1,6 +1,6 @@
 # Data Collection Application - Requirements
 
-> **Version** 9 | **Updated** 2026-11-05 | **Approved**
+> **Version** 10 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -87,6 +87,12 @@ this document:
 - R2.8 **Deleting a session.** The user can delete a session that is not
   loaded, with all its samples and clips, after a confirmation. Deleting is
   permanent.
+
+- R2.9 **Session name and notes.** The user can change the name of a session
+  and its free-text notes, or add them, at any time: while the session is
+  capturing, while it is open for review, and after it has ended. These
+  describe the session and are not settings, so R2.2 does not lock them.
+  Clearing a field removes it. Nothing else about a session can be edited.
 
 ### R3. Gesture label management (P1)
 - R3.1 The label set is a project configuration file shared by all teammates,

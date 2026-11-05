@@ -210,8 +210,44 @@ function formatDate(text) {
   return Number.isNaN(date.getTime()) ? text : date.toLocaleString();
 }
 
+// Changes the name and notes of one session. They describe the session, so
+// they can change at any time, for any session.
+function DetailsEditor({ entry, notices, onDone }) {
+  const [name, setName] = useState(entry.name || "");
+  const [notes, setNotes] = useState(entry.notes || "");
+  const save = async () => {
+    const saved = await notices.attempt(() =>
+      api.patch(`/api/sessions/${entry.id}`, { name, notes }),
+    );
+    if (saved) onDone(true);
+  };
+  return html`<div class="form">
+    <label>
+      Session name
+      <input
+        type="text"
+        value=${name}
+        onInput=${(event) => setName(event.target.value)}
+      />
+    </label>
+    <label>
+      Notes
+      <input
+        type="text"
+        value=${notes}
+        onInput=${(event) => setNotes(event.target.value)}
+      />
+    </label>
+    <div class="row">
+      <button onClick=${save}>Save</button>
+      <button onClick=${() => onDone(false)}>Cancel</button>
+    </div>
+  </div>`;
+}
+
 function SessionList({ snapshot, notices, goTo }) {
   const [sessions, setSessions] = useState(null);
+  const [editing, setEditing] = useState(null);
   const session = snapshot.session;
   const locked = isCapturing(snapshot);
   const isCurrent = (entry) =>
@@ -246,6 +282,11 @@ function SessionList({ snapshot, notices, goTo }) {
     goTo("record");
   };
 
+  const finishEditing = async (saved) => {
+    setEditing(null);
+    if (saved) await refresh();
+  };
+
   const remove = async (entry) => {
     const text =
       `Delete the session "${entry.name || "(unnamed)"}" by ${entry.author} ` +
@@ -264,7 +305,17 @@ function SessionList({ snapshot, notices, goTo }) {
       <tbody>
         ${[...(sessions || [])].reverse().map(
           (entry) => html`<tr key=${entry.id}>
-            <td>${entry.name || "(unnamed)"}</td>
+            <td>
+              ${editing === entry.id
+                ? html`<${DetailsEditor}
+                    entry=${entry}
+                    notices=${notices}
+                    onDone=${finishEditing}
+                  />`
+                : html`${entry.name || "(unnamed)"}
+                    ${entry.notes &&
+                    html`<div class="hint">${entry.notes}</div>`}`}
+            </td>
             <td>${entry.author}</td>
             <td>${formatDate(entry.startedAt)}</td>
             <td>${entry.sampleCount} samples</td>
@@ -286,6 +337,7 @@ function SessionList({ snapshot, notices, goTo }) {
               >
                 Resume
               </button>`}
+              <button onClick=${() => setEditing(entry.id)}>Edit</button>
               <button
                 disabled=${Boolean(session) && session.id === entry.id}
                 title=${session && session.id === entry.id

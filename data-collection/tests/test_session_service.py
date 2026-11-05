@@ -397,3 +397,42 @@ def test_deleting_an_unknown_session_is_not_found(rig):
     missing = "00000000-0000-4000-8000-000000000000"
     assert rig.client.delete(f"/api/sessions/{missing}").status_code == 404
     assert rig.client.delete("/api/sessions/nonsense").status_code == 404
+
+
+# --- Name and notes ----------------------------------------------------------
+
+
+def test_the_name_and_notes_change_while_the_session_is_loaded(rig):
+    session_id = rig.start(name="first").json()["id"]
+    response = rig.client.patch(
+        f"/api/sessions/{session_id}",
+        json={"name": " evening ", "notes": "dim light"},
+    )
+    assert response.status_code == 200
+    assert response.json()["name"] == "evening"
+    record = rig.store.get_session(session_id)
+    assert (record.name, record.notes) == ("evening", "dim light")
+    assert rig.state.snapshot.session.name == "evening"
+    listed = rig.client.get("/api/sessions").json()[0]
+    assert (listed["name"], listed["notes"]) == ("evening", "dim light")
+
+
+def test_the_name_and_notes_change_after_the_session_has_ended(rig):
+    session_id = rig.start(name="old", notes="x").json()["id"]
+    rig.client.post("/api/sessions/current/end")
+    done = rig.client.patch(f"/api/sessions/{session_id}", json={"notes": ""})
+    assert done.status_code == 200
+    record = rig.store.get_session(session_id)
+    assert (record.name, record.notes) == ("old", None)  # name left alone
+    assert record.ended_at is not None
+
+
+def test_a_session_change_needs_a_field_and_a_known_session(rig):
+    session_id = rig.start().json()["id"]
+    assert (
+        rig.client.patch(f"/api/sessions/{session_id}", json={}).status_code
+        == 400
+    )
+    missing = "00000000-0000-4000-8000-000000000000"
+    response = rig.client.patch(f"/api/sessions/{missing}", json={"name": "a"})
+    assert response.status_code == 404
