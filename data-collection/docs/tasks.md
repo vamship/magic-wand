@@ -162,7 +162,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-U6 | Browse page | Completed |
 | DC-U7 | Scrubbing view (P2) | Completed |
 | DC-V1 | Whole-application test | Completed |
-| DC-V2 | Real-camera testing | Not started |
+| DC-V2 | Real-camera testing | In progress |
 | DC-V3 | Motion threshold tuning | Not started |
 
 ## 4. Coverage of the design
@@ -1687,7 +1687,7 @@ countdown in the test configuration.
 ### DC-V2 Real-camera testing
 
 - **Type**: chore
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-U6
 - **Requirements**: R1.7, N3, N4, R6.7
 - **Design**: DC 7
@@ -1698,7 +1698,7 @@ checklist.
 
 **Acceptance criteria.**
 
-- [ ] A checklist document exists (a new document with the standard header)
+- [x] A checklist document exists (a new document with the standard header)
       covering camera selection, calibration under different lighting and
       backgrounds, motion tuning, a capture run, pause and review, resume,
       missing-camera resume refusal, merge, and the missing-clip behavior.
@@ -1707,6 +1707,10 @@ checklist.
 - [ ] The live view keeps up with the camera, and no dropped frames corrupt
       tracking (N3).
 - [ ] Problems found are recorded as follow-up tasks.
+
+**Progress.** The checklist is written
+(`data-collection/docs/manual-tests.md`). The macOS run, the recorded
+results and any follow-up tasks need a person with the real camera and wand.
 
 **Implementation notes.** `data-collection/docs/manual-tests.md`. Include the
 camera permission step on macOS.
