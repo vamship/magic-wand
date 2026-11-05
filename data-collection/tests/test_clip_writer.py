@@ -139,3 +139,59 @@ def test_clips_are_written_one_after_another(writer, tmp_path):
         12,
         13,
     ]
+
+
+def test_a_worker_that_dies_fails_one_clip_and_the_next_one_works(
+    writer, tmp_path
+):
+    import subprocess
+    import sys
+
+    assert writer.submit(make_frames(3), 30.0, tmp_path / "a.mp4").result(10).ok
+    writer._stop_worker()
+    writer._worker = subprocess.Popen(
+        [sys.executable, "-c", "import sys; sys.stdin.buffer.read(1)"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    )
+    failed = writer.submit(make_frames(3), 30.0, tmp_path / "b.mp4").result(10)
+    assert not failed.ok and "encoder" in failed.error
+    assert not (tmp_path / "b.mp4").exists()
+    assert writer.submit(make_frames(3), 30.0, tmp_path / "c.mp4").result(10).ok
+
+
+def test_the_encoder_keeps_the_picture_content(writer, tmp_path):
+    target = tmp_path / "a.mp4"
+    frames = make_frames(5)
+    writer.submit(frames, 30.0, target).result(10)
+    with av.open(str(target)) as container:
+        image = next(container.decode(video=0)).to_ndarray(format="bgr24")
+    assert abs(int(image[2, 2].mean()) - 40) < 12  # the grey background
+    assert image[20, 6, 2] > 150  # the orange disc (red channel)
+
+
+def run_python(code):
+    import subprocess
+    import sys
+
+    return subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True
+    )
+
+
+def test_pyav_is_not_loaded_in_the_server_process():
+    result = run_python(
+        "import sys, wand_collect.cli, wand_collect.clip_writer\n"
+        "import wand_collect.services.library\n"
+        "assert 'av' not in sys.modules, 'PyAV was imported'\n"
+    )
+    assert result.returncode == 0, result.stderr
+    assert "implemented in both" not in result.stderr
+
+
+def test_the_worker_does_not_load_opencv():
+    result = run_python(
+        "import sys, wand_collect.clip_worker\n"
+        "assert 'cv2' not in sys.modules, 'OpenCV was imported'\n"
+    )
+    assert result.returncode == 0, result.stderr
