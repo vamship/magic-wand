@@ -509,3 +509,19 @@ def test_overlay_picks_the_frame_by_time_in_a_clip_of_uneven_frames(rig):
         )
         frame = rig.library._clip_frame(record)
         assert abs(int(frame.mean()) - (5 * index + 20)) < 8, (start, index)
+
+
+def test_deleting_a_session_removes_its_samples_from_the_library(rig):
+    keep, drop = rig.session(), rig.session()
+    rig.sample(keep)
+    gone = rig.sample(drop, clip=True)
+    rig.sample(drop, "zigzag")
+    rig.client.get(f"/api/samples/{gone.sample_id}/thumbnail")
+    revision = rig.state.snapshot.samples_revision
+    rig.store.delete_session(drop.session_id)
+    assert rig.client.get("/api/samples").json()["total"] == 1
+    assert dict(rig.state.snapshot.counts) == {"circle": 1}
+    assert rig.state.snapshot.samples_revision > revision
+    assert rig.library.label_use_count("zigzag") == 0
+    assert list(rig.cache.glob("*.png")) == []
+    assert rig.client.get(f"/api/samples/{gone.sample_id}").status_code == 404

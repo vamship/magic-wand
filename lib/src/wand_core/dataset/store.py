@@ -12,6 +12,7 @@ used; a lock inside the store keeps its own threads in order.
 from __future__ import annotations
 
 import logging
+import shutil
 import threading
 import uuid
 from collections.abc import Callable
@@ -66,6 +67,7 @@ class ChangeKind(str, Enum):
     SAMPLE_ADDED = "sample_added"
     SAMPLE_UPDATED = "sample_updated"
     SAMPLE_DELETED = "sample_deleted"
+    SESSION_DELETED = "session_deleted"
 
 
 @dataclass(frozen=True)
@@ -251,6 +253,22 @@ class DatasetStore:
             if current.ended_at is not None:
                 return current
             return self.update_session(session_id, ended_at=self._clock())
+
+    def delete_session(self, session_id: str) -> None:
+        """Permanently remove a session with its samples and clips.
+
+        The folder is renamed out of ``sessions/`` first, so a crash leaves
+        the session whole or gone; a leftover temporary folder is removed
+        when the data folder is opened.
+        """
+        with self._lock:
+            folder = self.session_dir(session_id)
+            if not (folder / SESSION_FILE).exists():
+                raise SessionNotFoundError(f"no session {session_id}")
+            doomed = self.folder.path / f".deleted-{uuid.uuid4().hex}.tmp"
+            folder.rename(doomed)
+            shutil.rmtree(doomed, ignore_errors=True)
+            self._notify(Change(ChangeKind.SESSION_DELETED, session_id))
 
     # --- Samples ---------------------------------------------------------
 

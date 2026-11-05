@@ -364,3 +364,36 @@ def test_next_sample_number_needs_a_capture_session(rig):
     with pytest.raises(Exception) as caught:
         rig.service.next_sample_number()
     assert getattr(caught.value, "code", None) == "no_session"
+
+
+# --- Delete ------------------------------------------------------------------
+
+
+def test_a_session_that_is_not_loaded_can_be_deleted(rig):
+    first = rig.start(name="old").json()["id"]
+    rig.client.post("/api/sessions/current/end")
+    second = rig.start().json()["id"]
+    response = rig.client.delete(f"/api/sessions/{first}")
+    assert response.status_code == 204
+    listed = [s["id"] for s in rig.client.get("/api/sessions").json()]
+    assert listed == [second]
+    assert not rig.store.session_dir(first).exists()
+
+
+def test_a_loaded_session_cannot_be_deleted(rig):
+    session_id = rig.start().json()["id"]
+    refused = rig.client.delete(f"/api/sessions/{session_id}")
+    assert refused.status_code == 409
+    assert refused.json()["error"]["code"] == "session_loaded"
+    rig.client.post("/api/sessions/current/end")
+    rig.client.post(f"/api/sessions/{session_id}/load?mode=review")
+    assert rig.client.delete(f"/api/sessions/{session_id}").status_code == 409
+    assert rig.store.session_dir(session_id).exists()
+    rig.client.post("/api/sessions/current/end")  # close the review
+    assert rig.client.delete(f"/api/sessions/{session_id}").status_code == 204
+
+
+def test_deleting_an_unknown_session_is_not_found(rig):
+    missing = "00000000-0000-4000-8000-000000000000"
+    assert rig.client.delete(f"/api/sessions/{missing}").status_code == 404
+    assert rig.client.delete("/api/sessions/nonsense").status_code == 404

@@ -444,3 +444,36 @@ def test_opening_cleans_up_after_a_crash_during_an_append(tmp_path, clock):
     assert reopened.next_sample_number(session.session_id) == 2
     assert len(read_samples(path)) == 1
     assert open_data_folder(tmp_path / "d").info == reopened.folder.info
+
+
+# --- Deleting a session -------------------------------------------------------
+
+
+def test_delete_session_removes_the_folder_and_tells_subscribers(
+    store, session
+):
+    changes = []
+    store.subscribe(changes.append)
+    store.add_sample(make_sample(store, session, clip=True))
+    folder = store.session_dir(session.session_id)
+    store.delete_session(session.session_id)
+    assert not folder.exists()
+    assert [c.kind for c in changes][-1] is ChangeKind.SESSION_DELETED
+    assert store.list_sessions() == []
+    assert not list(store.path.glob(".deleted-*"))
+    with pytest.raises(SessionNotFoundError):
+        store.get_session(session.session_id)
+
+
+def test_delete_session_of_an_unknown_session_fails(store):
+    with pytest.raises(SessionNotFoundError):
+        store.delete_session("00000000-0000-4000-8000-000000000000")
+
+
+def test_a_leftover_deleted_folder_is_removed_when_opened(store, session):
+    leftover = store.path / ".deleted-abc.tmp"
+    (leftover / "videos").mkdir(parents=True)
+    (leftover / "session.json").write_text("{}")
+    open_data_folder(store.path)
+    assert not leftover.exists()
+    assert len(store.list_sessions()) == 1
