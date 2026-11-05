@@ -152,7 +152,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A7 | Clip Writer | Completed |
 | DC-A8 | Sample Library | Completed |
 | DC-A9 | Session Service | Completed |
-| DC-A10 | Capture Controller | In progress |
+| DC-A10 | Capture Controller | Completed |
 | DC-A11 | Command-line tools | Not started |
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Not started |
@@ -1295,7 +1295,7 @@ failed start or resume leaves the state unchanged.
 ### DC-A10 Capture Controller
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-A1, DC-A3, DC-A7, DC-A9, DC-L9
 - **Requirements**: R4.1, R4.2, R4.3, R4.4, R4.5, R4.6, R4.7, R4.9, R5.6, R6.4
 - **Design**: DC 3.4, 4.7
@@ -1337,28 +1337,28 @@ tells the loop it is done.
 
 **Acceptance criteria.**
 
-- [ ] Arm and disarm commands are sent to the engine so it is armed only in
+- [x] Arm and disarm commands are sent to the engine so it is armed only in
       `READY` (and `RECORDING`), and never during the countdown.
-- [ ] The countdown length comes from the configuration (default 3 seconds). The
+- [x] The countdown length comes from the configuration (default 3 seconds). The
       capture state in the state holds the time the countdown ends (or the
       remaining time when paused), and no per-tick updates are written.
-- [ ] A discard writes the last-discard field, enters `COUNTDOWN` and creates
+- [x] A discard writes the last-discard field, enters `COUNTDOWN` and creates
       nothing on disk.
-- [ ] A gesture creates exactly one sample, accepted, with the right label,
+- [x] A gesture creates exactly one sample, accepted, with the right label,
       positions, handedness, frame size, clip reference and `gestureStartS` (the
       time from the clip start to the gesture start), and the latest-sample
       field shows it as saving, then as saved.
-- [ ] `READY` is never entered before the countdown is over and the save job is
+- [x] `READY` is never entered before the countdown is over and the save job is
       done; a sample is on disk before the next capture is ready.
-- [ ] A clip failure still saves the sample, with no clip.
-- [ ] Pause from `RECORDING` takes effect only after the result is processed.
+- [x] A clip failure still saves the sample, with no clip.
+- [x] Pause from `RECORDING` takes effect only after the result is processed.
       Resume continues the remaining countdown, or restarts it if paused while
       `READY`.
-- [ ] Review can open only when no sample is being saved.
-- [ ] Ending the session moves to `STOPPED` from any state and discards no saved
+- [x] Review can open only when no sample is being saved.
+- [x] Ending the session moves to `STOPPED` from any state and discards no saved
       data.
-- [ ] Every capture-state change appears in the next `state` event.
-- [ ] Tests use a fake clock, a scripted engine and a fake Clip Writer to cover
+- [x] Every capture-state change appears in the next `state` event.
+- [x] Tests use a fake clock, a scripted engine and a fake Clip Writer to cover
       every state, every transition, the discard path, the pause cases, and the
       clip-failure case.
 

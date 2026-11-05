@@ -125,6 +125,11 @@ class RingBuffer:
         with self._lock:
             self._frames.clear()
 
+    def newest_s(self) -> float | None:
+        """The timestamp of the newest frame, or ``None`` when empty."""
+        with self._lock:
+            return self._frames[-1].timestamp_s if self._frames else None
+
     def __len__(self) -> int:
         return len(self._frames)
 
@@ -329,6 +334,10 @@ class CaptureEngine:
         self, start_s: float, end_s: float
     ) -> list[BufferedFrame]:
         return self.buffer.frames_between(start_s, end_s)
+
+    def newest_frame_s(self) -> float | None:
+        """The timestamp of the newest buffered frame."""
+        return self.buffer.newest_s()
 
     # --- The loop --------------------------------------------------------
 
