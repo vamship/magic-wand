@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 6 | **Updated** 2026-11-04 | **Approved**
+> **Version** 7 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -154,6 +154,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A9 | Session Service | Completed |
 | DC-A10 | Capture Controller | Completed |
 | DC-A11 | Command-line tools | Completed |
+| DC-A12 | Session deletion | Completed |
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Completed |
 | DC-U3 | Calibrate page | Completed |
@@ -1407,6 +1408,35 @@ or a running application: `export`, `merge` and `check`.
 **Implementation notes.** Extend `cli.py` with `argparse` subcommands that call
 the library functions. Use `subprocess` or the `main` function directly in
 tests, with temporary folders.
+
+### DC-A12 Session deletion
+
+- **Type**: feat
+- **Status**: Completed
+- **Depends on**: DC-A8, DC-A9, DC-U2
+- **Requirements**: R2.8
+- **Design**: DC 4.5, 5.2; DH 2, 6
+
+**Description.** Delete a whole session with its samples and clips.
+`DELETE /api/sessions/{id}` returns 204; 404 for an unknown session; 409
+`session_loaded` when the session is loaded in any role. The Dataset Store
+renames the session folder out of `sessions/` and removes it, and notifies its
+subscribers; the Sample Library drops the session's samples from its index,
+counts and thumbnail cache and raises the samples revision. The Setup page
+shows a Delete button for each session, disabled for the loaded one, that asks
+for confirmation and names the session and its sample count.
+
+**Acceptance criteria.**
+
+- [x] A session that is not loaded is deleted with its samples and clips, and
+      leaves the session list, the sample queries and the counts.
+- [x] A loaded session (capture or review) is refused with 409.
+- [x] A crash cannot leave a half-deleted session; a leftover temporary folder
+      is removed when the data folder opens.
+- [x] The Setup page asks before deleting and refreshes its list.
+
+**Implementation notes.** `DatasetStore.delete_session`,
+`SessionService.delete`, and the sessions list in `static/app/setup.js`.
 
 ## 9. Web UI tasks
 

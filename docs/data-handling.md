@@ -1,6 +1,6 @@
 # Data Handling
 
-> **Version** 3 | **Updated** 2026-11-01 | **Approved**
+> **Version** 4 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -33,6 +33,9 @@ Goals:
   accepted samples.
 - A sample can be deleted. Deleting is permanent: it removes the sample record
   and its video clip from the dataset.
+- A whole session can be deleted. Deleting is permanent: it removes the session
+  folder with its record, its samples and its clips. A session that is loaded
+  cannot be deleted.
 - Video clips are optional. A clip may never have been recorded, may have
   failed to encode, or may have been removed later to save space. A missing
   clip is never an error: every tool treats it as "no clip".
@@ -204,6 +207,10 @@ file:
   routine.
 - **Delete** (used when a sample is deleted): rewrite `samples.jsonl` without
   the sample using the replace routine, then remove the video clip.
+- **Delete session** (used when a session is deleted): rename the session
+  folder to a temporary name outside `sessions/`, then remove it. A crash
+  leaves the session whole or gone, never half deleted, and opening the data
+  folder removes a leftover temporary folder.
 
 A crash during an append can leave an incomplete last line. Readers ignore a
 last line that lacks its newline or is not valid JSON. Opening a data folder

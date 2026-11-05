@@ -228,6 +228,16 @@ function SessionList({ snapshot, notices, goTo }) {
     goTo(mode === "resume" ? "record" : "review");
   };
 
+  const remove = async (entry) => {
+    const text =
+      `Delete the session "${entry.name || "(unnamed)"}" by ${entry.author} ` +
+      `with its ${entry.sampleCount} samples and their video clips? ` +
+      "This cannot be undone.";
+    if (!window.confirm(text)) return;
+    await notices.attempt(() => api.delete(`/api/sessions/${entry.id}`));
+    await refresh();
+  };
+
   return html`<section class="panel">
     <h3>Sessions</h3>
     ${sessions && sessions.length === 0 &&
@@ -255,6 +265,15 @@ function SessionList({ snapshot, notices, goTo }) {
               >
                 Resume
               </button>`}
+              <button
+                disabled=${Boolean(session) && session.id === entry.id}
+                title=${session && session.id === entry.id
+                  ? "End or close the session first"
+                  : "Delete the session and its samples"}
+                onClick=${() => remove(entry)}
+              >
+                Delete
+              </button>
             </td>
           </tr>`,
         )}

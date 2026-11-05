@@ -84,6 +84,12 @@ class SessionService:
         add(
             "/sessions/current/end", self.end, methods=["POST"], status_code=204
         )
+        add(
+            "/sessions/{session_id}",
+            self.delete,
+            methods=["DELETE"],
+            status_code=204,
+        )
 
     def set_controller(self, controller: CaptureControllerPort) -> None:
         """Say who to stop when a session ends (the Capture Controller)."""
@@ -244,6 +250,22 @@ class SessionService:
                     self._controller.stop()
                 self._store.end_session(session.id)
             self._state.update(Owner.SESSION_SERVICE, session=None)
+
+    # --- Delete ----------------------------------------------------------
+
+    def delete(self, session_id: str) -> None:
+        """Delete a session that is not loaded, with all its samples."""
+        with self._lock:
+            loaded = self._state.snapshot.session
+            if loaded is not None and loaded.id == session_id:
+                raise ConflictError(
+                    "session_loaded",
+                    "the session is loaded; end or close it first",
+                )
+            try:
+                self._store.delete_session(session_id)
+            except SessionNotFoundError as error:
+                raise NotFoundError(str(error)) from error
 
     # --- Helpers ---------------------------------------------------------
 

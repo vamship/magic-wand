@@ -170,7 +170,14 @@ class SampleLibrary:
 
     def _on_change(self, change: Change) -> None:
         with self._lock:
-            if change.kind is ChangeKind.SESSION_WRITTEN:
+            if change.kind is ChangeKind.SESSION_DELETED:
+                self._sessions.pop(change.session_id, None)
+                for sample_id, summary in list(self._samples.items()):
+                    if summary.session_id == change.session_id:
+                        self._remove(sample_id)
+                for stale in self._cache_dir.glob(f"{change.session_id}-*.png"):
+                    stale.unlink(missing_ok=True)
+            elif change.kind is ChangeKind.SESSION_WRITTEN:
                 try:
                     session = self._store.get_session(change.session_id)
                 except SessionNotFoundError:
