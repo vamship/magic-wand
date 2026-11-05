@@ -635,7 +635,7 @@ end so direction is clear.
       requested size, and never changes the input.
 - [x] A one-position or empty gesture draws without error.
 - [x] Rendering a typical gesture at 640x480 takes a few milliseconds.
-- [x] Stored positions are drawn as they are, never mirrored.
+- [x] Stored positions are drawn as given; the library mirrors the shown image like the live view (`mirrorPreview`), never the stored data.
 
 **Implementation notes.** `cv2.polylines` and `cv2.circle` on a NumPy canvas;
 build the gradient by drawing short segments with an interpolated color. Add a

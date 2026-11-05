@@ -632,6 +632,10 @@ td.rejected {
   line-height: 0;
 }
 
+.scrub .box.mirrored {
+  transform: scaleX(-1);
+}
+
 .scrub video {
   display: block;
   max-width: 100%;

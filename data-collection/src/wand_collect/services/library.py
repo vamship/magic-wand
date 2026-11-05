@@ -94,7 +94,9 @@ class SampleLibrary:
         state: ApplicationState,
         store: DatasetStore,
         cache_dir: Path | None = None,
+        mirror: bool = False,
     ) -> None:
+        self._mirror = mirror
         self._state = state
         self._store = store
         self._cache_dir = Path(cache_dir) if cache_dir else default_cache_dir()
@@ -309,6 +311,7 @@ class SampleLibrary:
         data = camel_keys(record.model_dump(mode="json"))
         data["id"] = data.pop("sampleId")
         data["hasClip"] = self._store.has_clip(record)
+        data["mirrored"] = self._mirror
         return data
 
     def patch_sample(self, sample_id: str, body: PatchBody) -> dict[str, Any]:
@@ -353,14 +356,27 @@ class SampleLibrary:
             frame = self._clip_frame(record)
             if frame is None:
                 raise NotFoundError(f"sample {sample_id} has no clip")
-        image = render_path(_positions(record), size, frame)
+        if frame is not None and self._mirror:
+            frame = cv2.flip(frame, 1)
+        image = render_path(self._shown(record), size, frame)
         return Response(encode_png(image), media_type="image/png")
+
+    def _shown(self, record: SampleRecord) -> list[tuple[float, float]]:
+        """Positions as shown: mirrored like the live view when it is."""
+        positions = _positions(record)
+        if self._mirror:
+            return [(1.0 - h, v) for h, v in positions]
+        return positions
 
     def get_thumbnail(self, sample_id: str) -> Response:
         record = self._record(sample_id)
         digest = hashlib.sha1(
             json.dumps(
-                [record.positions.horizontal, record.positions.vertical]
+                [
+                    record.positions.horizontal,
+                    record.positions.vertical,
+                    self._mirror,
+                ]
             ).encode()
         ).hexdigest()[:16]
         cached = self._cache_dir / f"{sample_id}-{digest}.png"
@@ -372,7 +388,7 @@ class SampleLibrary:
                 THUMBNAIL_WIDTH,
                 max(1, round(THUMBNAIL_WIDTH * frame_height / frame_width)),
             )
-            png = encode_png(render_path(_positions(record), size))
+            png = encode_png(render_path(self._shown(record), size))
             try:
                 self._cache_dir.mkdir(parents=True, exist_ok=True)
                 cached.write_bytes(png)
