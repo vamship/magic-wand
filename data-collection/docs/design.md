@@ -1,6 +1,6 @@
 # Data Collection Application - Design
 
-> **Version** 13 | **Updated** 2026-11-05 | **Approved**
+> **Version** 14 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -522,6 +522,12 @@ resuming, and the numbering of samples.
   and records the session in the Application State as loaded for capture,
   which locks them. If the camera delivers a different mode than the one
   recorded, the app warns the user (R6.7) but continues.
+- **Edit details**: the name and the notes of any session, loaded or not, open
+  or ended (R2.9). They are descriptions, not settings, so they stay editable
+  when settings are locked. The new values are written to `session.json`
+  through the Dataset Store, which notifies the Sample Library so that the
+  samples show the new session name. If the session is the loaded one, the
+  name in the Application State changes too. An empty text clears the field.
 - **Delete**: only a session that is not loaded, in any role. The Dataset Store
   removes the whole session folder, and the Sample Library drops its samples
   from its index and counts.
@@ -774,6 +780,7 @@ the Web UI shows about the current state comes from `state`.
 | `POST /api/sessions` | Start a session |
 | `POST /api/sessions/{id}/load` | Load a session; `mode=review` or `resume` |
 | `POST /api/sessions/current/end` | End the session |
+| `PATCH /api/sessions/{id}` | Change the name and/or notes of any session |
 | `DELETE /api/sessions/{id}` | Delete a session that is not loaded |
 | `POST /api/labels` | Add a label |
 | `PATCH /api/labels/{id}` | Rename a label |
@@ -879,6 +886,7 @@ writes:
 | R2 Session management | 3.2, 4.3, 4.5, 6, `docs/data-handling.md` |
 | R2.5 Merge | 5.3, `docs/data-handling.md` |
 | R2.6, R2.7 Load, resume, end | 3.2, 4.3, 4.5, 5.2 |
+| R2.9 Name and notes | 4.5, 5.2 |
 | R3 Labels | 4.10 |
 | R4 Recording | 3.4, 4.6, 4.7 |
 | R5 Review | 3.4, 4.1, 4.9 |

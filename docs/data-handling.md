@@ -1,6 +1,6 @@
 # Data Handling
 
-> **Version** 4 | **Updated** 2026-11-05 | **Approved**
+> **Version** 5 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -144,7 +144,9 @@ keys are camel case, as required by `docs/standards.md`. Both `dataset.json` and
 `endedAt` is null while the session is open, including when the application
 was closed without ending it. `highestSampleNumber` is the highest sample
 number used so far, and is updated each time a sample is saved. `profile` is
-null if none was loaded. `name` and `notes` are optional free text.
+null if none was loaded. `name` and `notes` are optional free text; they
+can be edited at any time, also after the session has ended, and are the only
+fields a user can change in a session.
 
 ### 5.2 `samples.jsonl`
 

@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 12 | **Updated** 2026-11-05 | **Approved**
+> **Version** 13 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -155,6 +155,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A10 | Capture Controller | Completed |
 | DC-A11 | Command-line tools | Completed |
 | DC-A12 | Session deletion | Completed |
+| DC-A13 | Session name and notes | Completed |
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Completed |
 | DC-U3 | Calibrate page | Completed |
@@ -183,7 +184,7 @@ Every part of the approved designs is assigned to at least one task.
 | 4.2 Application Server | DC-A2, DC-A4 |
 | 4.3 Application State | DC-A1 |
 | 4.4 Calibration Service | DC-A5 |
-| 4.5 Session Service | DC-A9 |
+| 4.5 Session Service | DC-A9, DC-A13 |
 | 4.6 Capture Engine | DC-A3 |
 | 4.7 Capture Controller | DC-A10 |
 | 4.8 Clip Writer | DC-A7, DC-S1 |
@@ -1451,6 +1452,41 @@ for confirmation and names the session and its sample count.
 **Implementation notes.** `DatasetStore.delete_session`,
 `SessionService.delete`, and the sessions list in `static/app/setup.js`.
 
+### DC-A13 Session name and notes
+
+- **Type**: feat
+- **Status**: Completed
+- **Depends on**: DC-A9, DC-A8, DC-L9, DC-U2
+- **Requirements**: R2.9
+- **Design**: DC 4.5, 5.2
+
+**Description.** Change the name and notes of any session, also after it has
+ended. `PATCH /api/sessions/{id}` takes `name`, `notes` or both and returns the
+session's id, name and notes. A field that is left out stays as it is; an empty
+text clears it; the text is trimmed. It answers 400 when neither field is
+given and 404 for an unknown session. It works while the session is capturing,
+open for review or ended, because the name and notes are not settings. The
+Dataset Store writes `session.json`; the Sample Library updates the session
+name shown with its samples; for the loaded session the name in the
+Application State changes. `GET /api/sessions` also returns each session's
+notes. The Setup page shows the notes under each session's name and an Edit
+button that opens a small form with the name and the notes, with Save and
+Cancel.
+
+**Acceptance criteria.**
+
+- [x] The name and notes change for the loaded session, and the state shows
+      the new name.
+- [x] They change after the session has ended, and the session stays ended.
+- [x] A field that is left out is unchanged; an empty text clears the field.
+- [x] An empty request is rejected with 400 and an unknown session with 404.
+- [x] The session list returns the notes and shows the change after saving.
+- [x] The Setup page offers Edit for every session, also while one is
+      capturing and for ended sessions.
+
+**Implementation notes.** `SessionService.patch` uses
+`DatasetStore.update_session`; `DetailsEditor` in `static/app/setup.js`.
+
 ## 9. Web UI tasks
 
 The Web UI is built with Preact and htm from vendored files, as ES modules
@@ -1525,6 +1561,9 @@ opens an existing one.
       the details and moves on to Calibrate.
 - [x] Lists existing sessions (name, author, date, sample count, open or ended)
       with a Review button, and a Resume button for open sessions only.
+- [x] Each session has an Edit button that opens a form for its name and
+      notes (DC-A13), enabled for every session, and the notes are shown under
+      the name.
 - [x] A refused resume (ended session or unavailable camera) shows the reason
       from the error. A resume warning about a different camera mode is shown.
 - [x] While a session is loaded for capture, the form and the Resume of other

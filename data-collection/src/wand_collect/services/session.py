@@ -57,6 +57,13 @@ class StartBody(BaseModel):
     notes: str | None = None
 
 
+class DetailsBody(BaseModel):
+    """New name and/or notes; an empty text clears the field."""
+
+    name: str | None = None
+    notes: str | None = None
+
+
 class SessionService:
     def __init__(
         self,
@@ -83,6 +90,11 @@ class SessionService:
         add("/sessions/{session_id}/load", self.load, methods=["POST"])
         add(
             "/sessions/current/end", self.end, methods=["POST"], status_code=204
+        )
+        add(
+            "/sessions/{session_id}",
+            self.patch,
+            methods=["PATCH"],
         )
         add(
             "/sessions/{session_id}",
@@ -115,6 +127,7 @@ class SessionService:
                 {
                     "id": record.session_id,
                     "name": record.name,
+                    "notes": record.notes,
                     "author": record.author,
                     "startedAt": record.started_at.isoformat(),
                     "endedAt": (
@@ -252,6 +265,33 @@ class SessionService:
             self._state.update(Owner.SESSION_SERVICE, session=None)
 
     # --- Delete ----------------------------------------------------------
+
+    def patch(self, session_id: str, body: DetailsBody) -> dict[str, Any]:
+        """Change the name and/or notes of any session, open or ended.
+
+        These are descriptions, not settings, so they can change while the
+        session is loaded, and after it has ended.
+        """
+        changes = {
+            field: (getattr(body, field) or "").strip() or None
+            for field in ("name", "notes")
+            if field in body.model_fields_set
+        }
+        if not changes:
+            raise InvalidRequestError("give a name, notes or both")
+        with self._lock:
+            try:
+                record = self._store.update_session(session_id, **changes)
+            except SessionNotFoundError as error:
+                raise NotFoundError(str(error)) from error
+            loaded = self._state.snapshot.session
+            if loaded is not None and loaded.id == session_id:
+                self._record(record, loaded.role)
+        return {
+            "id": record.session_id,
+            "name": record.name,
+            "notes": record.notes,
+        }
 
     def delete(self, session_id: str) -> None:
         """Delete a session that is not loaded, with all its samples."""
