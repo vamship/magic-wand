@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 11 | **Updated** 2026-11-05 | **Approved**
+> **Version** 12 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -1697,9 +1697,11 @@ frames with the path drawn over them. Only for samples with a clip.
       highlighted. When the sample details say `mirrored`, the video and the
       path are flipped together to match the live view.
 - [x] Full screen can be entered and left.
-- [x] A Hide video / Show video button masks the video so only the path
-      movement is shown on a black background. The video keeps playing and
-      the highlighting and controls work as before.
+- [x] The video is hidden by default, so only the path movement is shown on a
+      black background. A Show video / Hide video button toggles it. The
+      video keeps playing underneath and the highlighting and controls work
+      as before. The choice carries over to the next sample scrubbed, and is
+      forgotten when the page is reloaded (it is not stored).
 - [x] The view is not offered for a sample without a clip.
 
 **Implementation notes.** `static/app/scrub.js`. Use a `<video>` element and a

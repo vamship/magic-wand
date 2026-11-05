@@ -12,6 +12,10 @@ const PATH_COLOR = "rgba(255, 255, 255, 0.35)";
 const DONE_COLOR = "#f0883e";
 const MARKER_COLOR = "#4cc38a";
 
+// Whether the user chose to show the video. The video starts hidden, and the
+// choice carries over to the next sample; reloading the page resets it.
+let videoShown = false;
+
 // How many positions are at or before video time `videoS`. Position times
 // are seconds from the gesture start, which is `gestureStartS` into the clip.
 export function countUpTo(timeS, gestureStartS, videoS) {
@@ -55,7 +59,7 @@ export function Scrub({ id, details, onClose }) {
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [full, setFull] = useState(false);
-  const [masked, setMasked] = useState(false);
+  const [masked, setMasked] = useState(!videoShown);
 
   const positions = details.positions;
   const start = details.video ? details.video.gestureStartS : 0;
@@ -121,6 +125,10 @@ export function Scrub({ id, details, onClose }) {
     else if (stage.current.requestFullscreen) stage.current.requestFullscreen();
   };
 
+  const toggleMask = () => {
+    videoShown = masked; // masked now, so the video is about to be shown
+    setMasked(!masked);
+  };
   const boxClass =
     "box" + (details.mirrored ? " mirrored" : "") + (masked ? " masked" : "");
 
@@ -155,7 +163,7 @@ export function Scrub({ id, details, onClose }) {
         onInput=${(event) => seek(Number(event.target.value))}
       />
       <span class="hint">${time.toFixed(2)} s</span>
-      <button aria-pressed=${masked} onClick=${() => setMasked(!masked)}>
+      <button aria-pressed=${masked} onClick=${toggleMask}>
         ${masked ? "Show video" : "Hide video"}
       </button>
       <button onClick=${toggleFull}>
