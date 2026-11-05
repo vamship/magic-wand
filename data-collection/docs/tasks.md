@@ -155,7 +155,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A10 | Capture Controller | Completed |
 | DC-A11 | Command-line tools | Completed |
 | DC-U1 | Web UI shell | Completed |
-| DC-U2 | Setup page | In progress |
+| DC-U2 | Setup page | Completed |
 | DC-U3 | Calibrate page | Completed |
 | DC-U4 | Record page | Not started |
 | DC-U5 | Review page | Not started |
@@ -1462,7 +1462,7 @@ the state so they stay simple. No Node tooling is used.
 ### DC-U2 Setup page
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-U1, DC-A5, DC-A9
 - **Requirements**: R1.1, R2.1, R2.6, R6.7
 - **Design**: DC 3.1, 4.1
@@ -1472,20 +1472,20 @@ opens an existing one.
 
 **Acceptance criteria.**
 
-- [ ] Lists the cameras from `GET /api/cameras`, shows the live preview of the
+- [x] Lists the cameras from `GET /api/cameras`, shows the live preview of the
       chosen one using the live video, and lets the user choose a camera.
-- [ ] Shows the camera in use from the state, including the requested and actual
+- [x] Shows the camera in use from the state, including the requested and actual
       mode, with a visible warning when they differ.
-- [ ] The new session form takes the author, an optional session name, the
+- [x] The new session form takes the author, an optional session name, the
       handedness (left or right) and optional notes. Starting is disabled until
       the author and handedness are set. Starting calls the session endpoint and
       the page moves on to Calibrate (or Record if the settings are already
       calibrated and the user chooses so).
-- [ ] Lists existing sessions (name, author, date, sample count, open or ended)
+- [x] Lists existing sessions (name, author, date, sample count, open or ended)
       with a Review button, and a Resume button for open sessions only.
-- [ ] A refused resume (ended session or unavailable camera) shows the reason
+- [x] A refused resume (ended session or unavailable camera) shows the reason
       from the error. A resume warning about a different camera mode is shown.
-- [ ] While a session is loaded for capture, the form and Resume are disabled
+- [x] While a session is loaded for capture, the form and Resume are disabled
       and a notice says to end the session first.
 
 **Implementation notes.** `static/app/setup.js`. Sessions come from

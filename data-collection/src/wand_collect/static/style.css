@@ -363,3 +363,60 @@ p.good {
 .profiles li span {
   flex: 1;
 }
+
+/* Setup page */
+
+.form {
+  display: grid;
+  gap: 8px;
+}
+
+.form label,
+.panel label {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+}
+
+.form fieldset {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+}
+
+.form .choice,
+.row .choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 12px;
+  color: var(--text);
+}
+
+select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: inherit;
+}
+
+.mode {
+  margin: 8px 0;
+}
+
+table.sessions {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table.sessions td {
+  padding: 6px 8px;
+  border-top: 1px solid var(--border);
+}
+
+table.sessions td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}

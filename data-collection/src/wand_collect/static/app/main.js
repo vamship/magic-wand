@@ -84,6 +84,7 @@ function App() {
             store,
             shortcuts,
             notices,
+            goTo: setPage,
           })
         : html`<p>Connecting to the application...</p>`}
     </main>
