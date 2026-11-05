@@ -529,3 +529,82 @@ dd.rejected {
   background: #000;
   border-radius: 4px;
 }
+
+/* Browse page */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px 16px;
+}
+
+.progress {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.progress li {
+  display: grid;
+  grid-template-columns: 10rem 1fr 6rem;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress .bar {
+  display: block;
+  height: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress .bar span {
+  display: block;
+  height: 100%;
+  background: var(--ok);
+}
+
+.progress .number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+table.samples {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table.samples td {
+  padding: 4px 8px;
+  border-top: 1px solid var(--border);
+}
+
+table.samples tr {
+  cursor: pointer;
+}
+
+table.samples tr.selected {
+  background: var(--panel);
+  outline: 1px solid var(--accent);
+}
+
+table.samples img {
+  width: 96px;
+  height: 72px;
+  background: #000;
+  border-radius: 4px;
+  display: block;
+}
+
+td.accepted {
+  color: var(--ok);
+}
+
+td.rejected {
+  color: var(--bad);
+}
