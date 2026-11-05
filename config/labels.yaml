@@ -6,8 +6,8 @@
 # spell list when it is decided.
 labels:
   - id: spell_one
-    name: Spell One
+    name: Theta
   - id: spell_two
-    name: Spell Two
+    name: Mu
   - id: spell_three
-    name: Spell Three
+    name: Omega
