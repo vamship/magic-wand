@@ -480,3 +480,52 @@ table.sessions td:last-child {
   place-items: center;
   color: var(--muted);
 }
+
+/* Review page */
+
+.sample-image {
+  width: 100%;
+  max-width: 640px;
+  background: #000;
+  border-radius: 6px;
+  display: block;
+}
+
+dd.accepted {
+  color: var(--ok);
+}
+
+dd.rejected {
+  color: var(--bad);
+}
+
+.strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  list-style: none;
+  padding: 8px 0;
+  margin: 8px 0 0;
+}
+
+.strip .thumb {
+  display: grid;
+  gap: 2px;
+  padding: 3px;
+  width: 104px;
+}
+
+.strip .thumb[aria-current="true"] {
+  border-color: var(--accent);
+}
+
+.strip .thumb.rejected img {
+  opacity: 0.35;
+}
+
+.strip .thumb img {
+  width: 96px;
+  height: 72px;
+  background: #000;
+  border-radius: 4px;
+}
