@@ -142,7 +142,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L8 | Dataset store: formats and safe writes | Completed |
 | DC-L9 | Dataset store: sessions and samples | Completed |
 | DC-L10 | Dataset store: check, export and load | Completed |
-| DC-L11 | Dataset store: merge | In progress |
+| DC-L11 | Dataset store: merge | Completed |
 | DC-A1 | Application State | Completed |
 | DC-A2 | Application Server | Completed |
 | DC-A3 | Capture Engine | Completed |
@@ -832,7 +832,7 @@ the export line by line so large datasets do not need to fit in memory.
 ### DC-L11 Dataset store: merge
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-L9
 - **Requirements**: R2.5
 - **Design**: DH 7.3
@@ -846,15 +846,15 @@ Sources are only read. An option skips video clips.
 
 **Acceptance criteria.**
 
-- [ ] New sessions are copied in whole; ids are unchanged.
-- [ ] Identical sessions are skipped; conflicting ones are reported and left
+- [x] New sessions are copied in whole; ids are unchanged.
+- [x] Identical sessions are skipped; conflicting ones are reported and left
       alone by default, and replaced when asked.
-- [ ] Source folders are byte-for-byte unchanged after a merge.
-- [ ] With the skip option, clips are not copied and the merged samples still
+- [x] Source folders are byte-for-byte unchanged after a merge.
+- [x] With the skip option, clips are not copied and the merged samples still
       load, with no clip.
-- [ ] The result lists, per session, whether it was copied, skipped, replaced or
+- [x] The result lists, per session, whether it was copied, skipped, replaced or
       in conflict.
-- [ ] No camera or running application is needed.
+- [x] No camera or running application is needed.
 
 **Implementation notes.** `dataset/merge.py`. Decide "identical" by comparing
 the session file and the samples file contents (a hash of each). Copy to a

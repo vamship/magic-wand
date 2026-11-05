@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -255,7 +256,10 @@ def open_data_folder(path: Path, create: bool = False) -> DataFolder:
     info = read_dataset_info(info_path)  # refuses unknown versions
     (path / SESSIONS_FOLDER).mkdir(exist_ok=True)
     for temp in sorted(path.rglob(f"*{TEMP_SUFFIX}")):
-        if temp.is_file():
+        if temp.is_dir():  # an interrupted merge leaves a folder
+            shutil.rmtree(temp, ignore_errors=True)
+            report.removed_temp_files.append(temp)
+        elif temp.is_file():
             temp.unlink()
             report.removed_temp_files.append(temp)
     for samples in sorted((path / SESSIONS_FOLDER).glob(f"*/{SAMPLES_FILE}")):
