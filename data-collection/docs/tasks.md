@@ -159,7 +159,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-U3 | Calibrate page | Completed |
 | DC-U4 | Record page | Completed |
 | DC-U5 | Review page | Completed |
-| DC-U6 | Browse page | Not started |
+| DC-U6 | Browse page | Completed |
 | DC-U7 | Scrubbing view (P2) | Not started |
 | DC-V1 | Whole-application test | Not started |
 | DC-V2 | Real-camera testing | Not started |
@@ -1597,7 +1597,7 @@ the samples revision changes. The selected sample is local page state.
 ### DC-U6 Browse page
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-U1, DC-A8
 - **Requirements**: R6.9, R7.1, R7.2, R7.3, R7.4
 - **Design**: DC 4.1
@@ -1606,19 +1606,19 @@ the samples revision changes. The selected sample is local page state.
 
 **Acceptance criteria.**
 
-- [ ] A table shows a thumbnail, label, status, session name, author and date
+- [x] A table shows a thumbnail, label, status, session name, author and date
       for each sample, in pages.
-- [ ] Filters for label, session (by name), author, date range and status
+- [x] Filters for label, session (by name), author, date range and status
       (accepted or rejected) apply together.
-- [ ] Per-label counts of accepted samples are shown, with the progress toward
+- [x] Per-label counts of accepted samples are shown, with the progress toward
       about 1,000 each.
-- [ ] Selecting a row opens a detail view with the path image (path or overlay)
+- [x] Selecting a row opens a detail view with the path image (path or overlay)
       and the metadata. The overlay and video views are hidden, with a short
       explanation, for a sample without a clip.
-- [ ] From the detail view the user can change the label, reject or restore, and
+- [x] From the detail view the user can change the label, reject or restore, and
       delete (with confirmation), in any session including ended ones.
-- [ ] The table repeats its query when the samples revision changes.
-- [ ] It works while no session is loaded.
+- [x] The table repeats its query when the samples revision changes.
+- [x] It works while no session is loaded.
 
 **Implementation notes.** `static/app/browse.js`. Thumbnails are
 `GET /api/samples/{id}/thumbnail`, loaded lazily as rows scroll into view.
