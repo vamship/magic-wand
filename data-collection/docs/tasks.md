@@ -135,7 +135,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L1 | Frame sources | Completed |
 | DC-L2 | Tracker | Completed |
 | DC-L3 | Segmenter | Completed |
-| DC-L4 | Vector builder | Not started |
+| DC-L4 | Vector builder | In progress |
 | DC-L5 | Path renderer | Completed |
 | DC-L6 | Color calibrator | Completed |
 | DC-L7 | Motion calibrator | Completed |
@@ -589,7 +589,7 @@ Behavior:
 ### DC-L4 Vector builder
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-F1
 - **Requirements**: R6.1, N1
 - **Design**: Lib 10; Arch 4.2
