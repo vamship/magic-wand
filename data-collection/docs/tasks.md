@@ -153,7 +153,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A8 | Sample Library | Completed |
 | DC-A9 | Session Service | Completed |
 | DC-A10 | Capture Controller | Completed |
-| DC-A11 | Command-line tools | Not started |
+| DC-A11 | Command-line tools | Completed |
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Not started |
 | DC-U3 | Calibrate page | Completed |
@@ -1380,7 +1380,7 @@ private lock.
 ### DC-A11 Command-line tools
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-L10, DC-L11, DC-A2
 - **Requirements**: R2.3, R2.5
 - **Design**: DC 5.3
@@ -1397,12 +1397,12 @@ or a running application: `export`, `merge` and `check`.
 
 **Acceptance criteria.**
 
-- [ ] Each command runs on a test data folder and prints a readable result.
-- [ ] `export` output matches the library's export; `merge` results match the
+- [x] Each command runs on a test data folder and prints a readable result.
+- [x] `export` output matches the library's export; `merge` results match the
       library's merge; `check` detects the problems of DH 7.1.
-- [ ] A missing folder or bad option gives a clear message and a non-zero exit.
-- [ ] `--help` documents every option.
-- [ ] None of the commands opens a camera or starts the server.
+- [x] A missing folder or bad option gives a clear message and a non-zero exit.
+- [x] `--help` documents every option.
+- [x] None of the commands opens a camera or starts the server.
 
 **Implementation notes.** Extend `cli.py` with `argparse` subcommands that call
 the library functions. Use `subprocess` or the `main` function directly in
