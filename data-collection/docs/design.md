@@ -1,6 +1,6 @@
 # Data Collection Application - Design
 
-> **Version** 12 | **Updated** 2026-11-05 | **Approved**
+> **Version** 13 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -692,8 +692,11 @@ counts.
   clip is removed. Edits are allowed in any session, open or ended.
 - Images are made on demand by the shared path renderer from the stored
   positions. Thumbnails are cached in the operating system's cache location,
-  keyed by sample id and a hash of the positions. The overlay view decodes one
-  frame from the sample's clip.
+  keyed by sample id and a hash of the positions and the mirror setting. The
+  overlay view decodes one frame from the sample's clip. When `mirrorPreview`
+  is on, the images are mirrored left to right to match the live view, and
+  the sample details carry `mirrored` so the scrubbing view flips the video
+  and path together. The stored data is never mirrored.
 - A missing clip never blocks listing, filtering or editing. The sample's
   details state whether it has a clip. Without one, the Web UI hides the
   overlay and video views and says why. A clip removed from disk is treated the

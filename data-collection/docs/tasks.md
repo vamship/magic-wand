@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 8 | **Updated** 2026-11-05 | **Approved**
+> **Version** 9 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -623,8 +623,9 @@ stored; training and inference both call this function.
 
 **Description.** Draw a gesture's path as an image, in two modes: the path
 alone on a black background, or the path over a supplied camera frame. The path
-is a polyline with a color gradient from start to end, with a marker at each
-end so direction is clear.
+is a polyline with a color gradient from green at the start to red at the end,
+with a small marker at each end (a circle at the start, a square at the end) so
+direction is clear.
 
 **Acceptance criteria.**
 
@@ -635,7 +636,8 @@ end so direction is clear.
       requested size, and never changes the input.
 - [x] A one-position or empty gesture draws without error.
 - [x] Rendering a typical gesture at 640x480 takes a few milliseconds.
-- [x] Stored positions are drawn as given; the library mirrors the shown image like the live view (`mirrorPreview`), never the stored data.
+- [x] Positions are drawn as given. The caller mirrors them for display (see
+      DC-A8); the renderer never changes what is stored.
 
 **Implementation notes.** `cv2.polylines` and `cv2.circle` on a NumPy canvas;
 build the gradient by drawing short segments with an interpolated color. Add a
@@ -923,6 +925,8 @@ files, startup, the event stream, the state endpoint, error handling, and the
 - [x] `uv run wand-collect serve` starts the server on the host and port from
       `data-collection.yaml` (default `127.0.0.1:8000`) and serves the Web UI
       files at `/`.
+- [x] Static files are sent with `Cache-Control: no-cache`, so a browser
+      rechecks them and never shows a stale page after an update.
 - [x] If the configured host is not a loopback address, startup prints a clear
       warning.
 - [x] Startup loads the configuration, opens (creating if needed) the data
@@ -1209,7 +1213,10 @@ Behavior:
   `status`. `DELETE /api/samples/{id}`: hard delete (record and clip).
 - `GET /api/samples/{id}/image?mode=path|overlay` returns a PNG made by the
   path renderer from the stored positions. Overlay decodes one frame from the
-  clip at the gesture start. `GET /api/samples/{id}/thumbnail` returns a small
+  clip at the gesture start. When `mirrorPreview` is on (the default), the
+  shown images (path, overlay, thumbnail) are mirrored left to right to match
+  the live view; the stored data is never mirrored. The sample details carry
+  a `mirrored` flag for the scrubbing view. `GET /api/samples/{id}/thumbnail` returns a small
   PNG, cached.
 
 **Acceptance criteria.**
@@ -1231,6 +1238,9 @@ Behavior:
 - [x] Without a `session` filter, queries cover the whole dataset; the current
       session in the state can be used as the default for review.
 - [x] The label-use count is available to the Label Service.
+- [x] With `mirrorPreview` on, path images, overlays and thumbnails are
+      mirrored (thumbnails are cached per mirror setting), the sample details
+      say `mirrored: true`, and the stored positions are unchanged.
 
 **Implementation notes.** `services/library.py`. Use `platformdirs` for the
 cache location. Keep the index in a dictionary plus per-session lists in
@@ -1514,8 +1524,10 @@ opens an existing one.
       with a Review button, and a Resume button for open sessions only.
 - [x] A refused resume (ended session or unavailable camera) shows the reason
       from the error. A resume warning about a different camera mode is shown.
-- [x] While a session is loaded for capture, the form and Resume are disabled
-      and a notice says to end the session first.
+- [x] While a session is loaded for capture, the form and the Resume of other
+      sessions are disabled and a notice says to end the session first. The
+      Resume of the loaded session stays enabled: it resumes a paused capture
+      (fresh countdown) and opens Record.
 
 **Implementation notes.** `static/app/setup.js`. Sessions come from
 `GET /api/sessions` (a query), fetched when the page opens and after any
@@ -1557,7 +1569,9 @@ opens an existing one.
       disabled with a notice while a session is loaded for capture.
 - [x] A Start session button creates the session from the details given on
       Setup and opens Record. It is disabled, with a pointer back to Setup,
-      until those details exist, and while a session is loaded for capture.
+      until those details exist. While a session is loaded for capture the
+      panel instead names the session and offers End session, so the user is
+      never left without a way to calibrate.
 
 **Implementation notes.** `static/app/calibrate.js`. The history graph is
 drawn on a canvas from the `motion` readings in a ring of the last few seconds.
@@ -1673,7 +1687,8 @@ frames with the path drawn over them. Only for samples with a clip.
 - [x] The view plays the clip and lets the user step frame by frame and scrub
       with a slider.
 - [x] The path is drawn over the video, with the part up to the current frame
-      highlighted.
+      highlighted. When the sample details say `mirrored`, the video and the
+      path are flipped together to match the live view.
 - [x] Full screen can be entered and left.
 - [x] The view is not offered for a sample without a clip.
 

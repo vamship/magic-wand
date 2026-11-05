@@ -1,6 +1,6 @@
 # Shared Library - Design
 
-> **Version** 1 | **Updated** 2026-11-01 | **Approved**
+> **Version** 2 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -214,8 +214,9 @@ fixed rate is left to classification.
 
 ## 11. Path renderer
 
-Draws a gesture's path with a color gradient from start to end and markers at
-both ends. Two modes: the path alone on a black background, or the path over a
+Draws a gesture's path with a color gradient from green at the start to red at
+the end and small markers at both ends. It draws the positions it is given;
+mirroring for display is the caller's choice. Two modes: the path alone on a black background, or the path over a
 supplied camera frame. Rendering is a small drawing operation, fast enough to
 generate on demand.
 
