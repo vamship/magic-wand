@@ -1,6 +1,6 @@
 # Data Collection Application - Requirements
 
-> **Version** 8 | **Updated** 2026-11-01 | **Approved**
+> **Version** 9 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -84,6 +84,9 @@ this document:
   Closing the application leaves the session open, so it can be resumed
   later. An ended session accepts no new samples, but its samples can still be
   reviewed and edited (R5, R7).
+- R2.8 **Deleting a session.** The user can delete a session that is not
+  loaded, with all its samples and clips, after a confirmation. Deleting is
+  permanent.
 
 ### R3. Gesture label management (P1)
 - R3.1 The label set is a project configuration file shared by all teammates,

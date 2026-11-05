@@ -1,6 +1,6 @@
 # Data Collection Application - Design
 
-> **Version** 10 | **Updated** 2026-11-05 | **Approved**
+> **Version** 11 | **Updated** 2026-11-05 | **Approved**
 
 ## 1. Overview
 
@@ -518,6 +518,9 @@ resuming, and the numbering of samples.
   and records the session in the Application State as loaded for capture,
   which locks them. If the camera delivers a different mode than the one
   recorded, the app warns the user (R6.7) but continues.
+- **Delete**: only a session that is not loaded, in any role. The Dataset Store
+  removes the whole session folder, and the Sample Library drops its samples
+  from its index and counts.
 - **Sample numbers**: the next sample's number is one more than the larger of
   the session's `highestSampleNumber` and the highest number in the samples
   file. When the sample is saved, `highestSampleNumber` is updated.
@@ -764,6 +767,7 @@ the Web UI shows about the current state comes from `state`.
 | `POST /api/sessions` | Start a session |
 | `POST /api/sessions/{id}/load` | Load a session; `mode=review` or `resume` |
 | `POST /api/sessions/current/end` | End the session |
+| `DELETE /api/sessions/{id}` | Delete a session that is not loaded |
 | `POST /api/labels` | Add a label |
 | `PATCH /api/labels/{id}` | Rename a label |
 | `DELETE /api/labels/{id}` | Remove a label |
