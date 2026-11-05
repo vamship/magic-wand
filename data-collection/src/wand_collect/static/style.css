@@ -417,8 +417,10 @@ table.sessions td {
 }
 
 table.sessions td:last-child {
-  text-align: right;
-  white-space: nowrap;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
 /* Record page */

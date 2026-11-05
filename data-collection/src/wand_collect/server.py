@@ -37,6 +37,20 @@ HEARTBEAT_S = 15.0
 MOTION_QUEUE_LIMIT = 30
 
 
+class RevalidatedStaticFiles(StaticFiles):
+    """Static files the browser must check with the server before reusing.
+
+    Without this a browser may keep an old copy of a script for a long time
+    after the application is updated. The check is cheap: the files carry
+    validators, so an unchanged file is answered with 304.
+    """
+
+    def file_response(self, *args, **kwargs):
+        response = super().file_response(*args, **kwargs)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+
+
 # --- Errors -----------------------------------------------------------------
 
 
@@ -242,7 +256,11 @@ def create_app(
     app.include_router(api)
 
     if static_dir is not None and Path(static_dir).is_dir():
-        app.mount("/", StaticFiles(directory=static_dir, html=True), name="ui")
+        app.mount(
+            "/",
+            RevalidatedStaticFiles(directory=static_dir, html=True),
+            name="ui",
+        )
     return app
 
 

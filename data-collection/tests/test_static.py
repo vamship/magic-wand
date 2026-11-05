@@ -106,3 +106,12 @@ def test_config_endpoint_gives_the_page_its_shortcuts(client):
     }
     assert body["countdownS"] == 3.0
     assert body["clipPadding"] == {"preS": 2.0, "postS": 2.0}
+
+
+def test_static_files_must_be_revalidated_so_updates_show_at_once(client):
+    for path in ["/", "/app/main.js", "/app/setup.js", "/style.css"]:
+        response = client.get(path)
+        assert response.headers["cache-control"] == "no-cache", path
+    etag = client.get("/app/main.js").headers["etag"]
+    again = client.get("/app/main.js", headers={"If-None-Match": etag})
+    assert again.status_code == 304  # an unchanged file costs no download
