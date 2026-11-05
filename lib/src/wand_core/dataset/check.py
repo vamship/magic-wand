@@ -100,7 +100,9 @@ def check_folder(
             Level.ERROR, "unsupported_format", folder / DATASET_FILE, str(error)
         )
     except DatasetError as error:
-        report.add(Level.ERROR, "damaged_file", folder / DATASET_FILE, str(error))
+        report.add(
+            Level.ERROR, "damaged_file", folder / DATASET_FILE, str(error)
+        )
 
     for temp in sorted(folder.rglob(f"*{TEMP_SUFFIX}")):
         report.add(
@@ -112,7 +114,9 @@ def check_folder(
 
     sessions_dir = folder / SESSIONS_FOLDER
     if sessions_dir.is_dir():
-        for session_dir in sorted(p for p in sessions_dir.iterdir() if p.is_dir()):
+        for session_dir in sorted(
+            p for p in sessions_dir.iterdir() if p.is_dir()
+        ):
             if session_dir.name.endswith(TEMP_SUFFIX):
                 continue  # reported above as a temporary file
             _check_session(session_dir, labels, report)
@@ -164,9 +168,10 @@ def _check_session(
                 f"sample {sample.sample_id} has the unknown label "
                 f"{sample.label!r}",
             )
-        if sample.video is not None and not (
-            session_dir / sample.video.file
-        ).is_file():
+        if (
+            sample.video is not None
+            and not (session_dir / sample.video.file).is_file()
+        ):
             report.add(
                 Level.INFO,
                 "missing_clip",

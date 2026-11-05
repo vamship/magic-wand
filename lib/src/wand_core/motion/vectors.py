@@ -41,7 +41,5 @@ def build_vectors(
     dy = np.diff(np.asarray(vertical, dtype=float))
     dt = np.diff(np.asarray(time_s, dtype=float))
     distance = np.hypot(dx, dy)
-    speed = np.divide(
-        distance, dt, out=np.zeros_like(distance), where=dt > 0
-    )
+    speed = np.divide(distance, dt, out=np.zeros_like(distance), where=dt > 0)
     return np.column_stack([dx, dy, dt, speed])

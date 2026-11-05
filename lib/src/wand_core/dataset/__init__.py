@@ -20,7 +20,12 @@ from wand_core.dataset.fileio import (
     write_record,
     write_samples,
 )
-from wand_core.dataset.merge import Action, MergeResult, SessionResult, merge_folders
+from wand_core.dataset.merge import (
+    Action,
+    MergeResult,
+    SessionResult,
+    merge_folders,
+)
 from wand_core.dataset.models import (
     FORMAT_VERSION,
     CameraRecord,
