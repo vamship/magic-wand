@@ -55,6 +55,7 @@ export function Scrub({ id, details, onClose }) {
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [full, setFull] = useState(false);
+  const [masked, setMasked] = useState(false);
 
   const positions = details.positions;
   const start = details.video ? details.video.gestureStartS : 0;
@@ -120,9 +121,12 @@ export function Scrub({ id, details, onClose }) {
     else if (stage.current.requestFullscreen) stage.current.requestFullscreen();
   };
 
+  const boxClass =
+    "box" + (details.mirrored ? " mirrored" : "") + (masked ? " masked" : "");
+
   return html`<section class="scrub" ref=${stage}>
     <div class="frame">
-      <div class=${details.mirrored ? "box mirrored" : "box"}>
+      <div class=${boxClass}>
         <video
           ref=${video}
           src=${`/api/samples/${encodeURIComponent(id)}/video`}
@@ -151,6 +155,9 @@ export function Scrub({ id, details, onClose }) {
         onInput=${(event) => seek(Number(event.target.value))}
       />
       <span class="hint">${time.toFixed(2)} s</span>
+      <button aria-pressed=${masked} onClick=${() => setMasked(!masked)}>
+        ${masked ? "Show video" : "Hide video"}
+      </button>
       <button onClick=${toggleFull}>
         ${full ? "Leave full screen" : "Full screen"}
       </button>

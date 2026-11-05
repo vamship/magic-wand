@@ -485,6 +485,15 @@ table.sessions td:last-child {
 
 /* Review page */
 
+@media (min-width: 760px) {
+  .sticky-detail {
+    position: sticky;
+    top: 8px;
+    max-height: calc(100vh - 16px);
+    overflow-y: auto;
+  }
+}
+
 .sample-image {
   width: 100%;
   max-width: 640px;
@@ -634,6 +643,10 @@ td.rejected {
 
 .scrub .box.mirrored {
   transform: scaleX(-1);
+}
+
+.scrub .box.masked video {
+  opacity: 0; /* still plays and keeps its size; only the path shows */
 }
 
 .scrub video {
