@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "sessionId": "68739309-5130-4571-a74b-1e612789c157",
+  "name": "alohomora 2",
+  "author": "Mrunal",
+  "handedness": "right",
+  "startedAt": "2026-11-22T14:32:39.863997-05:00",
+  "endedAt": "2026-11-22T14:39:05.333433-05:00",
+  "notes": "Early test session; the camera ran at about 18 to 20 fps.",
+  "camera": {
+    "device": "index:0",
+    "index": 0,
+    "requested": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.0
+    },
+    "actual": {
+      "width": 640,
+      "height": 480,
+      "fps": 20.029603751250168
+    }
+  },
+  "visionSettings": {
+    "hueCenter": 74,
+    "hueHalfWidth": 8,
+    "satMin": 214,
+    "satMax": 255,
+    "valMin": 118,
+    "valMax": 199,
+    "blurSize": 5,
+    "cleanupSize": 3,
+    "minArea": 0.0003,
+    "maxArea": 0.05,
+    "minRoundness": 0.6
+  },
+  "motionSettings": {
+    "startSpeed": 0.25,
+    "endSpeed": 0.15,
+    "startFrames": 2,
+    "endHoldS": 0.3,
+    "minDurationS": 0.3,
+    "maxDurationS": 4.0,
+    "minExtent": 0.1,
+    "lostTimeoutS": 0.25,
+    "smoothingFrames": 3
+  },
+  "clipPadding": {
+    "preS": 2.0,
+    "postS": 2.0
+  },
+  "highestSampleNumber": 45,
+  "profile": "Green Ball"
+}
