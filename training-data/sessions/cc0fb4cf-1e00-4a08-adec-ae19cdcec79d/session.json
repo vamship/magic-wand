@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "sessionId": "cc0fb4cf-1e00-4a08-adec-ae19cdcec79d",
+  "name": "alohomora 4",
+  "author": "Mrunal",
+  "handedness": "right",
+  "startedAt": "2026-11-22T15:01:36.662399-05:00",
+  "endedAt": "2026-11-22T15:04:27.209764-05:00",
+  "notes": null,
+  "camera": {
+    "device": "index:0",
+    "index": 0,
+    "requested": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.0
+    },
+    "actual": {
+      "width": 640,
+      "height": 480,
+      "fps": 31.15517145518679
+    }
+  },
+  "visionSettings": {
+    "hueCenter": 75,
+    "hueHalfWidth": 8,
+    "satMin": 103,
+    "satMax": 255,
+    "valMin": 57,
+    "valMax": 138,
+    "blurSize": 5,
+    "cleanupSize": 3,
+    "minArea": 0.0003,
+    "maxArea": 0.05,
+    "minRoundness": 0.6
+  },
+  "motionSettings": {
+    "startSpeed": 0.416,
+    "endSpeed": 0.077,
+    "startFrames": 2,
+    "endHoldS": 0.3,
+    "minDurationS": 0.3,
+    "maxDurationS": 4.0,
+    "minExtent": 0.1,
+    "lostTimeoutS": 0.25,
+    "smoothingFrames": 3
+  },
+  "clipPadding": {
+    "preS": 2.0,
+    "postS": 2.0
+  },
+  "highestSampleNumber": 20,
+  "profile": "Green Ball"
+}

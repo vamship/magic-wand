@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "sessionId": "fdeceef0-e9e2-4681-96b9-74c0f0fdb18c",
+  "name": "revelio 2",
+  "author": "Mrunal",
+  "handedness": "right",
+  "startedAt": "2026-11-22T17:50:47.383445-05:00",
+  "endedAt": "2026-11-22T18:14:25.198299-05:00",
+  "notes": null,
+  "camera": {
+    "device": "index:0",
+    "index": 0,
+    "requested": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.0
+    },
+    "actual": {
+      "width": 640,
+      "height": 480,
+      "fps": 20.676621776829368
+    }
+  },
+  "visionSettings": {
+    "hueCenter": 72,
+    "hueHalfWidth": 8,
+    "satMin": 142,
+    "satMax": 255,
+    "valMin": 10,
+    "valMax": 147,
+    "blurSize": 5,
+    "cleanupSize": 3,
+    "minArea": 0.0003,
+    "maxArea": 0.05,
+    "minRoundness": 0.6
+  },
+  "motionSettings": {
+    "startSpeed": 0.4,
+    "endSpeed": 0.077,
+    "startFrames": 2,
+    "endHoldS": 0.3,
+    "minDurationS": 0.3,
+    "maxDurationS": 4.0,
+    "minExtent": 0.1,
+    "lostTimeoutS": 0.25,
+    "smoothingFrames": 3
+  },
+  "clipPadding": {
+    "preS": 2.0,
+    "postS": 2.0
+  },
+  "highestSampleNumber": 211,
+  "profile": "Green Ball"
+}

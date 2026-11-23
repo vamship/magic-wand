@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "sessionId": "8452c3eb-d6af-4597-b492-c57920709337",
+  "name": "reparo 4",
+  "author": "Mrunal",
+  "handedness": "right",
+  "startedAt": "2026-11-22T17:02:01.268755-05:00",
+  "endedAt": "2026-11-22T17:04:00.674064-05:00",
+  "notes": null,
+  "camera": {
+    "device": "index:0",
+    "index": 0,
+    "requested": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.0
+    },
+    "actual": {
+      "width": 640,
+      "height": 480,
+      "fps": 21.231557727812287
+    }
+  },
+  "visionSettings": {
+    "hueCenter": 72,
+    "hueHalfWidth": 8,
+    "satMin": 142,
+    "satMax": 255,
+    "valMin": 10,
+    "valMax": 147,
+    "blurSize": 5,
+    "cleanupSize": 3,
+    "minArea": 0.0003,
+    "maxArea": 0.05,
+    "minRoundness": 0.6
+  },
+  "motionSettings": {
+    "startSpeed": 0.4,
+    "endSpeed": 0.077,
+    "startFrames": 2,
+    "endHoldS": 0.3,
+    "minDurationS": 0.3,
+    "maxDurationS": 4.0,
+    "minExtent": 0.1,
+    "lostTimeoutS": 0.25,
+    "smoothingFrames": 3
+  },
+  "clipPadding": {
+    "preS": 2.0,
+    "postS": 2.0
+  },
+  "highestSampleNumber": 17,
+  "profile": "Green Ball"
+}
