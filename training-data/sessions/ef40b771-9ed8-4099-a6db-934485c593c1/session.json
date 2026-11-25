@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "sessionId": "ef40b771-9ed8-4099-a6db-934485c593c1",
+  "name": "herbivicus 2",
+  "author": "Mrunal",
+  "handedness": "right",
+  "startedAt": "2026-11-24T19:38:34.169023-05:00",
+  "endedAt": "2026-11-24T19:40:19.777061-05:00",
+  "notes": null,
+  "camera": {
+    "device": "index:1",
+    "index": 1,
+    "requested": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.0
+    },
+    "actual": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.155633221549284
+    }
+  },
+  "visionSettings": {
+    "hueCenter": 72,
+    "hueHalfWidth": 8,
+    "satMin": 142,
+    "satMax": 255,
+    "valMin": 10,
+    "valMax": 147,
+    "blurSize": 5,
+    "cleanupSize": 3,
+    "minArea": 0.0003,
+    "maxArea": 0.05,
+    "minRoundness": 0.6
+  },
+  "motionSettings": {
+    "startSpeed": 0.4,
+    "endSpeed": 0.077,
+    "startFrames": 2,
+    "endHoldS": 0.3,
+    "minDurationS": 0.3,
+    "maxDurationS": 4.0,
+    "minExtent": 0.1,
+    "lostTimeoutS": 0.25,
+    "smoothingFrames": 3
+  },
+  "clipPadding": {
+    "preS": 2.0,
+    "postS": 2.0
+  },
+  "highestSampleNumber": 19,
+  "profile": "Green Ball"
+}
