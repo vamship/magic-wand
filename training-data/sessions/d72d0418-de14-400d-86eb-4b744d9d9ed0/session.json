@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "sessionId": "d72d0418-de14-400d-86eb-4b744d9d9ed0",
+  "name": "Aparecum",
+  "author": "vamship",
+  "handedness": "right",
+  "startedAt": "2026-11-24T15:07:47.293497-05:00",
+  "endedAt": "2026-11-25T16:00:40.984870-05:00",
+  "notes": "Capturing Aparecum spells",
+  "camera": {
+    "device": "index:1",
+    "index": 1,
+    "requested": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.0
+    },
+    "actual": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.190160241909727
+    }
+  },
+  "visionSettings": {
+    "hueCenter": 27,
+    "hueHalfWidth": 8,
+    "satMin": 86,
+    "satMax": 190,
+    "valMin": 181,
+    "valMax": 255,
+    "blurSize": 5,
+    "cleanupSize": 3,
+    "minArea": 0.0003,
+    "maxArea": 0.05,
+    "minRoundness": 0.6
+  },
+  "motionSettings": {
+    "startSpeed": 0.499,
+    "endSpeed": 0.125,
+    "startFrames": 2,
+    "endHoldS": 0.3,
+    "minDurationS": 0.3,
+    "maxDurationS": 4.0,
+    "minExtent": 0.1,
+    "lostTimeoutS": 0.25,
+    "smoothingFrames": 3
+  },
+  "clipPadding": {
+    "preS": 2.0,
+    "postS": 2.0
+  },
+  "highestSampleNumber": 255,
+  "profile": "mac-camera-yellow"
+}
