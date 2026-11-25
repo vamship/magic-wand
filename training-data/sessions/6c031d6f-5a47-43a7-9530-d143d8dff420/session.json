@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "sessionId": "6c031d6f-5a47-43a7-9530-d143d8dff420",
+  "name": "herbivicus 4",
+  "author": "Mrunal",
+  "handedness": "right",
+  "startedAt": "2026-11-24T21:37:19.733921-05:00",
+  "endedAt": "2026-11-24T21:38:31.500516-05:00",
+  "notes": "Recorded at about 16 fps because the camera ran slowly. Also holds 2 revelio samples.",
+  "camera": {
+    "device": "index:1",
+    "index": 1,
+    "requested": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.0
+    },
+    "actual": {
+      "width": 640,
+      "height": 480,
+      "fps": 15.83894954431198
+    }
+  },
+  "visionSettings": {
+    "hueCenter": 71,
+    "hueHalfWidth": 8,
+    "satMin": 215,
+    "satMax": 255,
+    "valMin": 122,
+    "valMax": 203,
+    "blurSize": 5,
+    "cleanupSize": 3,
+    "minArea": 0.0003,
+    "maxArea": 0.05,
+    "minRoundness": 0.6
+  },
+  "motionSettings": {
+    "startSpeed": 0.28,
+    "endSpeed": 0.087,
+    "startFrames": 2,
+    "endHoldS": 0.3,
+    "minDurationS": 0.3,
+    "maxDurationS": 4.0,
+    "minExtent": 0.1,
+    "lostTimeoutS": 0.25,
+    "smoothingFrames": 3
+  },
+  "clipPadding": {
+    "preS": 2.0,
+    "postS": 2.0
+  },
+  "highestSampleNumber": 8,
+  "profile": "Green Ball"
+}

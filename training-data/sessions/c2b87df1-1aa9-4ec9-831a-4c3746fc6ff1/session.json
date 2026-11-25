@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "sessionId": "c2b87df1-1aa9-4ec9-831a-4c3746fc6ff1",
+  "name": "aparecum 1",
+  "author": "Mrunal",
+  "handedness": "right",
+  "startedAt": "2026-11-24T17:40:46.480122-05:00",
+  "endedAt": "2026-11-24T18:08:53.373967-05:00",
+  "notes": null,
+  "camera": {
+    "device": "index:1",
+    "index": 1,
+    "requested": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.0
+    },
+    "actual": {
+      "width": 640,
+      "height": 480,
+      "fps": 31.249023454214996
+    }
+  },
+  "visionSettings": {
+    "hueCenter": 72,
+    "hueHalfWidth": 8,
+    "satMin": 142,
+    "satMax": 255,
+    "valMin": 10,
+    "valMax": 147,
+    "blurSize": 5,
+    "cleanupSize": 3,
+    "minArea": 0.0003,
+    "maxArea": 0.05,
+    "minRoundness": 0.6
+  },
+  "motionSettings": {
+    "startSpeed": 0.4,
+    "endSpeed": 0.077,
+    "startFrames": 2,
+    "endHoldS": 0.3,
+    "minDurationS": 0.3,
+    "maxDurationS": 4.0,
+    "minExtent": 0.1,
+    "lostTimeoutS": 0.25,
+    "smoothingFrames": 3
+  },
+  "clipPadding": {
+    "preS": 2.0,
+    "postS": 2.0
+  },
+  "highestSampleNumber": 261,
+  "profile": "Green Ball"
+}
