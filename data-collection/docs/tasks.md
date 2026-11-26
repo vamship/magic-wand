@@ -165,7 +165,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A17 | Camera list cache | Completed |
 | DC-A18 | Dataset settings and command line | Not started |
 | DC-A19 | Dataset service | Not started |
-| DC-A20 | End any open session | Not started |
+| DC-A20 | End any open session | In progress |
 | DC-U15 | Wording, hover and resume-flow polish | Completed |
 | DC-U16 | Accepted and rejected markers | Completed |
 | DC-U17 | Browse grid layout | Completed |
@@ -1912,7 +1912,7 @@ as the Session Service of `DC` 4.5 describes.
 ### DC-A20 End any open session
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-A9
 - **Requirements**: R2.7
 - **Design**: DC 3.2, 4.5, 5.2
