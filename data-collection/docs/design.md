@@ -388,11 +388,11 @@ field.
 **What is not in it.** Anything streamed to the browser, and anything that is a
 query:
 
-- the live video and the detection mask view;
-- the `motion` readings (speed, moving or idle), which arrive at frame rate;
-- the results of queries: pages of samples, the list of sessions, profiles and
+- The live video and the detection mask view;
+- The `motion` readings (speed, moving or idle), which arrive at frame rate;
+- The results of queries: pages of samples, the list of sessions, profiles and
   cameras, images, thumbnails and clips;
-- the frozen calibration frame.
+- The frozen calibration frame.
 
 **How updates reach the screen.** Commands go in through the Application
 Server to a service. The service changes the state. The new snapshot goes back
@@ -598,17 +598,17 @@ positions, detects gestures, and keeps recent frames for video clips.
 **How it works.**
 
 - It runs one thread with a loop. For every frame it:
-  1. reads the settings from the Application State and applies them if they
+  1. Reads the settings from the Application State and applies them if they
      changed;
-  2. grabs the frame from the shared frame source, with a timestamp taken at
+  2. Grabs the frame from the shared frame source, with a timestamp taken at
      grab time;
-  3. runs the **Tracker** on it, producing a tip detection (position and
+  3. Runs the **Tracker** on it, producing a tip detection (position and
      timestamp, or "not found");
-  4. if armed, feeds the detection to the **Segmenter**, which reports whether
+  4. If armed, feeds the detection to the **Segmenter**, which reports whether
      the tip is moving, and when a gesture ends, either the finished gesture or
      a discard reason;
-  5. adds the frame to a ring buffer of recent frames;
-  6. draws the annotations (tip marker and motion state, or the detection
+  5. Adds the frame to a ring buffer of recent frames;
+  6. Draws the annotations (tip marker and motion state, or the detection
      mask when the user asks for it) and publishes the annotated frame as the
      latest frame. By default the published picture is mirrored left to right,
      so the user sees it as in a mirror (`mirrorPreview`). Only the picture
@@ -673,20 +673,20 @@ handles pause and resume.
   and again when it is saved, and the last discard when a gesture is discarded.
 - **Building a sample.** When a finished gesture arrives, the Capture
   Controller:
-  1. takes the active label as it is at that moment;
-  2. works out the clip window, from the configured padding before the gesture
+  1. Takes the active label as it is at that moment;
+  2. Works out the clip window, from the configured padding before the gesture
      starts to the same padding after it ends;
-  3. enters COUNTDOWN straight away, and starts a **save job** that runs in
+  3. Enters COUNTDOWN straight away, and starts a **save job** that runs in
      parallel;
-  4. in the save job, waits until the Capture Engine's frames reach the end of
+  4. In the save job, waits until the Capture Engine's frames reach the end of
      the window, then reads the frames in the window from the ring buffer and
      gives them to the Clip Writer;
-  5. gets the next sample number from the Session Service;
-  6. builds the sample record: ids, capture time, label, status `accepted`,
+  5. Gets the next sample number from the Session Service;
+  6. Builds the sample record: ids, capture time, label, status `accepted`,
      the session's handedness, the frame size, and the gesture's positions as
      columns of time (seconds from the first position), horizontal and
      vertical fractions of the frame;
-  7. when the Clip Writer finishes, adds the clip reference (or none, if
+  7. When the Clip Writer finishes, adds the clip reference (or none, if
      encoding failed), writes the record through the Dataset Store, and
      updates the latest sample in the state to saved.
 - The save job reports completion to the main loop as a message. The loop
@@ -900,9 +900,9 @@ writes:
 
 - `session.json` when a session starts, with `highestSampleNumber` updated each
   time a sample is saved and `endedAt` set when the user ends the session;
-- one line in the session's sample file per captured gesture, and its clip,
+- One line in the session's sample file per captured gesture, and its clip,
   when it is saved; a resumed session keeps adding lines to the same file;
-- a rewrite of the sample file for each label or status change; a deleted
+- A rewrite of the sample file for each label or status change; a deleted
   sample is removed from the file and its clip is deleted.
 
 ## 7. Testing

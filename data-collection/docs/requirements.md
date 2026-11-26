@@ -126,9 +126,9 @@ this document:
   it at any time. Each captured sample is tagged with the active label.
 - R4.2 **Rapid capture cycle.** After the user starts capturing, the app
   repeats:
-  1. a **countdown** that tells the user when to get ready;
-  2. the app becomes **ready**, and the user performs the gesture;
-  3. the **result** (the path image) is shown while the next countdown runs.
+  1. A **countdown** that tells the user when to get ready;
+  2. The app becomes **ready**, and the user performs the gesture;
+  3. The **result** (the path image) is shown while the next countdown runs.
 - R4.3 The countdown length is configurable in the application config. The
   default is 3 seconds.
 - R4.4 After the countdown ends, the app is ready for the next gesture, with no
@@ -158,8 +158,8 @@ this document:
   through them.
 - R5.2 For the selected sample the app shows the wand path with direction cues
   (start/end markers or a color gradient). The user can switch between:
-  - path only (color on black), and
-  - path overlaid on one camera frame (e.g. the first frame of the sample),
+  - Path only (color on black), and
+  - Path overlaid on one camera frame (e.g. the first frame of the sample),
     available when the sample has a video clip.
 - R5.3 For the selected sample the user can **reject** it (or accept it
   again), **delete** it, and **change its label**. Changes are saved
