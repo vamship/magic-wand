@@ -1,6 +1,6 @@
 # Training Subsystem - Requirements
 
-> **Version** 4 | **Updated** 2026-11-26 | **Approved**
+> **Version** 5 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
@@ -50,7 +50,7 @@ document:
   dataset in the data location, or the datasets the user names, or an export
   file. Each accepted sample becomes one row holding its raw positions, its
   normalized form, and its metadata (sample, session, author, handedness,
-  label, whether the label is a spell, and the duration).
+  label and the duration).
 - R1.2 Normalization is done by the shared library with fixed settings that
   the user cannot change. The settings and the library's normalization version
   are recorded in the training data.
@@ -133,29 +133,27 @@ document:
 
 ### R6. Training and evaluation
 - R6.1 The tool splits the training data into a training set and a test set by
-  percentage, with a seed. Every sample of a label that is not a spell goes to
-  the test set. The same data, seed and percentage always give the same
-  split, so an exploration and the training that follows it share one test set.
+  percentage, with a seed. The same data, seed and percentage always give the
+  same split, so an exploration and the training that follows it share one test
+  set.
 - R6.2 The tool trains the hyperparameter candidate on the whole training set,
   taking its hyperparameters from a hyperparameter candidate of an exploration
   run (by default the best one) or from values given directly.
-- R6.3 The tool evaluates the trained model once on the test set, with three
-  kinds of test case: held-out spells, backward spells (held-out spells with
-  their positions in reverse order) and non-spell recordings. When there are no
-  non-spell recordings it says so and goes on without them.
+- R6.3 The tool evaluates the trained model once on the test set, with two
+  kinds of test case: held-out spells, and backward spells (held-out spells
+  with their positions in reverse order), which count as not a spell.
 - R6.4 Evaluation reports measures that need no threshold: accuracy, macro F1,
   log loss, the area under the ROC curve (AUC) of each label against the
   others, and a rejection AUC that shows how well the confidence separates
-  spells from backward spells and non-spell recordings. It also reports the
+  spells from backward spells. It also reports the
   confusion between labels, precision and recall per label, and the time per
   gesture.
 - R6.5 Evaluation also reports, over a range of confidence thresholds, the
   share of spells recognized with the right label, the share recognized with a
   wrong label, the share not recognized, the share of backward spells that
-  trigger, and the share of non-spell recordings that trigger. It shows, for
-  information, the lowest threshold at which the two false trigger shares are
-  at or below a limit that the user can set. The tool chooses no threshold and
-  saves none.
+  trigger. It shows, for information, the lowest threshold at which the share
+  of backward spells that trigger is at or below a limit that the user can set.
+  The tool chooses no threshold and saves none.
 - R6.6 The tool saves every prediction of the evaluation with its confidence
   and the probability of every label, so that further measures can be computed
   later without training.
