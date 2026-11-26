@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 32 | **Updated** 2026-11-26 | **Approved**
+> **Version** 33 | **Updated** 2026-11-26 | **Approved**
 
 ## 1. Overview
 
@@ -1929,8 +1929,10 @@ session by its id, as the Session Service of `DC` 4.5 describes:
 - If another session is loaded, that session and the state are left alone.
 - An already ended session gives `session_ended` (409); an unknown id gives
   `not_found` (404).
-- `POST /api/sessions/current/end` keeps working and uses the same code path
-  for the loaded session (`no_session`, 409, when none is loaded).
+- `POST /api/sessions/current/end` is unchanged: it ends a session loaded for
+  capture, and for a session loaded for review it only closes the review and
+  leaves the session open (the Web UI closes a review this way); `no_session`
+  (409) when none is loaded.
 
 **Acceptance criteria.**
 
@@ -1944,7 +1946,8 @@ session by its id, as the Session Service of `DC` 4.5 describes:
 - [ ] An ended or unknown session returns the stated errors and changes nothing.
 - [ ] An ended session cannot be resumed (the existing refusal) and its samples
       can still be reviewed and edited.
-- [ ] `POST /api/sessions/current/end` behaves as before.
+- [ ] `POST /api/sessions/current/end` behaves as before, including closing a
+      review without ending the session.
 - [ ] No camera is needed to end a session that is not loaded.
 
 **Implementation notes.** Extend `services/session.py` so that End takes a
