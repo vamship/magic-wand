@@ -1,22 +1,22 @@
 # Training Subsystem - Design
 
-> **Version** 2 | **Updated** 2026-11-26 | **Draft**
+> **Version** 3 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
-This document describes how the training subsystem consolidates the training
-data, explores the hyperparameters of each classifier family, and trains,
-evaluates and saves classifiers. After reading it you will know the
-components and their responsibilities, how a run flows through them, the
-formats of the gesture data, the experiment definitions, the reports and the
-saved models, and the commands that drive it. Requirements are in
+This document describes how the training subsystem consolidates the recorded
+datasets into training data, explores the hyperparameters of each classifier
+family, and trains, evaluates and saves classifiers. After reading it you will
+know the components and their responsibilities, how a run flows through them,
+the formats of the training data, the experiment definitions, the reports and
+the saved models, and the commands that drive it. Requirements are in
 `training/docs/requirements.md`; the system context is in
-`docs/architecture.md`; the shape of the stored sessions is in
+`docs/architecture.md`; the layout of the recorded datasets is in
 `docs/data-handling.md`.
 
 The subsystem has to produce, for each classifier family, the best model the
 data supports, and to show how that was found. The design addresses this in
-three steps. Gesture data puts everything training needs in one table, so
+three steps. Training data puts everything training needs in one table, so
 every family trains on the same inputs. A single explorer, composed with a
 family's trainer, searches the hyperparameter space the same way for every
 family. A final step evaluates the chosen candidate on gestures that no step
@@ -24,8 +24,8 @@ before it has seen.
 
 ## 2. The data it works on
 
-The shared training data holds 4,821 accepted samples from 29 sessions and
-three authors, all right-handed.
+When this was written, the datasets in `data/` held 4,821 accepted samples
+from 29 sessions and three authors, all right-handed.
 
 - Five spells have about 760 samples each, and two have about 500.
 - A median gesture has 50 positions and lasts 1.7 seconds; the middle 80
@@ -36,9 +36,9 @@ three authors, all right-handed.
 
 ## 3. Components
 
-- **Gesture data builder**: reads a data folder through the shared library,
-  normalizes each accepted gesture and writes the gesture data.
-- **Gesture data access**: loads the gesture data and provides selecting,
+- **Training data builder**: reads datasets through the shared library,
+  normalizes each accepted gesture and writes the training data.
+- **Training data access**: loads the training data and provides selecting,
   shuffling, splitting and reading in whole or in batches.
 - **Trainer**: trains, evaluates, saves and loads a model of one family
   (section 6). Each family has one.
@@ -60,39 +60,39 @@ A trainer holds the training code of the family and produces a classifier.
 ## 4. System flow
 
 ```text
- 1. build                  training data (sessions)
+ 1. build            datasets: data/<name>/ ...
                                     |
                                     v
-                            Gesture data builder
+                       Training data builder
                                     |
                                     v
-                            gesture-data/ (table)
+                       training-data/ (table)
 
  2. explore                 experiment definition
                                     |
                                     v
- gesture-data/ --> split --> tuning set     test set (kept aside)
-                                |
-                                v
+ training-data/ --> split --> tuning set     test set (kept aside)
+                                 |
+                                 v
          Explorer: for each candidate, for each validation fold
                    Trainer fits on one part, validates on the other
-                                |
-                                v  metrics, ranking
+                                 |
+                                 v  metrics, ranking
                       reports/<family>/exploration/<run id>/
 
  3. train       exploration run + candidate (or hyperparameters)
-                                |
-                                v
+                                 |
+                                 v
          Trainer fits on the tuning set --> Evaluator on the test set
-                                |           measures, threshold
-                                v
+                                 |           measures, threshold
+                                 v
          Trainer fits on all data --> models/<family>/<model id>/
                                       reports/<family>/training/<model id>/
 ```
 
-1. **Build.** The builder writes the gesture data. This is done when the
-   training data changes, and the result is committed.
-2. **Explore.** The run splits the gesture data into a tuning set and a test
+1. **Build.** The builder writes the training data. This is done when the
+   datasets change, and the result is committed.
+2. **Explore.** The run splits the training data into a tuning set and a test
    set (section 5.3) and uses only the tuning set. The explorer runs the
    candidates and writes the results as it goes.
 3. **Train.** The run uses the same split. The trainer fits the chosen
@@ -100,39 +100,39 @@ A trainer holds the training code of the family and produces a classifier.
    set. The trainer then fits it again on all the data, and the result is
    saved with the threshold the evaluator recommended.
 
-## 5. Gesture data
+## 5. Training data
 
 ### 5.1 Normalization
 
-Normalization is the library's (`docs/architecture.md`, section 4.3) with
-fixed settings: 64 points, and the duration and the start position as
-context values. A gesture becomes 63 motion vectors of two numbers each, plus
-the duration in seconds and the start position, which is 129 numbers in the
-flat form. The sequence form is the same 63 vectors as 63 steps of two
-channels, with the three context values given separately.
+Normalization is the library's, described in `docs/architecture.md`, section
+4.3, with fixed settings: 64 points. A gesture becomes 63 steps of
+(dx, dy, magnitude) and a duration, which is 63 times 3 plus 1, or 190
+numbers. A classifier receives this list, with every step in order and the
+duration last.
 
 The settings are fixed because tuning is about the models, and one form for
 every family keeps their results comparable. 64 points lose little: on the
-training data a resampled path stays within 0.003 frame-heights of the
+datasets above, a resampled path stays within 0.003 frame-heights of the
 original for the median gesture and within 0.008 for the 95th percentile.
 
 ### 5.2 Format
 
-Gesture data is a folder `gesture-data/` holding two files.
+Training data is a folder `training-data/` holding two files.
 
 `gestures.parquet` has one row per accepted sample, with these columns:
 
 | Column | Content |
 |---|---|
-| `sampleId`, `sessionId` | Identifiers from the training data |
+| `sampleId`, `sessionId` | Identifiers from the dataset |
 | `author`, `handedness` | From the session |
 | `label` | Label id |
 | `isSpell` | Whether the label is a spell |
 | `durationS` | Gesture duration in seconds |
 | `frameWidth`, `frameHeight` | Frame size in pixels |
 | `rawTimeS`, `rawX`, `rawY` | Raw positions, as lists |
-| `vectors` | 126 numbers: horizontal and vertical of each vector |
-| `startX`, `startY` | Start position, in frame-heights |
+| `steps` | 189 numbers: dx, dy, magnitude of each step in order |
+
+The input to a classifier is `steps` followed by `durationS`.
 
 `gestures.json` describes the file:
 
@@ -140,31 +140,30 @@ Gesture data is a folder `gesture-data/` holding two files.
 {
   "formatVersion": 1,
   "builtAt": "2026-11-26T14:15:02-04:00",
-  "source": "training-data",
+  "datasets": ["data/mrunal", "data/vamship", "data/wen"],
   "sourceCommit": "0813bf3",
   "sessionIds": ["3f8c1d2e-9a4b-4c7e-8f10-5b6d7e8f9a0b"],
   "sampleCount": 4821,
   "fingerprint": "9c1f...",
-  "normalization": {
-    "points": 64,
-    "context": ["duration", "startPosition"],
-    "version": 1
-  }
+  "normalization": {"points": 64, "version": 1}
 }
 ```
 
 - The **fingerprint** is a SHA-256 hash over the sorted sample ids, each with
-  its label and status. Two gesture data files cover the same samples when
+  its label and status. Two training data files cover the same samples when
   their fingerprints match. `sourceCommit` is the git commit of the
-  repository when the source was `training-data`, and is empty otherwise.
+  repository when the datasets were built, and is empty outside git.
 - The `normalization.version` is the library's normalization version. A
   trainer or a classifier that records a different version is reported as a
   mismatch.
-- Gesture data is derived from the training data and is rebuilt, not merged,
-  when sessions are added. Rebuilding is deterministic, so a conflict in git
-  is resolved by rebuilding. Comparing contents, and not file bytes, tells
+- Training data is derived from the datasets and is rebuilt, not merged, when
+  sessions are added. Rebuilding is deterministic, so a conflict in git is
+  resolved by rebuilding. Comparing contents, and not file bytes, tells
   whether two builds agree.
 - Only accepted samples are included. Rejected samples are left out.
+- A session that appears in more than one dataset, for example after a merge,
+  is used once. If its copies differ, the build stops and names the session.
+- Building reads every dataset in `data/` unless the user names some.
 
 ### 5.3 Access and splitting
 
@@ -174,8 +173,8 @@ Loading gives a set that covers the whole table. A set offers:
   label or spells only. The result is a set.
 - **Shuffle** with a seed, and **split** by percentage into two or more sets.
   A split can be stratified so every side keeps the label shares.
-- **Read** the whole set or batches of a size, as arrays in the flat form or
-  the sequence form with the context values, and the labels.
+- **Read** the whole set or batches of a size, as arrays of the normalized
+  gestures with their labels.
 - **Count** the samples per label and per author.
 
 A set is a view of the loaded table (a list of row positions), so selecting
@@ -183,8 +182,8 @@ and splitting copy nothing.
 
 The tuning and test sets come from one operation: the rows of labels that are
 not spells all go to the test set, and the remaining rows are shuffled with
-the seed and split by label-stratified percentage, 85 tuning and 15 test by
-default. The split depends only on the gesture data, the seed and the
+the seed and split by label-stratified percentage, 80 tuning and 20 test by
+default. The split depends only on the training data, the seed and the
 percentage, and is made again, not stored, when a run needs it. A run
 records those three values, so training reproduces the split of an
 exploration exactly.
@@ -219,35 +218,36 @@ metrics**:
 | `timePerGestureMs` | Mean time to classify one gesture |
 | `trainSeconds` | Time to train |
 
-A family may add metrics of its own, for example the number of epochs the
-neural network ran or the number of support vectors of the SVM. They are
-stored with the others and are never used to compare families.
+A family may add metrics of its own, for example the number of epochs the MLP
+ran or the number of support vectors of the SVM. They are stored with the
+others.
 
 Each family has a trainer. The common implementation serves a family that
-needs nothing special, and a subclass adds what a family needs.
+needs nothing special, and a subclass adds what a family needs. The first set
+of families is:
 
 | Family | Hyperparameters and defaults |
 |---|---|
 | `naiveBayes` | `varSmoothing` 1e-9 |
 | `svm` | `kernel` rbf, `c` 10, `gamma` scale |
 | `randomForest` | `trees` 300, `maxDepth` none, `minSamplesLeaf` 1 |
-| `neuralNet` | `learningRate` 0.001, `batchSize` 64, `filters` 32, |
-| | `hiddenUnits` 64, `dropout` 0.2, `maxEpochs` 60, `patience` 8 |
+| `mlp` | `hiddenLayers` 2, `hiddenUnits` 128, `dropout` 0.2, |
+| | `learningRate` 0.001, `batchSize` 64, `maxEpochs` 100, |
+| | `patience` 8 |
 
-- **Features.** Naive Bayes, the SVM and the forest read the flat form. The
-  neural network reads the sequence form: a small one-dimensional
-  convolutional network, with the context values joined to its learned summary
-  before the output layer.
+- **Features.** Every family reads the normalized gesture of section 5.2, a
+  list of 190 numbers.
 - **Confidence.** For every family it is the probability given to the
   predicted label: the class probability of Naive Bayes, the share of trees
   voting for the label, probability estimates fitted on the training set for
-  the SVM, and the softmax output of the network.
-- **Scaling.** The SVM and the network standardize their features with the mean
+  the SVM, and the softmax output of the MLP.
+- **Scaling.** The SVM and the MLP standardize their features with the mean
   and spread of the set they are trained on; the values are saved with the
   classifier. Naive Bayes and the forest need none.
-- **Stopping.** The network trains until `patience` epochs pass without
-  improvement on a validation part taken from the set it is trained on (15
-  percent), and keeps the best epoch.
+- **MLP.** It has `hiddenLayers` fully connected layers of `hiddenUnits`
+  units each, with dropout, and one output per spell. It trains until
+  `patience` epochs pass without improvement on a validation part taken from
+  the set it is trained on (15 percent), and keeps the best epoch.
 - Random choices use the seed of the run.
 
 ## 7. Experiment definitions
@@ -295,6 +295,17 @@ Each entry in the space is one of:
   to whole numbers and removes duplicates;
 - a **list** of values: `[100, 120, 150]` gives those three values.
 
+For example, these entries of an MLP definition give 3 x 3 x 5 = 45
+candidates:
+
+```json
+"hyperparameters": {
+  "hiddenLayers": [1, 2, 3],
+  "hiddenUnits": [100, 120, 150],
+  "learningRate": {"min": 0.0001, "max": 0.01, "count": 5, "type": "log"}
+}
+```
+
 The candidates are all combinations of one value from each entry, so their
 number is the product of the entries' value counts. The tool prints that
 number before it starts.
@@ -320,6 +331,11 @@ For a run, the explorer does this:
    ranks the candidates by the mean of its metric, with the tie-breaker's
    metric for equal values.
 
+A candidate's score is the average over its folds. The best single fold is
+never used, because it only shows which fold was easiest. The standard
+deviation shows whether two candidates differ by more than the variation
+between folds.
+
 **Validation schemes.** One explorer exists for each scheme and all share the
 rest of the logic:
 
@@ -338,7 +354,7 @@ from (N2), and the test set is never part of either.
 ```text
 <run id>/
   definition.json    copy of the definition as it was run
-  run.json           seed, test fraction, gesture data fingerprint,
+  run.json           seed, test fraction, training data fingerprint,
                      master definition name, times, candidate count
   results.csv        one row per candidate and fold
   report.md          the report (section 10)
@@ -364,13 +380,13 @@ matters.
 
 The training run reads the hyperparameters from a candidate of an exploration
 run (the best one unless another is named) or from a file of values. It makes
-the split with the run's seed and test fraction, and stops if the gesture data
+the split with the run's seed and test fraction, and stops if the training data
 no longer has the fingerprint that the exploration recorded. It then:
 
 1. trains the candidate on the tuning set;
 2. evaluates it on the test set (section 9.2) and chooses the threshold
    (section 9.3);
-3. trains the candidate again on all the gesture data, which gives the
+3. trains the candidate again on all the training data, which gives the
    classifier to save;
 4. writes the report and saves the classifier (section 10).
 
@@ -444,11 +460,11 @@ names the training folder and the model folder, and is never reused.
 
 - `source.json` holds the exploration run id and candidate number (or null
   for values given directly), the hyperparameter values used, the seed, the
-  test fraction and the gesture data fingerprint. Because it holds the values,
-  a training report does not depend on the exploration run staying.
+  test fraction and the training data fingerprint. Because it holds the
+  values, a training report does not depend on the exploration run staying.
 - `classifier.json` holds `formatVersion`, the model id, the family, the label
   ids, the normalization settings, the recommended threshold, the
-  hyperparameter values, a summary of the test metrics, the gesture data
+  hyperparameter values, a summary of the test metrics, the training data
   fingerprint and the path of the training report.
 - `predictions.parquet` has, for each test case, its sample id, kind, correct
   label (or null), predicted label, confidence and the time to classify it,
@@ -456,7 +472,7 @@ names the training folder and the model folder, and is never reused.
 
 ### 10.3 Reports
 
-An exploration report has the definition's key settings and the gesture data
+An exploration report has the definition's key settings and the training data
 fingerprint, a table of the candidates in rank order with the compared metric
 and its spread, and, for each hyperparameter, a chart of the compared metric
 against its values.
@@ -478,26 +494,28 @@ The commands start with `wand-train`:
 
 | Command | What it does |
 |---|---|
-| `gesture-data build [source]` | Builds `gesture-data/` |
-| `gesture-data check [source]` | Compares it with a data folder |
-| `gesture-data summary` | Prints counts per label and author |
+| `training-data build [datasets]` | Builds `training-data/` |
+| `training-data check [datasets]` | Compares it with the datasets |
+| `training-data summary` | Prints counts per label and author |
 | `explore <definition>` | Runs an exploration |
 | `show <run id>` | Prints the best, top n and parameter effects |
 | `train <run id>` | Trains the best candidate of a run |
 | `train --family <f> --values <file>` | Trains from given values |
 | `index` | Rebuilds `reports/index.md` |
 
-Common options: `--seed` (default 42), `--test-fraction` (default 0.15),
-`--top` for `show`, `--candidate` for `train` to choose another candidate,
-and `--max-false-trigger` for `train`. `explore` and `train` write their
-reports and the index as they finish.
+Without names, `training-data build` and `training-data check` use every
+dataset in `data/`. Common options: `--seed` (default 42), `--test-fraction`
+(default 0.2), `--top` for `show`, `--candidate` for `train` to choose
+another candidate, and `--max-false-trigger` for `train`. `explore` and
+`train` write their reports and the index as they finish.
 
 ## 12. Testing
 
-- **Gesture data**: a small synthetic data folder gives rows with the right
+- **Training data**: a small synthetic dataset gives rows with the right
   columns, normalized values equal to the library's, and a fingerprint that
   changes when a label or status changes; building twice gives the same
-  content; a file of an unknown format version is refused.
+  content; a session present in two datasets is used once, and differing
+  copies stop the build; a file of an unknown format version is refused.
 - **Access**: selecting by column, seeded shuffles, stratified splits and
   batches give the expected rows and shapes, and the non-spell rows land in
   the test set.
@@ -515,10 +533,10 @@ reports and the index as they finish.
   values, including the threshold rule and the case where no threshold meets
   the limit; reversing a gesture reverses its positions with re-timed
   times.
-- **Whole run**: build, explore and train on a synthetic data folder leave
-  every file of section 10, and the saved classifier predicts the same labels
-  and confidences when loaded by the library alone.
-- Real data is not used in tests; the tool is run on the shared data by hand
+- **Whole run**: build, explore and train on a synthetic dataset leave every
+  file of section 10, and the saved classifier predicts the same labels and
+  confidences when loaded by the library alone.
+- Real data is not used in tests; the tool is run on the real datasets by hand
   when its tasks are verified.
 
 ## 13. Requirement coverage

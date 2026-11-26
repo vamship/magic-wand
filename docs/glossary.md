@@ -1,6 +1,6 @@
 # Glossary
 
-> **Version** 3 | **Updated** 2026-11-26 | **Draft**
+> **Version** 4 | **Updated** 2026-11-26 | **Draft**
 
 ## Overview
 
@@ -22,7 +22,8 @@ belong to one component are defined in that component's documents.
   library, such as vision or the classifier.
 - **Confidence threshold**: the confidence below which a prediction is
   treated as not recognized.
-- **Dataset**: the stored sessions and samples recorded by data collection.
+- **Dataset**: the sessions and samples recorded by data collection, stored in
+  one data folder. Several datasets live side by side in `data/`.
 - **Experiment definition**: a named file, kept in git as code, that states
   the classifier family, the hyperparameter space, the validation scheme and
   the comparator of an exploration.
@@ -30,9 +31,6 @@ belong to one component are defined in that component's documents.
   one classifier family and ranking them.
 - **Gesture**: one deliberate motion of the tip, bounded by idle at the start
   and end.
-- **Gesture data**: the consolidated table of all accepted gestures, each with
-  its raw positions, its normalized form and its metadata, that training
-  reads. It is derived from the training data.
 - **Hyperparameter**: a setting of a classifier family that is chosen before
   training, such as a learning rate, and not learned from data.
 - **Idle**: the state in which the tip is not moving, or moves below the speed
@@ -54,3 +52,6 @@ belong to one component are defined in that component's documents.
   folder and documents: data collection, training and inference.
 - **Tip**: the approximate center of the ping pong ball on the wand. It is the
   point whose motion the system tracks.
+- **Training data**: the consolidated table of all accepted gestures of the
+  datasets, each with its raw positions, its normalized form and its metadata,
+  that training reads. It is derived from the datasets.

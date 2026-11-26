@@ -1,6 +1,6 @@
 # Architecture
 
-> **Version** 9 | **Updated** 2026-11-26 | **Draft**
+> **Version** 10 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
@@ -46,13 +46,13 @@ The classifier is a machine learning model, so it must be trained on labeled
 examples. The subsystems relate as follows:
 
 - **Data collection**: live video goes through vision and motion detection,
-  and a person labels and stores the resulting gestures as a training dataset
-  (about 1,000 samples per gesture). Many users contribute to the dataset,
-  each recording on their own machine, and the datasets are merged for
-  training.
-- **Training**: stored gestures are normalized and consolidated into one
-  table, hyperparameters are explored for each classifier family, and the
-  best candidate of a family is trained and evaluated.
+  and a person labels and stores the resulting gestures in a dataset (about
+  1,000 samples per gesture across all users). Many users contribute, each
+  recording into a dataset of their own, and the datasets are shared through
+  git for training.
+- **Training**: the datasets are normalized and consolidated into one table,
+  the training data, hyperparameters are explored for each classifier family,
+  and the best candidate of a family is trained and evaluated.
 - **Inference**: live video goes through all five components, in real time,
   using a trained classifier.
 
@@ -183,14 +183,14 @@ Training has three functions: consolidate the data, explore hyperparameters,
 and train and evaluate a model.
 
 ```text
- Training data (sessions, in git)
+ Datasets (data/<name>/, in git)
           |
           v  1. Consolidate: normalize every gesture
- Gesture data (one table, raw + normalized, in git)
+ Training data (one table, raw + normalized, in git)
           |
           v  filter, shuffle, split
  +------------------------------+---------------------+
- | tuning set (85%)             | test set (15%)      |
+ | tuning set (80%)             | test set (20%)      |
  +--------------+---------------+----------+----------+
                 |                          |
                 v  2. Explore              |
@@ -205,12 +205,12 @@ and train and evaluate a model.
  Classifier (in git) + reports (in git)
 ```
 
-1. **Consolidate.** Every accepted gesture of the training data is normalized
-   with the shared library (section 4.3) and stored with its raw positions and
-   its metadata in the gesture data, one table that holds everything training
+1. **Consolidate.** Every accepted gesture of the datasets is normalized with
+   the shared library (section 4.3) and stored with its raw positions and its
+   metadata in the training data, one table that holds everything training
    needs. Normalization is fixed, not tuned. The table can be rebuilt from the
-   training data at any time, and it is committed so that every user trains
-   on the same data without normalizing again.
+   datasets at any time, and it is committed so that every user trains on the
+   same data without normalizing again.
 2. **Explore.** An experiment definition names a classifier family and the
    space of hyperparameter values to search. The explorer enumerates every
    candidate in that space and evaluates each one by training and validating
@@ -228,7 +228,7 @@ and train and evaluate a model.
 All gestures are shuffled into one pool and split by percentage, as with any
 public dataset. Samples of one session resemble each other, so scores on this
 split are likely to be higher than for a person the classifier has not seen;
-the gesture data can be filtered, for example by author, to test that case.
+the training data can be filtered, for example by author, to test that case.
 
 Non-spell recordings are stored as ordinary samples under a label that
 `config/labels.yaml` marks as not a spell. Training does not learn that label
@@ -239,9 +239,9 @@ as a class; it uses those samples only as test cases.
 Vision, motion detection, gesture normalization and the classifiers are
 implemented once, in the shared library, and every subsystem runs that
 implementation. A gesture seen live therefore has the same form as a gesture
-the classifier was trained on. Normalized gestures are computed from positions
-rather than stored with the samples, so changing how gestures are normalized
-does not require re-recording.
+the classifier was trained on. Datasets store positions, not normalized
+gestures, so changing how gestures are normalized does not require
+re-recording.
 
 ## 3. Subsystems
 
@@ -253,16 +253,15 @@ writes datasets. Design: `data-collection/docs/design.md`.
 
 ### 3.2 Training
 
-A command-line tool that turns the training data into trained classifiers. It
-has three functions (section 2.3), built from four components:
+A command-line tool that turns the datasets into trained classifiers. It has
+three functions (section 2.3), built from four components:
 
-- **Gesture data.** The consolidated table of raw and normalized gestures. It
+- **Training data.** The consolidated table of raw and normalized gestures. It
   loads the table, filters it by column, shuffles it, splits it by percentage
-  and delivers it whole or in batches, in the forms the classifier families
-  need.
+  and delivers it whole or in batches.
 - **Trainer.** The one interface through which a model of any family is
   trained, evaluated, saved and loaded. It takes a set of hyperparameter
-  values, trains on one subset of the gesture data and evaluates on another,
+  values, trains on one subset of the training data and evaluates on another,
   and reports a standard set of metrics. A family may add metrics of its own.
   Each family has a trainer; a family that needs nothing special uses the
   common implementation, and a data scientist can subclass it when one is
@@ -278,9 +277,12 @@ has three functions (section 2.3), built from four components:
   comparator of an exploration. Each exploration run keeps a copy of the
   definition it used.
 
-The classifier families to compare are Naive Bayes, a support vector machine,
-a random forest and a neural network for time series. A family is added with
-a trainer and an experiment definition, and the workflow does not change.
+The classifier families are open. Examples are a probabilistic model such as
+Naive Bayes, a margin-based model such as a support vector machine, an
+ensemble such as a random forest, and a neural network such as a multilayer
+perceptron. A family is added with a trainer and an experiment definition, and
+the workflow does not change. The families implemented first are listed in
+`training/docs/design.md`.
 
 Every exploration and every training run writes a report in `reports/`, and
 every trained classifier is saved in `models/`, as laid out in section 6.
@@ -436,9 +438,9 @@ in more than one subsystem. Design: `lib/docs/design.md`.
   motion and the live moving or idle state.
 - **Normalizer** implements gesture normalization.
 - **Classifiers** hold the classifier interface and the classifier families:
-  predict, save and load. They hold no training code. The heavy dependency of
-  the neural network is optional, so an installation without it still runs the
-  other families.
+  predict, save and load. They hold no training code. A family with a heavy
+  dependency, such as a neural network, makes it optional, so an installation
+  without it still runs the other families.
 - **Color calibrator** derives vision settings from points the user clicks on
   the tip.
 - **Motion calibrator** proposes motion settings from a short measurement of
@@ -465,7 +467,7 @@ with recorded video and synthetic data.
 | Classifiers in the library | Training and inference load the same code |
 | Training code outside it | Inference needs no training dependencies |
 | Fixed normalization | One form for every classifier; tuning is on models |
-| Gesture data as parquet | Compact, typed columns, fast to load |
+| Training data as parquet | Compact, typed columns, fast to load |
 | Random split of all data | The usual practice for a pooled dataset |
 | Resampling in time | Keeps the speed profile and order of the motion |
 | Split by session | Samples of one session resemble each other |
@@ -569,12 +571,16 @@ magic-wand/
     docs/             requirements, design, tasks
     src/              application code
     tests/
-  data/               default dataset location; not in git
-  training-data/      shared training dataset of all users; in git, no video
-  gesture-data/       consolidated raw and normalized gestures; in git
+  data/               datasets, one folder per dataset; in git, no video
+  training-data/      consolidated raw and normalized gestures; in git
   reports/            exploration and training reports; in git
   models/             trained classifiers; in git
 ```
+
+`data/` holds several datasets side by side, each a data folder as defined in
+`docs/data-handling.md`, for example one for each person who records. The
+datasets are shared through git, and video clips are excluded from it.
+Training reads all of them, or the ones the user names.
 
 `reports/` and `models/` are organized by classifier family. The results of
 explorations, which cover many candidates, and the results of final training,

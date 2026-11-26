@@ -1,6 +1,6 @@
 # Training Subsystem - Requirements
 
-> **Version** 2 | **Updated** 2026-11-26 | **Draft**
+> **Version** 3 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
@@ -11,27 +11,29 @@ it, and which requirement IDs the design and task documents refer to.
 
 The subsystem has three functions:
 
-1. **Consolidation.** It turns the shared training data into one table of raw
-   and normalized gestures, ready for training.
+1. **Consolidation.** It turns the datasets recorded by data collection into
+   one table of raw and normalized gestures, the training data, ready for
+   training.
 2. **Exploration.** It searches the hyperparameter space of each classifier
    family and ranks the candidates.
 3. **Training.** It trains the best candidate of a family, evaluates it on
    data it has not seen, chooses a confidence threshold and saves the
    classifier.
 
-The families to compare are Naive Bayes, a support vector machine, a random
-forest and a neural network for time series (`docs/architecture.md`, section
-3.2). Normalization and the classifiers that inference loads come from the
-shared library, so inference runs the code that training evaluated.
+The families to compare include, for example, Naive Bayes, a support vector
+machine, a random forest and a multilayer perceptron (MLP, a neural network);
+the design names the first set. Normalization and the classifiers that
+inference loads come from the shared library, so inference runs the code that
+training evaluated.
 
 ## 2. Definitions
 
 Terms used across the project (gesture, sample, session, label, status,
-gesture data, hyperparameter, candidate, exploration, experiment definition,
-classifier, model id and others) are defined in `docs/glossary.md`. Terms
-specific to this document:
+dataset, training data, hyperparameter, candidate, exploration, experiment
+definition, classifier, model id and others) are defined in
+`docs/glossary.md`. Terms specific to this document:
 
-- **Tuning set** and **test set**: the two parts of the gesture data. The
+- **Tuning set** and **test set**: the two parts of the training data. The
   tuning set is used to explore and to train; the test set is used only to
   evaluate the finished candidate (R6).
 - **Validation scheme**: how a candidate is judged inside an exploration, on
@@ -42,30 +44,33 @@ specific to this document:
 
 ## 3. Functional Requirements
 
-### R1. Gesture data
-- R1.1 The tool builds the gesture data from a data folder or an export file
-  (by default the shared training data). Each accepted sample becomes one row
-  holding its raw positions, its normalized form, and its metadata (sample,
-  session, author, handedness, label, whether the label is a spell, and the
-  duration).
+### R1. Training data
+- R1.1 The tool builds the training data from datasets: by default every
+  dataset in the data location, or the datasets the user names, or an export
+  file. Each accepted sample becomes one row holding its raw positions, its
+  normalized form, and its metadata (sample, session, author, handedness,
+  label, whether the label is a spell, and the duration).
 - R1.2 Normalization is done by the shared library with fixed settings that
   the user cannot change. The settings and the library's normalization version
-  are recorded in the gesture data.
-- R1.3 The gesture data records where it came from: the sessions it covers and
-  a fingerprint of their samples, so that two copies can be compared.
-- R1.4 Building is deterministic: the same data folder gives the same gesture
+  are recorded in the training data.
+- R1.3 The training data records where it came from: the datasets and
+  sessions it covers and a fingerprint of their samples, so that two copies can
+  be compared.
+- R1.4 Building is deterministic: the same datasets give the same training
   data.
-- R1.5 The user can check whether committed gesture data matches a data
-  folder. Training needs only the gesture data and never the data folder.
-- R1.6 The tool refuses gesture data in a format version it does not know.
+- R1.5 A session that appears in more than one dataset is used once. If its
+  copies differ, the build stops and names the session.
+- R1.6 The user can check whether committed training data matches the
+  datasets. Training needs only the training data and never the datasets.
+- R1.7 The tool refuses training data in a format version it does not know.
 
-### R2. Access to gesture data
-- R2.1 The user can load the gesture data, and select rows by the values of
+### R2. Access to training data
+- R2.1 The user can load the training data, and select rows by the values of
   one or more columns to produce a smaller set with the same abilities.
 - R2.2 A set can be shuffled with a seed and split by percentage into two or
   more sets. A split can keep the share of each label the same on every side.
-- R2.3 A set can be read as a whole or in batches, as arrays in the flat form
-  and in the sequence form of the normalized gesture, with the labels.
+- R2.3 A set can be read as a whole or in batches, as arrays of the normalized
+  gestures with their labels.
 - R2.4 The user can see how many samples a set has, per label and per author.
 - R2.5 Selecting, shuffling and splitting do not copy the data.
 
@@ -85,10 +90,10 @@ specific to this document:
 - R3.5 A trainer produces a classifier of the shared library that inference
   can load, with no training code or training dependency.
 - R3.6 Anything a trainer learns from data, such as feature scaling or the
-  stopping point of the neural network, comes from the training set it was
-  given.
-- R3.7 There is a trainer for each of the four families. A new family is added
-  with a trainer and an experiment definition, and nothing else changes.
+  stopping point of the MLP, comes from the training set it was given.
+- R3.7 There is a trainer for each family of the first set named in the design.
+  A new family is added with a trainer and an experiment definition, and
+  nothing else changes.
 
 ### R4. Experiment definitions
 - R4.1 An experiment definition names the family, the hyperparameter space,
@@ -108,7 +113,8 @@ specific to this document:
 - R5.2 It evaluates each candidate with the definition's validation scheme on
   the tuning set only. Two schemes are available: k-fold and a single split.
 - R5.3 For each candidate it collects the trainer's metrics on every
-  validation fold and aggregates them over the folds.
+  validation fold and aggregates them over the folds. A candidate's score is
+  the average over its folds, never the best fold.
 - R5.4 The comparator ranks the candidates by their aggregated metrics. A
   comparator can rank by one metric in either direction, with a second
   metric as tie-breaker.
@@ -123,7 +129,7 @@ specific to this document:
 - R5.8 The tool shows progress while it runs.
 
 ### R6. Training and evaluation
-- R6.1 The tool splits the gesture data into a tuning set and a test set by
+- R6.1 The tool splits the training data into a tuning set and a test set by
   percentage, with a seed. Every sample of a label that is not a spell goes to
   the test set. The same data, seed and percentage always give the same
   split, so an exploration and the training that follows it share one test set.
@@ -143,11 +149,11 @@ specific to this document:
 - R6.5 The tool recommends a confidence threshold: the one that recognizes the
   most spells while the shares of triggering backward spells and of triggering
   non-spell recordings stay at or below a limit that the user can set.
-- R6.6 After evaluation the tool trains the candidate again on all the gesture
-  data and saves that classifier with the recommended threshold.
+- R6.6 After evaluation the tool trains the candidate again on all the
+  training data and saves that classifier with the recommended threshold.
 - R6.7 A saved classifier carries its labels, its normalization settings, the
   recommended threshold, its hyperparameters, a summary of its test metrics, a
-  reference to its exploration run, and the fingerprint of the gesture data.
+  reference to its exploration run, and the fingerprint of the training data.
 
 ### R7. Reports and models
 - R7.1 Every exploration and every training run writes a report in Markdown,
@@ -168,16 +174,16 @@ specific to this document:
 
 ## 4. Non-functional Requirements
 
-- **N1. Reproducible.** The same gesture data, definition and seed give the
+- **N1. Reproducible.** The same training data, definition and seed give the
   same split and the same ranking, for the families whose training can be
   repeated exactly.
 - **N2. No leakage.** The test set is never seen by exploration or by
   training. Everything learned from data comes from the set being trained on.
 - **N3. Extensible.** A new family or a new validation scheme is added without
   changes to the parts that exist.
-- **N4. Practical speed.** Building the gesture data takes seconds. An
-  exploration of the three non-neural families takes minutes on a laptop; the
-  neural network may take longer.
+- **N4. Practical speed.** Building the training data takes seconds. An
+  exploration of the families other than the MLP takes minutes on a laptop;
+  the MLP may take longer.
 - **N5. Testable.** The tests need no camera and no real dataset; they use
   small synthetic data.
 - **N6. Light inference.** Using a saved classifier needs only the shared
