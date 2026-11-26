@@ -129,18 +129,18 @@ classifiers:
 
 | Key | Meaning | Default |
 |---|---|---|
-| `name` | Short name, used in the run folder's name | file name |
-| `dataset` | A data folder or an export file | `training-data` |
-| `seed` | Seed for the split and for every random choice | 42 |
-| `labels` | `all` spells, or a list of label ids | `all` |
-| `handedness.use` | Handedness the classifier is for | `right` |
-| `handedness.others` | `exclude` or `mirror` samples of the other hand | `exclude` |
-| `normalization.points` | Points a gesture is resampled to | 32 |
-| `normalization.context` | Context values: `duration`, `startPosition` | both |
+| `name` | Name used in the run folder | file name |
+| `dataset` | Data folder or export file | `training-data` |
+| `seed` | Seed of the split and random choices | 42 |
+| `labels` | `all` spells, or a list of ids | `all` |
+| `handedness.use` | Hand the classifier is for | `right` |
+| `handedness.others` | `exclude` or `mirror` other hand | `exclude` |
+| `normalization.points` | Points per gesture | 32 |
+| `normalization.context` | `duration`, `startPosition` | both |
 | `split.strategy` | `author` or `sessions` | `author` |
-| `split.testFraction` | Share of sessions tested (`sessions` only) | 0.25 |
-| `evaluation.maxFalseTriggerRate` | Limit for threshold choice | 0.05 |
-| `classifiers` | Families with their settings (section 7) | required |
+| `split.testFraction` | Test share (`sessions` only) | 0.25 |
+| `evaluation.maxFalseTriggerRate` | Limit for threshold | 0.05 |
+| `classifiers` | Families and settings (section 7) | required |
 
 Notes on the choices:
 
@@ -196,12 +196,20 @@ The confidence of every family is the probability it gives to the label it
 predicts. Settings are the keys in the `classifiers` entry of the experiment
 file; omitted keys take the default shown.
 
-| Family | Settings and defaults | Confidence from |
-|---|---|---|
-| `naiveBayes` | `varSmoothing` 1e-9 | Class probability of a Gaussian model |
-| `svm` | `kernel` rbf, `c` 10, `gamma` scale | Probability estimates fitted on the training side |
-| `randomForest` | `trees` 300, `maxDepth` none, `minSamplesLeaf` 1 | Share of trees voting for the label |
-| `neuralNet` | `epochs` 60, `learningRate` 0.001, `batchSize` 64, `patience` 8 | Softmax output |
+| Family | Settings and defaults |
+|---|---|
+| `naiveBayes` | `varSmoothing` 1e-9 |
+| `randomForest` | `trees` 300, `maxDepth` none, `minSamplesLeaf` 1 |
+| `svm` | `kernel` rbf, `c` 10, `gamma` scale |
+| `neuralNet` | `epochs` 60, `learningRate` 0.001, `batchSize` 64, |
+| | `patience` 8 |
+
+Where the confidence comes from:
+
+- Naive Bayes: the class probability of its Gaussian model.
+- Random forest: the share of trees voting for the label.
+- SVM: probability estimates fitted on the training side.
+- Neural network: the softmax output.
 
 - **Naive Bayes** is the baseline: it assumes the features are independent
   given the spell.
@@ -228,9 +236,12 @@ The test side of a fold gives:
 
 | Kind | Source | Correct outcome |
 |---|---|---|
-| Spell | Held-out samples of learned labels | The sample's label, with confidence at or above the threshold |
-| Backward | Each spell sample, positions in reverse order | Not recognized |
-| Non-spell | Held-out samples of labels that are not spells | Not recognized |
+| Spell | Held-out samples of spells | The sample's label |
+| Backward | Spell samples, reversed | Not recognized |
+| Non-spell | Held-out non-spell samples | Not recognized |
+
+A spell case is correct only when the confidence is also at or above the
+threshold (section 8.2).
 
 A reversed gesture runs through the same positions from last to first, with
 times measured from the new first position, so a backward spell lasts as long
@@ -243,13 +254,13 @@ A prediction counts as **recognized** when its confidence is at or above the
 threshold, and as **not recognized** below it. The measures are computed for
 every threshold from 0 to 1 in steps of 0.01:
 
-| Measure | Definition |
+| Measure | Share of ... that ... |
 |---|---|
-| Recognition rate | Spell cases recognized with the right label, over all spell cases |
-| Misrecognition rate | Spell cases recognized with a wrong label, over all spell cases |
-| Missed rate | Spell cases not recognized, over all spell cases |
-| Backward false trigger rate | Backward cases recognized as any spell, over all backward cases |
-| Non-spell false trigger rate | Non-spell cases recognized as any spell, over all non-spell cases |
+| Recognition rate | spell cases recognized, right label |
+| Misrecognition rate | spell cases recognized, wrong label |
+| Missed rate | spell cases not recognized |
+| Backward false trigger rate | backward cases recognized as a spell |
+| Non-spell false trigger rate | non-spell cases recognized as a spell |
 
 At threshold 0 every case is recognized, so recognition rate at 0 is the
 plain accuracy of the classifier. Also reported:
@@ -315,10 +326,10 @@ runs/<timestamp>-<name>/
 
 | Command | What it does |
 |---|---|
-| `wand-train run <experiment>` | Runs the experiment and prints where the run folder is |
-| `wand-train data <dataset>` | Prints the counts of section 2 for a dataset without training |
+| `wand-train run <experiment>` | Runs the experiment |
+| `wand-train data <dataset>` | Prints dataset counts, no training |
 | `wand-train compare <run>...` | Writes a comparison report for the runs |
-| `wand-train publish <run> <family> <name>` | Copies the classifier to `models/<name>/` |
+| `wand-train publish <run> <family> <name>` | Copies to `models/<name>/` |
 
 `wand-train run` prints progress per fold and classifier and a summary table
 at the end. `wand-train compare` writes `report.md` and the images it refers
