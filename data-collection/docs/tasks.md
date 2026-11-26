@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 31 | **Updated** 2026-11-26 | **Draft**
+> **Version** 32 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
@@ -165,12 +165,14 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A17 | Camera list cache | Completed |
 | DC-A18 | Dataset settings and command line | Not started |
 | DC-A19 | Dataset service | Not started |
+| DC-A20 | End any open session | Not started |
 | DC-U15 | Wording, hover and resume-flow polish | Completed |
 | DC-U16 | Accepted and rejected markers | Completed |
 | DC-U17 | Browse grid layout | Completed |
 | DC-U18 | Infinite scroll and the Review workspace | Completed |
 | DC-U19 | Point counts and one page width | Completed |
 | DC-U20 | Dataset selection and merge | Not started |
+| DC-U21 | End a session from Record, Review and Setup | Not started |
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Completed |
 | DC-U3 | Calibrate page | Completed |
@@ -252,6 +254,7 @@ Every part of the approved designs is assigned to at least one task.
 | DH 6 Writing safely | DC-L8 |
 | DH 7.1 Consistency check | DC-L10, DC-L12, DC-A11 |
 | DC 4.3, 4.5, 4.11, 5.2, 5.4 Datasets | DC-A18, DC-A19, DC-U20 |
+| DC 3.2, 4.1, 4.5, 5.2 Ending a session anywhere | DC-A20, DC-U21 |
 | DH 7.2 Export | DC-L10, DC-A11 |
 | DH 7.3 Merge | DC-L11, DC-A11 |
 | DH 9 Versioning | DC-L8 |
@@ -1906,6 +1909,48 @@ as the Session Service of `DC` 4.5 describes.
 **Implementation notes.** Extend `services/session.py`, `state.py` and
 `server.py`. Add the endpoints to the table in `DC` 5.2 if they are not there.
 
+### DC-A20 End any open session
+
+- **Type**: feat
+- **Status**: Not started
+- **Depends on**: DC-A9
+- **Requirements**: R2.7
+- **Design**: DC 3.2, 4.5, 5.2
+
+**Description.** Today only the loaded session can be ended
+(`POST /api/sessions/current/end`), so ending a session that is on hold means
+loading it first. Add `POST /api/sessions/{id}/end`, which ends any open
+session by its id, as the Session Service of `DC` 4.5 describes:
+
+- It records `endedAt` in the session through the Dataset Store.
+- If the session is the loaded one, in either role (capture or review), it
+  also tells the Capture Controller to stop and clears the session in the
+  Application State, exactly as ending the loaded session does today.
+- If another session is loaded, that session and the state are left alone.
+- An already ended session gives `session_ended` (409); an unknown id gives
+  `not_found` (404).
+- `POST /api/sessions/current/end` keeps working and uses the same code path
+  for the loaded session (`no_session`, 409, when none is loaded).
+
+**Acceptance criteria.**
+
+- [ ] Ending an open session that is not loaded writes its `endedAt`, leaves the
+      state unchanged, and the next `GET /api/sessions` shows it as ended.
+- [ ] Ending the session loaded for capture stops capturing (the capture state
+      becomes STOPPED), clears the session in the state and records `endedAt`.
+- [ ] Ending the session loaded for review unloads it and records `endedAt`.
+- [ ] Ending a session while a different one is loaded leaves the loaded one and
+      the capture state unchanged.
+- [ ] An ended or unknown session returns the stated errors and changes nothing.
+- [ ] An ended session cannot be resumed (the existing refusal) and its samples
+      can still be reviewed and edited.
+- [ ] `POST /api/sessions/current/end` behaves as before.
+- [ ] No camera is needed to end a session that is not loaded.
+
+**Implementation notes.** Extend `services/session.py` so that End takes a
+session id, with the current-session endpoint as a shortcut; add the route in
+`server.py`.
+
 ## 9. Web UI tasks
 
 The Web UI is built with Preact and htm from vendored files, as ES modules
@@ -2691,6 +2736,49 @@ choose another, create one, or merge datasets.
 **Implementation notes.** `static/app/setup.js` and the shell of DC-U1.
 Merging replaces data, so ask for a confirmation before a merge with the
 replace option.
+
+### DC-U21 End a session from Record, Review and Setup
+
+- **Type**: feat
+- **Status**: Not started
+- **Depends on**: DC-A20, DC-U2, DC-U4, DC-U5
+- **Requirements**: R2.7
+- **Design**: DC 3.2, 4.1
+
+**Description.** Let the user end a session where they are, without going to
+the Calibrate page or selecting the session first.
+
+- **Record and Review pages**: an End session button beside Pause (the Record
+  page gets both buttons; the Review page already has Pause).
+- **Setup page**: an End session button on every open session in the list,
+  loaded or not.
+- Ending is final, so every button first asks for confirmation. The dialog
+  names the session and says that it cannot be resumed afterwards, though its
+  samples can still be reviewed and edited.
+- On confirmation the page calls `POST /api/sessions/{id}/end` (or
+  `POST /api/sessions/current/end` for the loaded session). From Record and
+  Review it then opens Setup, as Pause does. On Setup the list is fetched again
+  and the session shows as ended, without Resume or End.
+- The button is a normal button: no keyboard shortcut ends a session.
+
+**Acceptance criteria.**
+
+- [ ] Record shows Pause and End session; Review shows End session beside
+      Pause.
+- [ ] On the Record page, clicking End session does not also pause capturing
+      (the page's click-to-pause ignores buttons).
+- [ ] Each button opens the confirmation; cancelling changes nothing;
+      confirming ends the session.
+- [ ] After ending from Record or Review, the user is on Setup and the session
+      is listed as ended.
+- [ ] On Setup, every open session, loaded or not, has End session; ended
+      sessions do not. Ending one updates the list at once.
+- [ ] Ending a session that is on hold works without loading it.
+- [ ] A failed request shows its error message and leaves the page as it was.
+
+**Implementation notes.** `static/app/record.js`, `review.js` and `setup.js`;
+reuse the confirmation used by the Calibrate page's End session button and by
+session deletion if there is one.
 
 ## 10. Verification tasks
 

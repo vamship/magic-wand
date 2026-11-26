@@ -1,6 +1,6 @@
 # Data Collection Application - Requirements
 
-> **Version** 15 | **Updated** 2026-11-26 | **Approved**
+> **Version** 16 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
@@ -91,7 +91,11 @@ this document:
   later. The user can also **put a session on hold** (the Pause button)
   without ending it: capturing stops and the session is unloaded but stays
   open, so another session can be started or loaded meanwhile and the held one
-  resumed later.
+  resumed later. The user can end a session directly from where it is
+  handled: from the Record and Review pages, beside Pause, and from the
+  session list on the Setup page, for any open session whether or not it is
+  loaded. Ending is final, so it asks for confirmation. Ending the loaded
+  session stops capturing and unloads it.
   An ended session accepts no new samples, but its samples can still be
   reviewed and edited (R5, R7).
 - R2.8 **Deleting a session.** The user can delete a session that is not

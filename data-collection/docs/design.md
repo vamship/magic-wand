@@ -1,6 +1,6 @@
 # Data Collection Application - Design
 
-> **Version** 23 | **Updated** 2026-11-26 | **Approved**
+> **Version** 24 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
@@ -147,7 +147,11 @@ built from eleven components:
   is not the one used before, and continues. The session record then takes the
   camera in use, and capture can start. Capture cannot start before that.
 - **End** is requested by the user. It records the end time and stops
-  capturing.
+  capturing. It can be requested for any open session: from the Record and
+  Review pages (beside Pause), from the Calibrate and Setup pages for the
+  loaded session, and from the session list on Setup for an open session that
+  is not loaded, so the user never has to load a session only to end it. It is
+  final, so the Web UI asks for confirmation.
 - **Hold** (the **Pause** button) is requested by the user. It stops
   capturing and unloads the session without recording an end time, so the
   session stays open on disk, as when the application is closed. The
@@ -272,18 +276,20 @@ shows what the Application State says.
   - **Setup**: camera list and previews; the form for the new session's
     details (author, session name, handedness, notes), which the page keeps
     until the session starts and which only leads on to Calibrate; the list of
-    existing sessions, each with Review, Delete and, for open sessions, Resume.
-    A session cannot be started from Setup.
+    existing sessions, each with Review, Delete and, for open sessions, Resume
+    and End session. A session cannot be started from Setup.
   - **Calibrate**: frozen-frame color calibration, vision sliders, the motion
     tuning screen, and the Start session button, which creates the session
     from the details given on Setup and opens Record. Settings are final
     once it is pressed (R2.2).
   - **Record**: live view, countdown and state, active label, the latest
-    sample's path image, and counts. It has no review actions.
+    sample's path image, and counts, with the Pause and End session buttons.
+    It has no review actions.
   - **Review**: the same workspace as Browse (a grid of thumbnails that loads
     more as it is scrolled, and the selected sample beside it), limited to the
     loaded session and newest first, with above it Resume capturing (or Close
-    review), Pause, and the selector of the label for the next captures.
+    review), Pause, End session, and the selector of the label for the next
+    captures.
     It opens when capturing is paused or a session is loaded.
   - **Browse**: a grid of thumbnails in a pane of its own, with filters and
     per-label counts above it, and the selected sample beside it (above it in
@@ -534,8 +540,11 @@ resuming, and the numbering of samples. It also owns the choice of dataset.
   actual mode, the full vision and motion settings, the clip padding, and a
   highest sample number of zero. It then records the session in the
   Application State as loaded for capture, which locks the settings.
-- **End**: only when the user asks. It records `endedAt`, tells the Capture
-  Controller to stop, and clears the session in the Application State. Closing
+- **End**: only when the user asks, and for any open session, given by its id.
+  It records `endedAt` through the Dataset Store. If the session is the loaded
+  one, in either role, it also tells the Capture Controller to stop and clears
+  the session in the Application State; ending another session leaves the
+  loaded one alone. An ended session is refused with `session_ended`. Closing
   the application leaves the session open.
 - **Hold**: the same as End without recording `endedAt`: it tells the Capture
   Controller to stop and clears the session in the Application State, and the
@@ -835,7 +844,8 @@ the Web UI shows about the current state comes from `state`.
 | `POST /api/datasets/merge` | Merge datasets into a target dataset |
 | `POST /api/sessions` | Start a session |
 | `POST /api/sessions/{id}/load` | Load a session; `mode=review` or `resume` |
-| `POST /api/sessions/current/end` | End the session |
+| `POST /api/sessions/current/end` | End the loaded session |
+| `POST /api/sessions/{id}/end` | End an open session, loaded or not |
 | `POST /api/sessions/current/hold` | Put the session on hold: unload it and keep it open |
 | `PATCH /api/sessions/{id}` | Change the name and/or notes of any session |
 | `DELETE /api/sessions/{id}` | Delete a session that is not loaded |
