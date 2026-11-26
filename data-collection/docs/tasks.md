@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 30 | **Updated** 2026-11-15 | **Approved**
+> **Version** 31 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
@@ -131,6 +131,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-D3 | Task list | Completed |
 | DC-F1 | Workspace and tooling | Completed |
 | DC-F2 | Configuration and settings models | Completed |
+| DC-F3 | Data layout migration | Not started |
 | DC-S1 | H.264 encoding spike | Completed |
 | DC-S2 | Linux verification | In progress |
 | DC-L1 | Frame sources | Completed |
@@ -144,6 +145,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L9 | Dataset store: sessions and samples | Completed |
 | DC-L10 | Dataset store: check, export and load | Completed |
 | DC-L11 | Dataset store: merge | Completed |
+| DC-L12 | Dataset discovery | Not started |
 | DC-A1 | Application State | Completed |
 | DC-A2 | Application Server | Completed |
 | DC-A3 | Capture Engine | Completed |
@@ -161,11 +163,14 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A15 | Camera check on resume | Completed |
 | DC-A16 | Put a session on hold | Completed |
 | DC-A17 | Camera list cache | Completed |
+| DC-A18 | Dataset settings and command line | Not started |
+| DC-A19 | Dataset service | Not started |
 | DC-U15 | Wording, hover and resume-flow polish | Completed |
 | DC-U16 | Accepted and rejected markers | Completed |
 | DC-U17 | Browse grid layout | Completed |
 | DC-U18 | Infinite scroll and the Review workspace | Completed |
 | DC-U19 | Point counts and one page width | Completed |
+| DC-U20 | Dataset selection and merge | Not started |
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Completed |
 | DC-U3 | Calibrate page | Completed |
@@ -238,20 +243,22 @@ Every part of the approved designs is assigned to at least one task.
 | Lib 7 Color calibrator | DC-L6 |
 | Lib 8 Segmenter and motion settings | DC-L3, DC-F2 |
 | Lib 9 Motion calibrator | DC-L7 |
-| Lib 10 Vector builder | DC-L4 |
+| Lib 10 Normalizer | TR-L1 (replaces DC-L4) |
 | Lib 11 Path renderer | DC-L5 |
-| Lib 12 Dataset store | DC-L8 to DC-L11 |
-| DH 2, 3 Rules, data folder | DC-L8, DC-L9, DC-A8 (delete) |
+| Lib 12 Dataset store | DC-L8 to DC-L12 |
+| DH 2, 3, 3.1 Rules, data folder, sharing | DC-L8, DC-L9, DC-L12, DC-F3, DC-A8 (delete) |
 | DH 4 Identifiers | DC-L9 |
 | DH 5 File formats | DC-L8 |
 | DH 6 Writing safely | DC-L8 |
-| DH 7.1 Consistency check | DC-L10, DC-A11 |
+| DH 7.1 Consistency check | DC-L10, DC-L12, DC-A11 |
+| DC 4.3, 4.5, 4.11, 5.2, 5.4 Datasets | DC-A18, DC-A19, DC-U20 |
 | DH 7.2 Export | DC-L10, DC-A11 |
 | DH 7.3 Merge | DC-L11, DC-A11 |
 | DH 9 Versioning | DC-L8 |
 
 **Requirements.** Each task lists the requirement IDs it implements. Between
-them the tasks cover R1.1 to R7.6 and N1 to N5. R7.5 is P2 (task DC-U7).
+them the tasks cover R1.1 to R7.6 (including R2.10) and N1 to N5. R7.5 is P2
+(task DC-U7).
 
 ## 5. Documentation tasks
 
@@ -375,6 +382,67 @@ place.
 - Label ids are lowercase slugs (the placeholder ids were `spell_one` and so
   on; the real spells replaced them in DC-U18's change to `config/labels.yaml`).
 - Keep file reading separate from validation so both can be tested alone.
+
+### DC-F3 Data layout migration
+
+- **Type**: chore
+- **Status**: Not started
+- **Depends on**: DC-A18
+- **Requirements**: R2.10
+- **Design**: DH 2, 3, 3.1; Arch 6
+
+**Description.** Move to the layout of `docs/data-handling.md` version 7:
+datasets live side by side in `data/`, one folder for each dataset, in git,
+with video clips ignored. Today the shared sessions are in `training-data/`
+(in git), and each person's own `data/` is a single local dataset that git
+ignores.
+
+1. **Split the shared sessions by author.** For every session folder in
+   `training-data/sessions/`, read the `author` in its `session.json`, make
+   the lowercase slug of it (letters and digits; for example `Mrunal` gives
+   `mrunal`), and move the folder with `git mv` to
+   `data/<author>/sessions/<session id>`. Every `data/<author>/` gets a
+   `dataset.json` with the same content as the old `training-data/dataset.json`.
+   Then remove the old `training-data/` content, so that the folder can be
+   reused for the training data (TR-A1).
+2. **Update `.gitignore`.** Remove the lines `data/` and
+   `training-data/**/videos/`, and add `data/**/videos/`.
+3. **Merge a person's local dataset.** The local `data/` of a person who
+   recorded before this change holds `dataset.json` and `sessions/` and is not
+   in git. Before step 1, move those two items out of `data/` to a temporary
+   folder outside the repository, and after step 1 merge that folder into
+   `data/<their dataset>` with `wand-collect merge` (sessions already present
+   are skipped as identical, and video clips are copied and stay ignored by
+   git). Keep the temporary folder until the result has been checked. This step
+   is done on the machine of the person who owns the data, who also sets
+   `dataset: <their dataset>` in `config/data-collection.local.yaml`. For this
+   repository's owner the dataset is `vamship`.
+4. Run the consistency check on every dataset.
+
+**Acceptance criteria.**
+
+- [ ] After the move, `data/` holds one dataset folder for each author in the
+      shared sessions, and `training-data/` holds no sessions.
+- [ ] Every shared session appears exactly once, in the dataset of its author,
+      and the number of accepted samples per label over all datasets equals the
+      number in `training-data/` before the move (4,821 in total at the time of
+      writing).
+- [ ] `git status` shows renames for the session files, not deletions and
+      additions of changed files; session and sample files are byte-identical
+      to before.
+- [ ] `.gitignore` ignores `data/**/videos/` and no longer ignores the rest of
+      `data/`; a video clip placed in a dataset is not tracked.
+- [ ] `uv run wand-collect check data/<author>` reports no errors for every
+      dataset, and given all of them reports no session in conflict.
+- [ ] The owner's local sessions are in `data/vamship` with their video clips,
+      and the temporary folder was kept until this was confirmed.
+- [ ] `uv run wand-collect serve --dataset vamship` opens that dataset and
+      lists its sessions.
+
+**Implementation notes.** A small script run once is enough; do not commit it
+unless it is worth keeping. Do the move in one commit and the `.gitignore`
+change in another. Because part of the work touches files that are not in git,
+confirm each destructive step with the owner before doing it.
 
 ### DC-S1 H.264 encoding spike
 
@@ -633,6 +701,8 @@ Behavior:
 
 - **Type**: feat
 - **Status**: Completed
+- **Note**: Superseded by TR-L1 (`training/docs/tasks.md`), which replaces the
+  vector builder with the normalizer and removes it.
 - **Depends on**: DC-F1
 - **Requirements**: R6.1, N1
 - **Design**: Lib 10; Arch 4.2
@@ -905,6 +975,53 @@ Sources are only read. An option skips video clips.
 the session file and the samples file contents (a hash of each). Copy to a
 temporary folder and rename into place so an interrupted merge leaves no
 half-copied session.
+
+### DC-L12 Dataset discovery
+
+- **Type**: feat
+- **Status**: Not started
+- **Depends on**: DC-L11
+- **Requirements**: R2.5, R2.10
+- **Design**: DH 3, 3.1, 7.1; Lib 12
+
+**Description.** Let the library work with several datasets side by side in a
+data location (a folder such as `data/` whose subfolders are data folders), as
+`docs/data-handling.md` version 7 describes.
+
+- `find_datasets(location)` returns the datasets in the location: the
+  subfolders that contain a `dataset.json`, sorted by name. For each: its name
+  (the folder name), its path, its format version, and its number of sessions
+  and samples. Other files and folders are ignored. An unreadable
+  `dataset.json` is reported, not fatal.
+- `create_dataset(location, name)` creates a new data folder
+  `<location>/<name>` with `dataset.json` and `sessions/`, as an ordinary data
+  folder. The name must be a lowercase slug (letters, digits, hyphen and
+  underscore); an invalid or existing name is refused with a clear error.
+- Reading several data folders at once: the load and export functions of
+  DC-L10 accept several folders. A session present in more than one folder is
+  used once; if its copies differ (the session file and the samples file
+  contents), they are reported as a conflict, and the loader raises a clear
+  error naming the session unless told to skip such sessions.
+- The consistency check (DC-L10) accepts several folders. It also lists
+  sessions that are still open (as information), and reports a session present
+  in more than one folder with different content as an error.
+
+**Acceptance criteria.**
+
+- [ ] A location with three datasets, a stray file and a folder without
+      `dataset.json` lists exactly the three, with the right counts.
+- [ ] `create_dataset` makes a folder that opens and passes the check; invalid
+      names (uppercase, spaces, slashes, empty) and existing names are refused.
+- [ ] Loading two folders that share a session loads it once; with different
+      copies it fails naming the session, or skips it when asked.
+- [ ] The check on several folders reports open sessions as information and a
+      conflicting duplicate as an error, and never writes.
+- [ ] Existing single-folder behavior and tests are unchanged.
+- [ ] No camera or running application is needed.
+
+**Implementation notes.** Add `dataset/discovery.py`; extend `dataset/check.py`
+and the load code. Reuse the content comparison of the merge operation
+(DC-L11) to decide whether two copies of a session are identical.
 
 ## 8. Application tasks
 
@@ -1256,13 +1373,13 @@ Behavior:
   returns the items and the total. `GET /api/samples/{id}`: the full record
   with a `hasClip` flag. `PATCH /api/samples/{id}`: change `label` and/or
   `status`. `DELETE /api/samples/{id}`: hard delete (record and clip).
-- `GET /api/samples/{id}/image?mode=path|overlay` returns a PNG made by the
-  path renderer from the stored positions. Overlay decodes one frame from the
-  clip at the gesture start. When `mirrorPreview` is on (the default), the
-  shown images (path, overlay, thumbnail) are mirrored left to right to match
-  the live view; the stored data is never mirrored. The sample details carry
-  a `mirrored` flag for the scrubbing view. `GET /api/samples/{id}/thumbnail` returns a small
-  PNG, cached.
+- `GET /api/samples/{id}/image?mode=path|overlay` returns a PNG made by the path
+  renderer from the stored positions. Overlay decodes one frame from the clip at
+  the gesture start. When `mirrorPreview` is on (the default), the shown images
+  (path, overlay, thumbnail) are mirrored left to right to match the live view;
+  the stored data is never mirrored. The sample details carry a `mirrored` flag
+  for the scrubbing view. `GET /api/samples/{id}/thumbnail` returns a small PNG,
+  cached.
 
 **Acceptance criteria.**
 
@@ -1653,12 +1770,12 @@ ending a session without writing `endedAt`.
       as open and can be resumed (with the camera check, DC-A15).
 - [x] The working settings keep the values of the held session; nothing is
       reset.
-- [x] The UI offers "Pause" (renamed from "Put on hold (resume later)") next
-      to "End session (final)" on the Setup page (current session), the
-      Calibrate page (locked, and the camera check), and by itself on the
-      Record page and, while capturing, the Review page. A held session leaves the user on Setup. Pressing the button
-      on the Record page does not also pause (the page's click-to-pause ignores
-      buttons).
+- [x] The UI offers "Pause" (renamed from "Put on hold (resume later)") next to
+  "End session (final)" on the Setup page (current session), the Calibrate page
+  (locked, and the camera check), and by itself on the Record page and, while
+  capturing, the Review page. A held session leaves the user on Setup. Pressing
+  the button on the Record page does not also pause (the page's click-to-pause
+  ignores buttons).
 - [x] Tests cover each of these.
 
 **Implementation notes.** `SessionService.hold` and `end` share `_leave`;
@@ -1700,6 +1817,94 @@ list once and keep it, and read it again only when the user asks.
 `CalibrationService.get_cameras(refresh)`; `SessionService._find_camera`;
 `CameraPanel` in `static/app/setup.js`. The list is kept in memory only, so a
 restart of the application scans again.
+
+### DC-A18 Dataset settings and command line
+
+- **Type**: feat
+- **Status**: Not started
+- **Depends on**: DC-L12, DC-A11
+- **Requirements**: R2.10
+- **Design**: DC 5.3, 5.4; DH 3
+
+**Description.** Replace the single data folder setting by a data location and
+a dataset name, and add the matching command-line options and command.
+
+- In `config/data-collection.yaml` the key `dataFolder` is replaced by
+  `dataLocation` (the folder that holds the datasets, default `data`) and
+  `dataset` (the name of the dataset to record into, default `default`). The
+  application records into `<dataLocation>/<dataset>`, creating the dataset
+  (DC-L12) if it does not exist. The old key is no longer accepted, and a
+  settings file that has it gets an error that names the new keys.
+- `wand-collect serve` takes `--data-location <folder>` and `--dataset <name>`
+  in place of `--data-folder`, overriding the settings.
+- `wand-collect datasets [--data-location <folder>]` lists the datasets in the
+  location with their session and sample counts.
+- `export`, `merge` and `check` keep taking data folder paths; `check` and
+  `export` accept several (DC-L12).
+- The comments in `config/data-collection.yaml`, `README.md` and
+  `data-collection/docs/manual-tests.md` are updated to the new names.
+
+**Acceptance criteria.**
+
+- [ ] The new keys and options work, and the app opens
+      `<dataLocation>/<dataset>`; a missing dataset is created.
+- [ ] The old key and the old option are rejected with a message naming the new
+      ones.
+- [ ] An invalid dataset name is rejected at startup with a clear message.
+- [ ] `wand-collect datasets` lists the datasets of a test location.
+- [ ] The existing settings, startup and command-line tests are updated and
+      pass, and ruff passes.
+
+**Implementation notes.** Touch `settings.py`, `app.py` and `cli.py` in
+`wand_collect`, and the tests `test_app_settings.py` and `test_startup.py`.
+
+### DC-A19 Dataset service
+
+- **Type**: feat
+- **Status**: Not started
+- **Depends on**: DC-A18, DC-A9, DC-A8, DC-L11
+- **Requirements**: R2.5, R2.10
+- **Design**: DC 4.3, 4.5, 4.11, 5.2
+
+**Description.** Let the application list, choose, create and merge datasets,
+as the Session Service of `DC` 4.5 describes.
+
+- The Application State gets a field `dataset`, the name of the dataset in use,
+  owned by the Session Service (`DC` 4.3). It appears in the state snapshot.
+- `GET /api/datasets` lists the datasets in the data location: `name`,
+  `sessions` and `samples` counts, and whether it is the dataset in use.
+- `POST /api/datasets` with `{"name": ...}` creates a dataset (DC-L12).
+- `PUT /api/dataset` with `{"name": ...}` chooses the dataset in use: it opens
+  it through the Dataset Store (with the cleanup at open), updates the state and
+  tells the Sample Library to reindex, so that the session and sample lists show
+  that dataset.
+- `POST /api/datasets/merge` with `{"sources": [...], "target": ...,
+  "onConflict": "skip" | "replace", "skipClips": bool}` runs the merge of
+  DC-L11 into the target dataset, which may be new (it is created), and returns
+  the per-session result.
+- Creating, choosing and merging are refused with the error code
+  `session_active` (409) while a session is loaded. An unknown or invalid name
+  gives `invalid_request` or `not_found`. Merging a dataset into itself is
+  refused.
+- If the dataset in use is the merge target, the Sample Library reindexes after
+  the merge.
+
+**Acceptance criteria.**
+
+- [ ] Each endpoint works on a temporary data location, and the response and the
+      next state snapshot show the result.
+- [ ] After choosing another dataset, the session list and the sample list show
+      only that dataset's contents, and the state's `dataset` changes.
+- [ ] Creating, choosing and merging are refused while a session is loaded, and
+      allowed after it is ended or put on hold.
+- [ ] A merge into a new dataset creates it; a conflict is skipped or replaced
+      as asked; source datasets are unchanged.
+- [ ] Merging into the dataset in use updates the lists.
+- [ ] Invalid and duplicate names are refused with clear errors.
+- [ ] The application settings' `dataset` is the one in use at startup.
+
+**Implementation notes.** Extend `services/session.py`, `state.py` and
+`server.py`. Add the endpoints to the table in `DC` 5.2 if they are not there.
 
 ## 9. Web UI tasks
 
@@ -2332,18 +2537,18 @@ page can use them next (DC-U18, to be written).
       marker and border (DC-U16), and the label's name. (It was in pages of 100;
       DC-U18 replaced the pages with infinite scrolling.)
 - [x] The selected sample is shown in a panel beside the grid, about 40% of the
-      width: the picture (path or overlay), the buttons Path only, Overlay (or
-      the disabled "Video unavailable") and Scrub, the details, and, pinned at the
-      bottom, Relabel, Reject or Restore, and Delete. The picture leaves room for
-      the details, which scroll if they are tall.
+  width: the picture (path or overlay), the buttons Path only, Overlay (or the
+  disabled "Video unavailable") and Scrub, the details, and, pinned at the
+  bottom, Relabel, Reject or Restore, and Delete. The picture leaves room for
+  the details, which scroll if they are tall.
 - [x] In a window narrower than 900 px the panel sits above the grid, and only
       the grid scrolls. In a window that is also shorter than 640 px the page
       scrolls instead, and the panel stays stuck to the top of it.
 - [x] The first sample is selected when the grid loads. Browse has the keys of
-      Review: Left and Right, Up and Down by a row, Space or `r` to reject or
-      restore, Backspace to delete, `v` for the overlay, `s` to scrub, and the digits to
-      relabel. Left and Right past the end of a page go to the next or the
-      previous page.
+  Review: Left and Right, Up and Down by a row, Space or `r` to reject or
+  restore, Backspace to delete, `v` for the overlay, `s` to scrub, and the
+  digits to relabel. Left and Right past the end of a page go to the next or the
+  previous page.
 - [x] Scrub video or path replaces the workspace and takes over the keys, as on
       the Review page. Deleting a sample leaves no notice and selects the next
       one.
@@ -2388,13 +2593,12 @@ set of code. Also replace the placeholder spells with the real list.
       chunk is loaded and the move continues in it. Keys that repeat faster than
       the page draws each move from where the last one went.
 - [x] The Review page is the workspace limited to the loaded session, newest
-      first, with the newest sample selected. Above the grid it has: Resume
-      capturing (or Close review, "Check the camera first", "Go to Record", as in
-      DC-U15), Pause, and the selector of the label for the next captures;
-      and the notice that the last gesture is still saving. A sample captured
-      while Review is open appears at the top and the selection stays where it
-      was. A session with no samples says so; with no session loaded the page
-      says that.
+  first, with the newest sample selected. Above the grid it has: Resume
+  capturing (or Close review, "Check the camera first", "Go to Record", as in
+  DC-U15), Pause, and the selector of the label for the next captures; and the
+  notice that the last gesture is still saving. A sample captured while Review
+  is open appears at the top and the selection stays where it was. A session
+  with no samples says so; with no session loaded the page says that.
 - [x] The panel shows the sample's number in its session ("#42").
 - [x] `config/labels.yaml` lists the real spells in this order: Alohamora,
       Aparecum, Herbivicus, Silencio, Revelio, Expelliarmus, Reparo (ids
@@ -2457,6 +2661,36 @@ And give every page the same width, the one that Browse and Review already had.
 drops the space around a line break. A point is one tracked frame, so the count
 can be lower than the number of video frames of the gesture; the clip's own
 frame count is not stored.
+
+### DC-U20 Dataset selection and merge
+
+- **Type**: feat
+- **Status**: Not started
+- **Depends on**: DC-U2, DC-A19
+- **Requirements**: R2.5, R2.10
+- **Design**: DC 4.1, 5.2
+
+**Description.** On the Setup page, show the dataset in use and let the user
+choose another, create one, or merge datasets.
+
+**Acceptance criteria.**
+
+- [ ] The Setup page shows the dataset in use (from the state) and a list of the
+      datasets from `GET /api/datasets` with their session and sample counts;
+      choosing one uses `PUT /api/dataset`, and the session list updates.
+- [ ] A New dataset form takes a name, shows the error for an invalid or
+      existing name, and creates the dataset.
+- [ ] A Merge dialog lets the user select source datasets and a target (an
+      existing dataset or a new name), choose whether conflicts are skipped or
+      replaced and whether clips are skipped, and shows the per-session result
+      afterwards.
+- [ ] While a session is loaded, these controls are disabled and a notice says
+      to end or hold the session first.
+- [ ] The dataset in use is visible in the page header on every page.
+
+**Implementation notes.** `static/app/setup.js` and the shell of DC-U1.
+Merging replaces data, so ask for a confirmation before a merge with the
+replace option.
 
 ## 10. Verification tasks
 
