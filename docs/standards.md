@@ -1,6 +1,6 @@
 # Standards
 
-> **Version** 5 | **Updated** 2026-11-26 | **Draft**
+> **Version** 5 | **Updated** 2026-11-26 | **Approved**
 
 ## Overview
 
