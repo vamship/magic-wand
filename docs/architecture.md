@@ -335,11 +335,9 @@ gesture into the same form, in four steps:
    forest, and a sequence for the neural network.
 
 The normalization is fixed: 64 points, with both context values. It is
-not a tunable setting. On the shared training data, resampling to 64 points
-moves a path by a median of 0.003 frame-heights (under 2 pixels at 480
-lines) and by 0.008 at the 95th percentile, so little is lost, while the
-median gesture has 50 positions. The settings are saved with every classifier,
-so that inference can detect a mismatch. Input: the positions of one gesture.
+not a tunable setting. The number of points is chosen so that resampling
+changes the shape of a typical gesture very little. The settings are saved
+with every classifier, so that inference can detect a mismatch. Input: the positions of one gesture.
 Output: the normalized gesture.
 
 Resampling in time, and not along the path's length, keeps the speed profile
