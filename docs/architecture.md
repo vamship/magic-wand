@@ -1,19 +1,19 @@
 # Architecture
 
-> **Version** 7 | **Updated** 2026-11-21 | **Approved**
+> **Version** 10 | **Updated** 2026-11-26 | **Approved**
 
 ## 1. Overview
 
 This document describes the architecture of the magic wand system. It covers:
 
-- how data flows through the system when it collects data, trains a classifier
+- How data flows through the system when it collects data, trains a classifier
   and recognizes spells;
-- the subsystems and the components in them, and what each is responsible
+- The subsystems and the components in them, and what each is responsible
   for, including the shared library;
-- the technical decisions, data formats and configuration that every
+- The technical decisions, data formats and configuration that every
   subsystem follows;
-- how the repository is organized;
-- the items still to be filled in before final submission.
+- How the repository is organized;
+- The items still to be filled in before final submission.
 
 After reading it you will understand how the system works end to end and know
 where to find the detail for any part of it.
@@ -46,12 +46,13 @@ The classifier is a machine learning model, so it must be trained on labeled
 examples. The subsystems relate as follows:
 
 - **Data collection**: live video goes through vision and motion detection,
-  and a person labels and stores the resulting gestures as a training dataset
-  (about 1,000 samples per gesture). Many users contribute to the dataset,
-  each recording on their own machine, and the datasets are merged for
-  training.
-- **Training**: stored gestures go through gesture normalization, and the
-  result trains and evaluates classifiers.
+  and a person labels and stores the resulting gestures in a dataset (about
+  1,000 samples per gesture across all users). Many users contribute, each
+  recording into a dataset of their own, and the datasets are shared through
+  git for training.
+- **Training**: the datasets are normalized and consolidated into one table,
+  the training data, hyperparameters are explored for each classifier family,
+  and the best hyperparameter candidate of a family is trained and evaluated.
 - **Inference**: live video goes through all five components, in real time,
   using a trained classifier.
 
@@ -82,14 +83,14 @@ is classified and acted on as soon as it ends.
 3. Motion detection watches the stream of tip positions. A gesture starts when
    the tip's speed rises above a threshold and ends when it falls below one.
    Motion that lasts too long or covers too little distance is discarded.
-4. Gesture normalization converts the gesture's positions into motion vectors
-   (direction and speed) of a fixed length, whatever the gesture's duration
-   or the camera's frame rate (section 4.3).
+4. Gesture normalization converts the gesture's positions into a list of
+   motion steps of a fixed length, whatever the gesture's duration or the
+   camera's frame rate (section 4.3).
 5. The classifier receives the normalized gesture and outputs a spell and a
    confidence score.
 6. The action trigger performs the action for the spell. If the confidence is
-   below the minimum threshold, no action is performed and the user is told
-   the gesture was not recognized.
+   below the configured minimum threshold, no action is performed and the user
+   is told the gesture was not recognized.
 
 ### 2.2 Data collection
 
@@ -178,47 +179,61 @@ File formats and layout are in `docs/data-handling.md`.
 
 ### 2.3 Training
 
+Training has three functions: consolidate the data, explore hyperparameters,
+and train and evaluate a model. Each takes inputs and produces outputs:
+
 ```text
- Dataset (user A) --+
- Dataset (user B) --+--> Merge --> Training dataset
- Dataset (user C) --+                   |
-                                            v
-                       Load accepted samples, normalize each gesture
-                                            |
-                                            v
-                       Split by session into training and test sets
-                                            |
-                         +------------------+------------------+
-                         v                                     v
-                  Train each classifier              Build test cases
-                         |                                     |
-                         +-----------> Evaluate <--------------+
-                                          |
-                                          v
-                        Trained classifier + metrics + threshold
-                                 (used in inference)
+ +-----------------------------------------------------------------------+
+ | 1. CONSOLIDATE                                                        |
+ |  In:   datasets (data/<name>/, in git)                                |
+ |  Out:  training data (one table, raw + normalized gestures, in git)   |
+ +--------------------------------+--------------------------------------+
+                                  |
+                                  v   split: training set | test set
+ +-----------------------------------------------------------------------+
+ | 2. EXPLORE                                                            |
+ |  In:   training set, experiment definition                            |
+ |  Does: k-fold (or similar) validation of every hyperparameter         |
+ |        candidate, on the training set only                            |
+ |  Out:  ranked hyperparameter candidates (report, results)             |
+ +--------------------------------+--------------------------------------+
+                                  |
+                                  v   test set: not touched so far
+ +-----------------------------------------------------------------------+
+ | 3. TRAIN AND EVALUATE                                                 |
+ |  In:   training set, test set, the chosen hyperparameter candidate    |
+ |  Does: train on the whole training set; evaluate on the test set      |
+ |  Out:  classifier (in git), metrics, report                           |
+ +-----------------------------------------------------------------------+
 ```
 
-1. Each user records sessions on their own machine. The datasets are
-   merged into one training dataset; merging copies whole sessions and never
-   changes them (see `docs/data-handling.md`).
-2. Training loads the accepted samples of the spell labels and normalizes each
-   gesture with the shared library (section 4.3).
-3. The samples are split by session, so that samples recorded in one session
-   (one person, camera and lighting) are never on both sides of the split.
-   The split can also hold out one author at a time, to measure how well a
-   classifier works for a person it has not seen.
-4. Each classifier is trained on the training side. Every classifier gets the
-   same split, so the results are comparable.
-5. The test side is turned into three kinds of test cases: held-out spells,
-   backward spells (the held-out spells with their positions in reverse
-   order) and non-spell recordings. A backward spell counts as not a spell.
-6. Evaluation measures how often a classifier names the right spell, how often
-   it triggers on a backward spell or a non-spell, and the time it takes per
-   gesture. The measures are computed over a range of confidence thresholds.
-7. The results pick the classifier and its confidence threshold. The trained
-   classifier is saved with the evidence for the choice, and the inference
-   flow loads it.
+1. **Consolidate.** Every accepted gesture of the datasets is normalized with
+   the shared library (section 4.3) and stored with its raw positions and its
+   metadata in the training data, one table that holds everything training
+   needs. Normalization is fixed, not tuned. The table can be rebuilt from the
+   datasets at any time, and it is committed so that every user trains on the
+   same data without normalizing again.
+2. **Explore.** All gestures are shuffled into one pool and split by percentage
+   into a training set (80%) and a test set (20%). An experiment definition
+   names a classifier family and the space of hyperparameter values to search.
+   The explorer enumerates every hyperparameter candidate in that space and
+   evaluates each one by training and validating it on folds of the training
+   set. A comparator ranks the hyperparameter candidates. The results are kept
+   so they can be analyzed later. The test set is not touched.
+3. **Train and evaluate.** The best hyperparameter candidate is trained on the
+   whole training set and evaluated once on the test set, which neither the
+   exploration nor the training has seen. The test set yields three kinds of
+   test case: held-out spells, backward spells (the held-out spells with their
+   positions in reverse order) and non-spell recordings. A backward spell
+   counts as not a spell. The measures include some that need no threshold, such
+   as accuracy, log loss and the area under the ROC curve (AUC), and curve data
+   over a range of confidence thresholds that shows how false triggers trade
+   off against recognition. The model is saved as a classifier, with the
+   evidence in a report. Training chooses no threshold.
+
+Samples of one session resemble each other, so scores on a random split are
+likely to be higher than for a person the classifier has not seen; the
+training data can be filtered, for example by author, to test that case.
 
 Non-spell recordings are stored as ordinary samples under a label that
 `config/labels.yaml` marks as not a spell. Training does not learn that label
@@ -229,9 +244,9 @@ as a class; it uses those samples only as test cases.
 Vision, motion detection, gesture normalization and the classifiers are
 implemented once, in the shared library, and every subsystem runs that
 implementation. A gesture seen live therefore has the same form as a gesture
-the classifier was trained on. Vectors are computed from positions at load
-time rather than stored, so changing how vectors are built or normalized does
-not require re-recording.
+the classifier was trained on. Datasets store positions, not normalized
+gestures, so changing how gestures are normalized does not require
+re-recording.
 
 ## 3. Subsystems
 
@@ -243,25 +258,41 @@ writes datasets. Design: `data-collection/docs/design.md`.
 
 ### 3.2 Training
 
-A command-line tool that turns a training dataset into a trained classifier.
-It merges datasets, splits and normalizes the samples, trains and evaluates
-classifiers, and saves the result.
+A command-line tool that turns the datasets into trained classifiers. It has
+three functions (section 2.3), built from four components:
 
-- **Several classifiers, one workflow.** Every classifier is trained,
-  evaluated and saved in the same way, through the classifier interface in the
-  shared library. Adding a classifier does not change the workflow.
-- **Experiments.** One configuration file describes one experiment: the
-  dataset, the split, the normalization settings and the classifiers with
-  their settings.
-- **Runs.** Each run writes its own folder holding the experiment
-  configuration, the identity of the dataset it used, the metrics and the
-  trained classifiers, so that any result can be traced and repeated.
-- **Comparison.** A report puts the runs side by side on the measures in
-  section 2.3.
+- **Training data.** The consolidated table of raw and normalized gestures. It
+  loads the table, filters it by column, shuffles it, splits it by percentage
+  and delivers it whole or in batches.
+- **Trainer.** The one interface through which a model of any family is
+  trained and evaluated, and its trained model saved. It takes a set of
+  hyperparameter values, a set to train on and a set to evaluate on, and
+  reports a standard set of metrics. A family may add metrics of its own.
+  Each family has a trainer; a family that needs nothing special uses the
+  common implementation, and a data scientist can subclass it when one is
+  needed. A trainer validates the hyperparameter values it receives.
+- **Explorer.** Enumerates the hyperparameter candidates of a space, selects the
+  validation folds of the training set, invokes the trainer for each
+  hyperparameter candidate on each fold, collects the metrics, ranks the
+  hyperparameter candidates with a comparator and stores the results. A stored
+  exploration can be loaded to answer questions about its hyperparameter
+  candidates. There is one explorer for each way of validating a hyperparameter
+  candidate, such as k-fold or a single split.
+- **Experiment definitions.** Named files in git, treated as code, that
+  state the family, the hyperparameter space, the validation scheme and the
+  comparator of an exploration. Each exploration run keeps a copy of the
+  definition it used.
 
-The classifiers to compare are Naive Bayes, a support vector machine, a random
-forest and a neural network for time series. Design:
-`training/docs/design.md`.
+The classifier families are open. Examples are a probabilistic model such as
+Naive Bayes, a margin-based model such as a support vector machine, an
+ensemble such as a random forest, and a neural network such as a multilayer
+perceptron. A family is added with a trainer and an experiment definition, and
+the workflow does not change. Each family has a design document of its own
+that describes its hyperparameters.
+
+Every exploration and every training run writes a report in `reports/`, and
+every trained classifier is saved in `models/`, as laid out in section 6.
+Design: `training/docs/design.md`.
 
 ### 3.3 Inference
 
@@ -291,48 +322,103 @@ calibration adjusts.
 Gestures differ in duration (a quick flick or a slow circle) and in the number
 of positions (cameras deliver different frame rates and drop frames), while
 most classifiers need an input of one fixed size. Normalization turns any
-gesture into the same form, in four steps:
+gesture into the same form. Input: the timestamped positions of one gesture.
+Output: the normalized gesture. It has four steps.
 
-1. **Resample.** The positions are resampled to a fixed number of points,
-   spaced at equal time intervals from the first position to the last, by
-   linear interpolation. A gesture with fewer positions is interpolated up to
-   that number of points.
-2. **Vectors.** The displacement between consecutive points (horizontal and
-   vertical, in frame-heights) is one motion vector. The points are equally
-   spaced in time, so a vector's length shows how fast that part of the gesture
-   was relative to the rest, and the vector's direction keeps the order of the
-   motion. A circle drawn clockwise and counterclockwise gives opposite
-   vectors.
-3. **Context values.** Resampling removes the gesture's duration, so the
-   duration in seconds is added as a separate value. The start position can
-   also be added, so that a classifier can use where in the frame the gesture
-   was drawn.
-4. **Output.** The vectors and context values come in two shapes: a flat list
-   of numbers for Naive Bayes, the support vector machine and the random
-   forest, and a sequence for the neural network.
+1. **Resample in time.** The gesture's duration is divided into equal time
+   intervals, and the position at each interval boundary is read from the
+   recorded path by linear interpolation. The result is a fixed number of
+   points, spaced equally in time from the first position to the last. The
+   points are new positions on the path, not the camera's frames: a gesture
+   recorded with fewer frames, or with a dropped frame, gives the same number
+   of points as any other. Horizontal positions are scaled by the frame's
+   aspect ratio first, so both axes are in frame-heights (section 5.2).
+2. **Shift to the origin.** The first point is subtracted from every point, so
+   that every gesture starts at (0, 0). Where in the frame the gesture was
+   drawn is discarded.
+3. **Steps.** Each step runs from one point to the next. It is described by
+   three numbers: the horizontal and vertical displacement (dx, dy) in
+   frame-heights, and the magnitude of the displacement, the square root of
+   dx squared plus dy squared. A step does not depend on the other points or
+   on absolute position. The displacement is the magnitude times the cosine
+   and the sine of the step's direction, so (dx, dy) carries direction and
+   length together. The magnitude is stored as well because a classifier
+   cannot easily derive a square root from its inputs. N points give N - 1
+   steps.
+4. **Duration.** Resampling removes how long the gesture took, so the duration
+   in seconds is added as one more value.
 
-The number of points and the choice of context values are settings of the
-experiment. They are saved with the trained classifier, and inference applies
-the same ones. Input: the positions of one gesture. Output: the normalized
-gesture.
+The output is one list of numbers: the (dx, dy, magnitude) of every step in
+order, followed by the duration. Every classifier reads this list.
 
-Resampling in time, and not along the path's length, keeps the speed profile
-of the gesture, which can tell spells apart.
+Because the points are equally spaced in time, the magnitude of a step shows
+how fast that part of the gesture was, relative to the rest, and the
+duration gives the absolute speed. The order of the steps keeps the order of
+the motion, and the signs of dx and dy keep its direction: a circle drawn
+clockwise and one drawn counterclockwise give opposite displacements. Spacing
+the points along the path's length instead would erase the speed pattern,
+which can tell spells apart.
+
+**Example.** A gesture lasts 1.0 second. The camera dropped a frame between
+0.20 and 0.45 seconds, so the recorded frames are unevenly spaced (the
+vertical axis points down):
+
+```text
+   t      x     y
+  0.00   0.30  0.50
+  0.10   0.34  0.44
+  0.20   0.40  0.38
+  0.45   0.52  0.30      <- no frame between 0.20 and 0.45
+  0.50   0.54  0.30
+  0.80   0.60  0.38
+  1.00   0.62  0.46
+```
+
+To produce 5 points, the time axis is divided into 4 equal intervals, so the
+points are at 0, 0.25, 0.50, 0.75 and 1.00 seconds. At 0.25 the path lies
+between the frames at 0.20 and 0.45, one fifth of the way along that gap, so
+x = 0.40 + 0.2 * (0.52 - 0.40) = 0.424 and y = 0.38 + 0.2 * (0.30 - 0.38) =
+0.364. After the other points are found in the same way and the first is
+subtracted from all of them, the points and steps are:
+
+```text
+   t     point P (after the shift)       step      dx      dy    magnitude
+  0.00   P0 = ( 0.000,  0.000)
+  0.25   P1 = ( 0.124, -0.136)           P0 to P1  +0.124  -0.136   0.184
+  0.50   P2 = ( 0.240, -0.200)           P1 to P2  +0.116  -0.064   0.132
+  0.75   P3 = ( 0.290, -0.133)           P2 to P3  +0.050  +0.067   0.083
+  1.00   P4 = ( 0.320, -0.040)           P3 to P4  +0.030  +0.093   0.098
+```
+
+The first step equals P1 only because P0 is (0, 0); every other step is the
+difference of two consecutive points. The magnitudes show that the gesture
+starts fast, slows down and speeds up again. The normalized gesture is the
+four triples above followed by the duration, 1.0.
+
+The normalization is fixed: 64 points, which give 63 steps and a list of
+190 numbers (63 times 3, plus the duration). It is not a tunable setting. The
+number of points is chosen so that resampling changes the shape of a typical
+gesture very little. The settings are saved with every classifier, so that
+inference can detect a mismatch.
 
 ### 4.4 Gesture classification
 
 A model trained on labeled gestures. Input: one normalized gesture. Output: a
 spell (a label identifier) and a confidence score between 0 and 1.
 
-- Every classifier family implements one interface: train on labeled gestures,
-  predict a spell with its confidence, save and load. Training and inference
-  both use it.
+- A **classifier** wraps a trained model of one family. Every family
+  implements one interface: load, and predict a spell with its confidence.
+  Inference uses only this interface. Training a model, and saving it in the
+  form the classifier loads, is the work of the training subsystem's
+  trainers, so inference needs none of the training code or its
+  dependencies.
 - The confidence is the probability the model gives to the predicted spell.
 - A motion that is not a spell, or a spell drawn backward, is rejected by a low
   confidence, not by a class of its own. The confidence threshold that rejects
-  them is chosen in training.
-- A trained classifier is saved with its list of labels, the normalization
-  settings it needs, and the recommended confidence threshold.
+  them is set in the configuration of the action trigger; the training reports
+  show how to choose it.
+- A saved classifier carries its list of labels and the normalization settings
+  it needs.
 - The classifier does not decide whether to act on the result; the action
   trigger applies the confidence threshold.
 
@@ -342,8 +428,9 @@ Maps a recognized spell to an effect: an on-screen visual, a sound, or, if
 time permits, device control. Input: a spell and its confidence. The effect for
 each spell is set in `config/actions.yaml`. The trigger applies the confidence
 threshold: below it nothing is performed and the user is told the gesture was
-not recognized. The threshold starts at the value saved with the classifier
-and can be overridden in configuration.
+not recognized. The threshold is a setting in `config/actions.yaml`; the
+training reports show how false triggers and recognition trade off, to help
+choose it.
 
 ### 4.6 Shared library
 
@@ -359,10 +446,10 @@ in more than one subsystem. Design: `lib/docs/design.md`.
   and ends, using the motion settings. It reports finished gestures, discarded
   motion and the live moving or idle state.
 - **Normalizer** implements gesture normalization.
-- **Classifiers** hold the classifier interface and the classifier families,
-  and save and load trained classifiers. The heavy dependency of the neural
-  network is optional, so an installation without it still runs the other
-  families.
+- **Classifiers** hold the classifier interface and the classifier families:
+  load and predict. They hold no training code and save nothing. A family with a
+  heavy dependency, such as a neural network, makes it optional, so an
+  installation without it still runs the other families.
 - **Color calibrator** derives vision settings from points the user clicks on
   the tip.
 - **Motion calibrator** proposes motion settings from a short measurement of
@@ -387,6 +474,10 @@ with recorded video and synthetic data.
 | OpenCV color filtering | The wand is a brightly colored ball |
 | One shared library | Identical processing for training and inference |
 | Classifiers in the library | Training and inference load the same code |
+| Training code outside it | Inference needs no training dependencies |
+| Fixed normalization | One form for every classifier; tuning is on models |
+| Training data as parquet | Compact, typed columns, fast to load |
+| Random split of all data | The usual practice for a pooled dataset |
 | Resampling in time | Keeps the speed profile and order of the motion |
 | Split by session | Samples of one session resemble each other |
 | uv workspace, ruff | Reproducible environments, one style |
@@ -402,8 +493,8 @@ Data collection produces datasets and calibrated settings. This is how each
 kind of data is used afterwards.
 
 - **Samples** (timestamped tip positions with a label and status) are the
-  training data. Motion vectors are computed from the positions by the shared
-  library, the same way inference computes vectors from live positions.
+  training data. Normalized gestures are computed from the positions by the
+  shared library, the same way inference normalizes live positions.
 - **Settings** (vision and motion) are recorded in every session so that the
   conditions of each sample are known. At inference the run-time application
   applies settings of the same kind, from a calibration done for the current
@@ -444,7 +535,7 @@ All configuration is in `config/`.
   speed thresholds, the valid gesture duration and the minimum gesture size.
   Calibration starts from these.
 - `actions.yaml` (in git): the effect for each spell, and the confidence
-  threshold override of the action trigger.
+  threshold of the action trigger.
 - `data-collection.yaml` (in git): settings of the data collection
   application, such as where datasets are stored, the requested camera mode,
   the countdown length, the video clip padding and the keyboard shortcuts.
@@ -482,30 +573,52 @@ magic-wand/
     tests/
   training/           training tool
     docs/             requirements, design, tasks
+    experiments/      experiment definitions, by family (in git)
     src/              training code
     tests/
   inference/          inference application
     docs/             requirements, design, tasks
     src/              application code
     tests/
-  data/               default dataset location; not in git
-  training-data/      shared training dataset of all users; in git, no video
-  runs/               default location of training runs; not in git
-  models/             trained classifiers chosen for inference
+  data/               datasets, one folder per dataset; in git, no video
+  training-data/      consolidated raw and normalized gestures; in git
+  reports/            exploration and training reports; in git
+  models/             trained classifiers; in git
 ```
+
+`data/` holds several datasets side by side, each a data folder as defined in
+`docs/data-handling.md`, for example one for each person who records. The
+datasets are shared through git, and video clips are excluded from it.
+Training reads all of them, or the ones the user names.
+
+`reports/` and `models/` are organized by classifier family. The results of
+explorations, which cover many hyperparameter candidates, and the results of
+final training, which cover one model, are kept apart. A model has an identifier
+of the form `<family>-<timestamp>`, and the same identifier names its report and
+its files:
+
+```text
+reports/
+  index.md                      every exploration and model, with links
+  <family>/
+    exploration/<run id>/       definition copy, results, report, figures
+    training/<model id>/        metrics, predictions, report, figures
+models/
+  <family>/<model id>/          the classifier and its metadata
+```
+
+An exploration run can be deleted without affecting any model, because a
+training report and a saved classifier carry their own hyperparameters.
 
 Each subsystem is a workspace member with its own `pyproject.toml`, `docs/`,
 `src/` and `tests/`. The `training/` and `inference/` folders are created when
-their tasks start.
+their tasks start. Inference configuration names the model identifier to
+load.
 
 ## 7. To Do
 
 Items to fill in before final submission:
 
-- Training design: the experiment configuration format, the default number of
-  points and context values for normalization, the settings of each
-  classifier, whether training adds an explicit reject class, and how
-  left-handed samples are treated.
 - Data collection: recording non-spell samples under a label that is not a
   spell.
 - Action trigger: the effects for each spell, and physical actuation if time

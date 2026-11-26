@@ -31,9 +31,9 @@ the changed keys in a `*.local.yaml` file beside the original (for example
 uv run wand-collect serve --config <folder> --data-folder <folder>
 ```
 
-Recorded datasets are stored in `data/` by default (not in git). The
-datasets of all users are merged into `training-data/` (in git, without video
-clips); see `docs/data-handling.md`.
+Recorded datasets are stored in `data/`, one folder for each dataset (in git,
+without video clips). Training consolidates them into `training-data/`; see
+`docs/data-handling.md`.
 
 To check the code: `uv run ruff format --check`, `uv run ruff check` and
 `uv run pytest`.
