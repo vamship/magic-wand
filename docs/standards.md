@@ -1,6 +1,6 @@
 # Standards
 
-> **Version** 4 | **Updated** 2026-11-01 | **Approved**
+> **Version** 5 | **Updated** 2026-11-26 | **Draft**
 
 ## Overview
 
@@ -208,9 +208,13 @@ what the reader will learn from it.
 
 1. **Independent of source code.** Code is generated from the design, so the
    design describes the system rather than the code. Do not name files,
-   modules, classes, functions or library calls. Interface specifications are
-   allowed because they define behavior: file formats, configuration keys,
-   HTTP endpoints, command-line commands and event names.
+   functions or library calls. Interface specifications are allowed because
+   they define behavior: file formats, configuration keys, HTTP endpoints,
+   command-line commands and event names. A design may name and describe the
+   key classes or modules, for example in a class diagram, with what each is
+   responsible for and how they relate. It does not define them: no
+   attributes, method signatures or code. Those are decided when the code is
+   written.
 2. **Lucid.** A reader should understand what challenge the design faces and
    how the design addresses it, without being buried in words.
 3. **No chain of thought.** State the decision and a brief reason. Do not
