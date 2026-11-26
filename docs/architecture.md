@@ -1,6 +1,6 @@
 # Architecture
 
-> **Version** 8 | **Updated** 2026-11-26 | **Draft**
+> **Version** 9 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
@@ -83,9 +83,9 @@ is classified and acted on as soon as it ends.
 3. Motion detection watches the stream of tip positions. A gesture starts when
    the tip's speed rises above a threshold and ends when it falls below one.
    Motion that lasts too long or covers too little distance is discarded.
-4. Gesture normalization converts the gesture's positions into motion vectors
-   (direction and speed) of a fixed length, whatever the gesture's duration
-   or the camera's frame rate (section 4.3).
+4. Gesture normalization converts the gesture's positions into a list of
+   motion steps of a fixed length, whatever the gesture's duration or the
+   camera's frame rate (section 4.3).
 5. The classifier receives the normalized gesture and outputs a spell and a
    confidence score.
 6. The action trigger performs the action for the spell. If the confidence is
@@ -239,9 +239,9 @@ as a class; it uses those samples only as test cases.
 Vision, motion detection, gesture normalization and the classifiers are
 implemented once, in the shared library, and every subsystem runs that
 implementation. A gesture seen live therefore has the same form as a gesture
-the classifier was trained on. Vectors are computed from positions at load
-time rather than stored, so changing how vectors are built or normalized does
-not require re-recording.
+the classifier was trained on. Normalized gestures are computed from positions
+rather than stored with the samples, so changing how gestures are normalized
+does not require re-recording.
 
 ## 3. Subsystems
 
@@ -314,34 +314,84 @@ calibration adjusts.
 Gestures differ in duration (a quick flick or a slow circle) and in the number
 of positions (cameras deliver different frame rates and drop frames), while
 most classifiers need an input of one fixed size. Normalization turns any
-gesture into the same form, in four steps:
+gesture into the same form. Input: the timestamped positions of one gesture.
+Output: the normalized gesture. It has four steps.
 
-1. **Resample.** The positions are resampled to a fixed number of points,
-   spaced at equal time intervals from the first position to the last, by
-   linear interpolation. A gesture with fewer positions is interpolated up to
-   that number of points.
-2. **Vectors.** The displacement between consecutive points (horizontal and
-   vertical, in frame-heights) is one motion vector. The points are equally
-   spaced in time, so a vector's length shows how fast that part of the gesture
-   was relative to the rest, and the vector's direction keeps the order of the
-   motion. A circle drawn clockwise and counterclockwise gives opposite
-   vectors.
-3. **Context values.** Resampling removes the gesture's duration, so the
-   duration in seconds is added as a separate value. The start position can
-   also be added, so that a classifier can use where in the frame the gesture
-   was drawn.
-4. **Output.** The vectors and context values come in two shapes: a flat list
-   of numbers for Naive Bayes, the support vector machine and the random
-   forest, and a sequence for the neural network.
+1. **Resample in time.** The gesture's duration is divided into equal time
+   intervals, and the position at each interval boundary is read from the
+   recorded path by linear interpolation. The result is a fixed number of
+   points, spaced equally in time from the first position to the last. The
+   points are new positions on the path, not the camera's frames: a gesture
+   recorded with fewer frames, or with a dropped frame, gives the same number
+   of points as any other. Horizontal positions are scaled by the frame's
+   aspect ratio first, so both axes are in frame-heights (section 5.2).
+2. **Shift to the origin.** The first point is subtracted from every point, so
+   that every gesture starts at (0, 0). Where in the frame the gesture was
+   drawn is discarded.
+3. **Steps.** Each step runs from one point to the next. It is described by
+   three numbers: the horizontal and vertical displacement (dx, dy) in
+   frame-heights, and the magnitude of the displacement, the square root of
+   dx squared plus dy squared. A step does not depend on the other points or
+   on absolute position. The displacement is the magnitude times the cosine
+   and the sine of the step's direction, so (dx, dy) carries direction and
+   length together. The magnitude is stored as well because a classifier
+   cannot easily derive a square root from its inputs. N points give N - 1
+   steps.
+4. **Duration.** Resampling removes how long the gesture took, so the duration
+   in seconds is added as one more value.
 
-The normalization is fixed: 64 points, with both context values. It is
-not a tunable setting. The number of points is chosen so that resampling
-changes the shape of a typical gesture very little. The settings are saved
-with every classifier, so that inference can detect a mismatch. Input: the
-positions of one gesture. Output: the normalized gesture.
+The output is one list of numbers: the (dx, dy, magnitude) of every step in
+order, followed by the duration. Every classifier reads this list.
 
-Resampling in time, and not along the path's length, keeps the speed profile
-of the gesture, which can tell spells apart.
+Because the points are equally spaced in time, the magnitude of a step shows
+how fast that part of the gesture was, relative to the rest, and the
+duration gives the absolute speed. The order of the steps keeps the order of
+the motion, and the signs of dx and dy keep its direction: a circle drawn
+clockwise and one drawn counterclockwise give opposite displacements. Spacing
+the points along the path's length instead would erase the speed pattern,
+which can tell spells apart.
+
+**Example.** A gesture lasts 1.0 second. The camera dropped a frame between
+0.20 and 0.45 seconds, so the recorded frames are unevenly spaced (the
+vertical axis points down):
+
+```text
+   t      x     y
+  0.00   0.30  0.50
+  0.10   0.34  0.44
+  0.20   0.40  0.38
+  0.45   0.52  0.30      <- no frame between 0.20 and 0.45
+  0.50   0.54  0.30
+  0.80   0.60  0.38
+  1.00   0.62  0.46
+```
+
+To produce 5 points, the time axis is divided into 4 equal intervals, so the
+points are at 0, 0.25, 0.50, 0.75 and 1.00 seconds. At 0.25 the path lies
+between the frames at 0.20 and 0.45, one fifth of the way along that gap, so
+x = 0.40 + 0.2 * (0.52 - 0.40) = 0.424 and y = 0.38 + 0.2 * (0.30 - 0.38) =
+0.364. After the other points are found in the same way and the first is
+subtracted from all of them, the points and steps are:
+
+```text
+   t     point P (after the shift)       step      dx      dy    magnitude
+  0.00   P0 = ( 0.000,  0.000)
+  0.25   P1 = ( 0.124, -0.136)           P0 to P1  +0.124  -0.136   0.184
+  0.50   P2 = ( 0.240, -0.200)           P1 to P2  +0.116  -0.064   0.132
+  0.75   P3 = ( 0.290, -0.133)           P2 to P3  +0.050  +0.067   0.083
+  1.00   P4 = ( 0.320, -0.040)           P3 to P4  +0.030  +0.093   0.098
+```
+
+The first step equals P1 only because P0 is (0, 0); every other step is the
+difference of two consecutive points. The magnitudes show that the gesture
+starts fast, slows down and speeds up again. The normalized gesture is the
+four triples above followed by the duration, 1.0.
+
+The normalization is fixed: 64 points, which give 63 steps and a list of
+190 numbers (63 times 3, plus the duration). It is not a tunable setting. The
+number of points is chosen so that resampling changes the shape of a typical
+gesture very little. The settings are saved with every classifier, so that
+inference can detect a mismatch.
 
 ### 4.4 Gesture classification
 
@@ -432,8 +482,8 @@ Data collection produces datasets and calibrated settings. This is how each
 kind of data is used afterwards.
 
 - **Samples** (timestamped tip positions with a label and status) are the
-  training data. Motion vectors are computed from the positions by the shared
-  library, the same way inference computes vectors from live positions.
+  training data. Normalized gestures are computed from the positions by the
+  shared library, the same way inference normalizes live positions.
 - **Settings** (vision and motion) are recorded in every session so that the
   conditions of each sample are known. At inference the run-time application
   applies settings of the same kind, from a calibration done for the current
