@@ -1,16 +1,17 @@
 # Shared Library - Design
 
-> **Version** 2 | **Updated** 2026-11-05 | **Approved**
+> **Version** 3 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
 The shared library, installed as `wand-core`, is the single implementation of
-vision, motion detection and the dataset format. Data collection uses it now
-and the run-time system will use it later. This document describes its
-components, how they work together, the settings that control them, and how
-they are tested. After reading it you will know what the library does, what
-each component is responsible for, and what each setting means. System context
-is in `docs/architecture.md`; the dataset layout is in `docs/data-handling.md`.
+vision, motion detection, the dataset format, gesture normalization and the
+classifiers. Data collection, training and inference use it. This document
+describes its components, how they work together, the settings that control
+them, and how they are tested. After reading it you will know what the
+library does, what each component is responsible for, and what each setting
+means. System context is in `docs/architecture.md`; the dataset layout is in
+`docs/data-handling.md`.
 
 A gesture classifier is trained on recorded data and then fed live data. If
 the two are produced by different code, or by differently tuned code, the
@@ -28,7 +29,10 @@ with many cameras and lighting conditions, and be testable without a camera.
 - **Segmenter**: watches the stream of tip positions and decides when a
   gesture starts and ends. It reports each finished gesture, or a reason the
   motion was discarded, and continuously reports whether the tip is moving.
-- **Vector builder**: converts a gesture's positions into motion vectors.
+- **Normalizer**: converts a gesture's positions into the fixed-length form
+  that classifiers read.
+- **Classifiers**: predict a spell and a confidence from a normalized gesture,
+  and save and load trained classifiers. They contain no training code.
 - **Color calibrator**: derives vision settings from points the user clicks on
   the wand tip in a frame.
 - **Motion calibrator**: proposes motion settings from a short guided
@@ -47,9 +51,12 @@ with many cameras and lighting conditions, and be testable without a camera.
                           | gesture (positions)       | live state|
                           v                           v           v
                     Dataset store              speed, moving?   discard
-                    Vector builder             (for tuning UIs) reasons
+                    Normalizer                 (for tuning UIs) reasons
                     Path renderer
 ```
+
+The normalizer's output is what the classifiers read, in training and in
+inference.
 
 Calibration uses the same pieces:
 
@@ -204,20 +211,37 @@ It then proposes `endSpeed` as a multiple of the idle ceiling, and
 `startSpeed` between that and the typical gesture speed. The user checks and
 adjusts the proposal on the motion tuning screen of the application.
 
-## 10. Vector builder
+## 10. Normalizer
 
-For each pair of consecutive positions in a gesture the builder produces the
-displacement (horizontal and vertical, in frame-heights), the elapsed time, and
-the resulting speed. This is the representation the classifier consumes. It is
-computed on demand from stored positions and never stored. Resampling to a
-fixed rate is left to classification.
+The normalizer implements gesture normalization as specified in
+`docs/architecture.md`, section 4.3: resample in time to a fixed number of
+points, shift to the origin, describe each step by its horizontal and vertical
+displacement and its magnitude, and add the duration.
+
+- **Input**: the positions of one gesture (times in seconds from the first
+  position, horizontal and vertical as fractions of the frame) and the frame
+  size. Horizontal positions are scaled by the aspect ratio so that both axes
+  are in frame-heights.
+- **Output**: the normalized gesture, one list of numbers: the (dx, dy,
+  magnitude) of every step in order, then the duration. With the fixed 64
+  points it has 190 numbers.
+- **Settings**: the number of points (64), recorded in every saved classifier
+  and in the training data. The normalizer also has a version number that
+  increases whenever a change alters its output.
+- **Edge cases**: a gesture needs at least two positions and a duration above
+  zero; otherwise it is rejected with a message. Positions with equal
+  timestamps are merged before interpolation. A gesture with fewer positions
+  than points is interpolated up; one with more is interpolated down.
+- It works on one gesture at a time and on many at once, with the same result.
+  It is computed on demand from stored positions and never stored in a
+  dataset.
 
 ## 11. Path renderer
 
 Draws a gesture's path with a color gradient from green at the start to red at
 the end and small markers at both ends. It draws the positions it is given;
-mirroring for display is the caller's choice. Two modes: the path alone on a black background, or the path over a
-supplied camera frame. Rendering is a small drawing operation, fast enough to
+mirroring for display is the caller's choice. Two modes: the path alone on a
+black background, or the path over a supplied camera frame. Rendering is a small drawing operation, fast enough to
 generate on demand.
 
 ## 12. Dataset store
@@ -230,10 +254,37 @@ Implements `docs/data-handling.md`:
 - list and filter samples by label, session, author, date and status;
 - atomic writes and the startup cleanup of leftovers;
 - consistency check, export to a single file, and merge of data folders;
-- load a data folder or an export file into the same in-memory form for
+- find the datasets in a data location, where each folder holding a dataset
+  file is one dataset, and open one or several of them;
+- load data folders or an export file into the same in-memory form for
   training.
 
-## 13. Testing
+## 13. Classifiers
+
+A classifier wraps a trained model of one family and has one interface:
+
+- **Predict**: for a normalized gesture, return the probability of every
+  label. The predicted spell is the label with the highest probability, and
+  its probability is the confidence. A batch of gestures can be predicted at
+  once, with the same results as one at a time.
+- **Save and load**: a classifier is saved as a folder holding the model in
+  the family's own form and a `classifier.json` file with `formatVersion`, the
+  family, the label ids in the order of the probabilities, the normalization
+  settings and version, and the recommended confidence threshold. Loading
+  rejects an unknown format version, and rejects a classifier whose
+  normalization settings or version differ from the library's.
+
+The library implements the prediction side of each family named in
+`training/docs/design.md`. A family with a heavy dependency, such as a neural
+network, declares it as optional, and loading such a classifier without the
+dependency fails with a message that says what to install. Model files come
+from this repository and are trusted; a loader must not be given files from
+elsewhere.
+
+Training lives in the training subsystem. A trainer builds a trained model and
+hands it to the library to wrap as a classifier.
+
+## 14. Testing
 
 - **Tracker**: synthetic videos of a colored disk moving along known paths,
   with noise and varied background and brightness; recovered centers are
@@ -251,5 +302,15 @@ Implements `docs/data-handling.md`:
   (new, identical and conflicting sessions) and simulated crashes such as a
   leftover temporary file.
 - **Frame source**: a recorded clip replays with the expected timestamps.
+- **Normalizer**: the example in `docs/architecture.md`, section 4.3,
+  reproduces its points and steps; the same shape drawn in 1 and in 2
+  seconds, or elsewhere in the frame, gives the same steps; a gesture with a
+  dropped frame gives the same number of points; too few positions, a zero
+  duration and equal timestamps behave as in section 10; batch and single
+  results agree.
+- **Classifiers**: each family on small synthetic data predicts probabilities
+  that sum to 1; a saved classifier loads and predicts the same values; a
+  changed format version, normalization setting or normalization version is
+  rejected; a missing optional dependency gives the message of section 13.
 - Real recordings from data collection can be added later as regression
   fixtures.
