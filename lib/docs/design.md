@@ -31,8 +31,9 @@ with many cameras and lighting conditions, and be testable without a camera.
   motion was discarded, and continuously reports whether the tip is moving.
 - **Normalizer**: converts a gesture's positions into the fixed-length form
   that classifiers read.
-- **Classifiers**: predict a spell and a confidence from a normalized gesture,
-  and save and load trained classifiers. They contain no training code.
+- **Classifiers**: load a trained model and predict a spell and a confidence
+  from a normalized gesture. They contain no training code and never write a
+  model.
 - **Color calibrator**: derives vision settings from points the user clicks on
   the wand tip in a frame.
 - **Motion calibrator**: proposes motion settings from a short guided
@@ -248,41 +249,45 @@ small drawing operation, fast enough to generate on demand.
 
 Implements `docs/data-handling.md`:
 
-- create and open data folders; create sessions; write, update and delete
+- Create and open data folders; create sessions; write, update and delete
   samples and their clips, treating a missing or removed clip as "no clip"
   and never as an error;
-- list and filter samples by label, session, author, date and status;
-- atomic writes and the startup cleanup of leftovers;
-- consistency check, export to a single file, and merge of data folders;
-- find the datasets in a data location, where each folder holding a dataset
+- List and filter samples by label, session, author, date and status;
+- Atomic writes and the startup cleanup of leftovers;
+- Consistency check, export to a single file, and merge of data folders;
+- Find the datasets in a data location, where each folder holding a dataset
   file is one dataset, and open one or several of them;
-- load data folders or an export file into the same in-memory form for
+- Load data folders or an export file into the same in-memory form for
   training.
 
 ## 13. Classifiers
 
 A classifier wraps a trained model of one family and has one interface:
 
+- **Load**: read a classifier from a folder. Loading rejects an unknown format
+  version, and rejects a classifier whose normalization settings or version
+  differ from the library's.
 - **Predict**: for a normalized gesture, return the probability of every
   label. The predicted spell is the label with the highest probability, and
   its probability is the confidence. A batch of gestures can be predicted at
   once, with the same results as one at a time.
-- **Save and load**: a classifier is saved as a folder holding the model in
-  the family's own form and a `classifier.json` file with `formatVersion`, the
-  family, the label ids in the order of the probabilities, the normalization
-  settings and version, and the recommended confidence threshold. Loading
-  rejects an unknown format version, and rejects a classifier whose
-  normalization settings or version differ from the library's.
 
-The library implements the prediction side of each family named in
-`training/docs/design.md`. A family with a heavy dependency, such as a neural
-network, declares it as optional, and loading such a classifier without the
-dependency fails with a message that says what to install. Model files come
-from this repository and are trusted; a loader must not be given files from
-elsewhere.
+The library only loads. Training and saving belong to the training
+subsystem: a trainer trains the model and writes it in the form below. The
+library specifies that form, because the library has to read it.
 
-Training lives in the training subsystem. A trainer builds a trained model and
-hands it to the library to wrap as a classifier.
+A classifier is a folder holding the model in the family's own form, and a
+`classifier.json` file with `formatVersion`, the family, the label ids in the
+order of the probabilities, the normalization settings and version, and the
+recommended confidence threshold. Training adds further fields (the model id,
+the hyperparameters, a summary of the metrics, the training data fingerprint
+and the report path); the library ignores them.
+
+The library implements the prediction side of each family that has a trainer.
+A family with a heavy dependency, such as a neural network, declares it as
+optional, and loading such a classifier without the dependency fails with a
+message that says what to install. Model files come from this repository and
+are trusted; a loader must not be given files from elsewhere.
 
 ## 14. Testing
 
@@ -308,8 +313,9 @@ hands it to the library to wrap as a classifier.
   dropped frame gives the same number of points; too few positions, a zero
   duration and equal timestamps behave as in section 10; batch and single
   results agree.
-- **Classifiers**: each family on small synthetic data predicts probabilities
-  that sum to 1; a saved classifier loads and predicts the same values; a
+- **Classifiers**: a small model is built directly with each family's own
+  library and written in the form of section 13; it loads and predicts
+  probabilities that sum to 1, and batch and single predictions agree; a
   changed format version, normalization setting or normalization version is
   rejected; a missing optional dependency gives the message of section 13.
 - Real recordings from data collection can be added later as regression
