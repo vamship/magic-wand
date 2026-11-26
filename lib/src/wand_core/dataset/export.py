@@ -10,22 +10,23 @@ Reading never writes to the folders.
 from __future__ import annotations
 
 import json
-from collections.abc import Iterable, Iterator
+from collections.abc import Collection, Iterable, Iterator
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
+from wand_core.dataset.discovery import (
+    SessionConflictError,
+    session_conflicts,
+    session_dirs,
+)
 from wand_core.dataset.fileio import (
     DATASET_FILE,
     SAMPLES_FILE,
-    SESSION_FILE,
-    SESSIONS_FOLDER,
-    TEMP_SUFFIX,
     NotADatasetError,
     dump_line,
     read_dataset_info,
     read_samples,
-    read_session,
 )
 from wand_core.dataset.models import (
     DatasetError,
@@ -94,28 +95,22 @@ class LoadedSample:
 
 
 def iter_folder(
-    folder: Path, keep: SampleFilter | None = None
+    folder: Path,
+    keep: SampleFilter | None = None,
+    exclude_sessions: Collection[str] = (),
 ) -> Iterator[tuple[SampleRecord, SessionRecord]]:
     """Samples of a data folder with their sessions, oldest session first.
 
-    Reads only: nothing is cleaned up or repaired.
+    Sessions whose id is in ``exclude_sessions`` are left out. Reads only:
+    nothing is cleaned up or repaired.
     """
     folder = Path(folder)
     if not (folder / DATASET_FILE).is_file():
         raise NotADatasetError(f"{folder} is not a dataset folder")
     read_dataset_info(folder / DATASET_FILE)  # refuses unknown versions
-    sessions = []
-    sessions_dir = folder / SESSIONS_FOLDER
-    for session_dir in (
-        sorted(sessions_dir.iterdir()) if sessions_dir.is_dir() else []
-    ):
-        if session_dir.name.endswith(TEMP_SUFFIX):
+    for session_dir, session in session_dirs(folder):
+        if session.session_id in exclude_sessions:
             continue
-        if (session_dir / SESSION_FILE).is_file():
-            sessions.append(
-                (session_dir, read_session(session_dir / SESSION_FILE))
-            )
-    for session_dir, session in sorted(sessions, key=lambda s: s[1].started_at):
         for sample in read_samples(session_dir / SAMPLES_FILE):
             if keep is None or keep.keeps(sample, session):
                 yield sample, session
@@ -159,21 +154,39 @@ def _iter_export(
 
 
 def load_samples(
-    source: Path | Iterable[Path], keep: SampleFilter | None = None
+    source: Path | Iterable[Path],
+    keep: SampleFilter | None = None,
+    skip_conflicts: bool = False,
 ) -> list[LoadedSample]:
-    """Load a data folder, an export file, or several folders.
+    """Load a data folder, an export file, or several of them.
 
-    A file is read as an export, a folder as a data folder.
+    A file is read as an export, a folder as a data folder. A session that is
+    in more than one folder is loaded once. If its copies differ, loading
+    fails with an error that names the session, unless ``skip_conflicts`` is
+    true, which leaves such sessions out.
     """
     paths = (
         [Path(source)]
         if isinstance(source, (str, Path))
         else [Path(p) for p in source]
     )
+    folders = [p for p in paths if p.is_dir()]
+    conflicts: set[str] = set()
+    if len(folders) > 1:
+        found = session_conflicts(folders)
+        if found and not skip_conflicts:
+            names = ", ".join(sorted(found))
+            raise SessionConflictError(
+                f"these sessions differ between the data folders: {names}"
+            )
+        conflicts = set(found)
+    seen: set[str] = set()
     loaded: list[LoadedSample] = []
     for path in paths:
         if path.is_dir():
-            pairs = iter_folder(path, keep)
+            ids = {s.session_id for _, s in session_dirs(path)}
+            pairs = iter_folder(path, keep, exclude_sessions=conflicts | seen)
+            seen |= ids
         elif path.is_file():
             pairs = _iter_export(path, keep)
         else:

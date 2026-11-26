@@ -145,7 +145,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L9 | Dataset store: sessions and samples | Completed |
 | DC-L10 | Dataset store: check, export and load | Completed |
 | DC-L11 | Dataset store: merge | Completed |
-| DC-L12 | Dataset discovery | In progress |
+| DC-L12 | Dataset discovery | Completed |
 | DC-A1 | Application State | Completed |
 | DC-A2 | Application Server | Completed |
 | DC-A3 | Capture Engine | Completed |
@@ -982,7 +982,7 @@ half-copied session.
 ### DC-L12 Dataset discovery
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-L11
 - **Requirements**: R2.5, R2.10
 - **Design**: DH 3, 3.1, 7.1; Lib 12
@@ -1011,16 +1011,16 @@ data location (a folder such as `data/` whose subfolders are data folders), as
 
 **Acceptance criteria.**
 
-- [ ] A location with three datasets, a stray file and a folder without
+- [x] A location with three datasets, a stray file and a folder without
       `dataset.json` lists exactly the three, with the right counts.
-- [ ] `create_dataset` makes a folder that opens and passes the check; invalid
+- [x] `create_dataset` makes a folder that opens and passes the check; invalid
       names (uppercase, spaces, slashes, empty) and existing names are refused.
-- [ ] Loading two folders that share a session loads it once; with different
+- [x] Loading two folders that share a session loads it once; with different
       copies it fails naming the session, or skips it when asked.
-- [ ] The check on several folders reports open sessions as information and a
+- [x] The check on several folders reports open sessions as information and a
       conflicting duplicate as an error, and never writes.
-- [ ] Existing single-folder behavior and tests are unchanged.
-- [ ] No camera or running application is needed.
+- [x] Existing single-folder behavior and tests are unchanged.
+- [x] No camera or running application is needed.
 
 **Implementation notes.** Add `dataset/discovery.py`; extend `dataset/check.py`
 and the load code. Reuse the content comparison of the merge operation
