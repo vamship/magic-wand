@@ -1,6 +1,6 @@
 # Training Subsystem - Tasks
 
-> **Version** 1 | **Updated** 2026-11-26 | **Draft**
+> **Version** 1 | **Updated** 2026-11-26 | **Approved**
 
 ## 1. Overview
 
