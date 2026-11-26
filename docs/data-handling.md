@@ -1,6 +1,6 @@
 # Data Handling
 
-> **Version** 6 | **Updated** 2026-11-21 | **Approved**
+> **Version** 7 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
@@ -9,7 +9,7 @@ rules for handling datasets, the data folder layout, identifiers, file
 formats, write safety, and the export, merge and check operations. After
 reading it you will know where each piece of data lives, what the session
 and sample records contain, and what every tool must do when it reads or
-writes a dataset. Data collection writes this layout; the classifier and
+writes a dataset. Data collection writes this layout; training and other
 tools read it.
 
 Goals:
@@ -17,16 +17,15 @@ Goals:
 - Be organized and documented, with a clear place for everything.
 - Let sessions recorded in parallel, by different people on different machines,
   be combined without collisions.
-- Be directly loadable by the classifier.
+- Be directly loadable by training.
 - Never leave a half-written file behind, even after a crash.
 
 ## 2. Rules
 
-- A user's local dataset is not stored in git. The default location, `data/`,
-  is excluded from version control. A dataset can be placed in any folder on
-  the local machine by setting the data folder in
-  `config/data-collection.yaml`. The one dataset in git is the shared training
-  data (section 3.1), which never contains video clips.
+- Datasets are stored in `data/`, one folder for each dataset, and are shared
+  through git. Video clips are never committed (section 3.1). A dataset can
+  also be placed in any other folder on the local machine, by setting the
+  data folder in `config/data-collection.yaml`.
 - A session folder is self-contained and is the unit of exchange. Datasets are
   combined by merging session folders; merging never modifies a session or its
   inputs.
@@ -51,9 +50,21 @@ Goals:
 
 ## 3. The data folder
 
-A dataset lives in one **data folder**. The default is `data/` at the repository
-root, which is not under version control (recorded video makes datasets too
-large). The location is set in `config/data-collection.yaml`.
+A dataset lives in one **data folder**. The **data location**, `data/` at the
+repository root, holds several data folders side by side, one for each
+dataset, for example one for each person who records:
+
+```text
+data/
+  <dataset name>/              a data folder
+    dataset.json
+    sessions/
+```
+
+The name of the dataset is the name of its folder: a lowercase slug (letters,
+digits, hyphen and underscore). Datasets in `data/` are independent of each
+other. Which one the application records into is set in
+`config/data-collection.yaml`.
 
 The unit of storage and exchange is the **session folder**. It holds everything
 about one session, so a session can be copied, zipped, or sent to a user as
@@ -86,21 +97,26 @@ Not stored in the data folder:
   the operating system's user cache location. They can be deleted at any time.
   Keeping them out of the data folder keeps copies of it clean.
 
-### 3.1 Shared training data
+### 3.1 Sharing datasets
 
-`training-data/` at the repository root is a data folder in git. It holds the
-sessions of all users, so that everyone trains and evaluates on the same data.
+The datasets in `data/` are in git, so that everyone trains and evaluates on
+the same data.
 
-- It has the layout above, without `videos/` folders. Video clips are never
-  committed; `.gitignore` excludes them.
-- Only ended sessions are added, so a session in it never changes afterwards.
-- Sessions are added with the merge operation (section 7.3), skipping clips,
-  from the user's local data folder, and are submitted in a pull request.
+- Video clips are never committed. `.gitignore` excludes `data/**/videos/`;
+  the clips stay on the machine that recorded them.
+- A person commits only their own dataset folder, so two people never edit
+  the same files, and `dataset.json` is never in conflict.
+- Only ended sessions are committed, so a committed session never changes
+  afterwards (apart from its name and notes). A session that is still open is
+  left out of the commit; the consistency check lists open sessions.
 - A session is corrected by replacing it with the corrected copy through the
   merge operation's replace option, in a pull request of its own.
 - The consistency check must report no errors before a pull request merges.
-- Training reads it by default. A user can point training at a local data
-  folder for experiments.
+- Training reads every dataset in `data/` by default. A user can point
+  training at some of them, or at a folder elsewhere, for experiments.
+- Session ids are unique, so the same session can exist in more than one
+  dataset, for example after a merge. Tools that read several datasets use
+  such a session once, and report it if the copies differ.
 
 ## 4. Identifiers
 
@@ -245,8 +261,10 @@ considers the highest number in the samples file.
 
 Reports, without changing anything: temporary files, incomplete last lines in
 sample files, video clips with no sample, samples whose clip is missing,
-samples with an unknown label id, and files with an unsupported format
-version. Samples whose clip is missing are listed as information, not as
+samples with an unknown label id, sessions that are still open, and files
+with an unsupported format version. Given several data folders, it also
+reports a session present in more than one with different content. Samples
+whose clip is missing and open sessions are listed as information, not as
 errors.
 
 ### 7.2 Export
@@ -254,12 +272,14 @@ errors.
 Writes one consolidated file in JSON Lines format. Each line is one sample
 record with its session record embedded under `session`. The export can be
 filtered (for example, accepted samples only) and can read several data
-folders at once. It contains positions and metadata, not video. The classifier
-can load either a data folder or an export file.
+folders at once. It contains positions and metadata, not video. Training
+can load either data folders or an export file.
 
 ### 7.3 Merge
 
-Combines one or more source data folders into a target data folder:
+Combines one or more source data folders into a target data folder. It is how
+several datasets are made into one, for example to hand a person's recordings
+over as a single dataset:
 
 - Sources are only read and are never changed. Only the target is written.
 - Session folders that the target does not have are copied in whole. Session
