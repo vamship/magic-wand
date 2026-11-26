@@ -6,14 +6,14 @@
 
 This document describes the architecture of the magic wand system. It covers:
 
-- how data flows through the system when it collects data, trains a classifier
+- How data flows through the system when it collects data, trains a classifier
   and recognizes spells;
-- the subsystems and the components in them, and what each is responsible
+- The subsystems and the components in them, and what each is responsible
   for, including the shared library;
-- the technical decisions, data formats and configuration that every
+- The technical decisions, data formats and configuration that every
   subsystem follows;
-- how the repository is organized;
-- the items still to be filled in before final submission.
+- How the repository is organized;
+- The items still to be filled in before final submission.
 
 After reading it you will understand how the system works end to end and know
 where to find the detail for any part of it.
@@ -52,7 +52,7 @@ examples. The subsystems relate as follows:
   git for training.
 - **Training**: the datasets are normalized and consolidated into one table,
   the training data, hyperparameters are explored for each classifier family,
-  and the best candidate of a family is trained and evaluated.
+  and the best hyperparameter candidate of a family is trained and evaluated.
 - **Inference**: live video goes through all five components, in real time,
   using a trained classifier.
 
@@ -180,29 +180,31 @@ File formats and layout are in `docs/data-handling.md`.
 ### 2.3 Training
 
 Training has three functions: consolidate the data, explore hyperparameters,
-and train and evaluate a model.
+and train and evaluate a model. Each takes inputs and produces outputs:
 
 ```text
- Datasets (data/<name>/, in git)
-          |
-          v  1. Consolidate: normalize every gesture
- Training data (one table, raw + normalized, in git)
-          |
-          v  filter, shuffle, split
- +------------------------------+---------------------+
- | tuning set (80%)             | test set (20%)      |
- +--------------+---------------+----------+----------+
-                |                          |
-                v  2. Explore              |
- candidates x validation folds             |
- --> ranked candidates                     |
-                |                          |
-                v  3. Train and evaluate   |
- best candidate: fit on tuning set, test --+
- --> metrics, threshold
-                |
-                v  retrain on all data
- Classifier (in git) + reports (in git)
+ +-----------------------------------------------------------------------+
+ | 1. CONSOLIDATE                                                        |
+ |  In:   datasets (data/<name>/, in git)                                |
+ |  Out:  training data (one table, raw + normalized gestures, in git)   |
+ +--------------------------------+--------------------------------------+
+                                  |
+                                  v   split: training set | test set
+ +-----------------------------------------------------------------------+
+ | 2. EXPLORE                                                            |
+ |  In:   training set, experiment definition                            |
+ |  Does: k-fold (or similar) validation of every hyperparameter         |
+ |        candidate, on the training set only                            |
+ |  Out:  ranked hyperparameter candidates (report, results)             |
+ +--------------------------------+--------------------------------------+
+                                  |
+                                  v   test set: not touched so far
+ +-----------------------------------------------------------------------+
+ | 3. TRAIN AND EVALUATE                                                 |
+ |  In:   training set, test set, the chosen hyperparameter candidate    |
+ |  Does: train on the whole training set; evaluate on the test set      |
+ |  Out:  classifier (in git), metrics, confidence threshold, report     |
+ +-----------------------------------------------------------------------+
 ```
 
 1. **Consolidate.** Every accepted gesture of the datasets is normalized with
@@ -211,24 +213,25 @@ and train and evaluate a model.
    needs. Normalization is fixed, not tuned. The table can be rebuilt from the
    datasets at any time, and it is committed so that every user trains on the
    same data without normalizing again.
-2. **Explore.** An experiment definition names a classifier family and the
-   space of hyperparameter values to search. The explorer enumerates every
-   candidate in that space and evaluates each one by training and validating
-   it on folds of the tuning set. A comparator ranks the candidates. The
-   results are kept so they can be analyzed later.
-3. **Train and evaluate.** The best candidate is trained on the tuning set
-   and evaluated once on the test set. The test side yields three kinds of
+2. **Explore.** All gestures are shuffled into one pool and split by percentage
+   into a training set (80%) and a test set (20%). An experiment definition
+   names a classifier family and the space of hyperparameter values to search.
+   The explorer enumerates every hyperparameter candidate in that space and
+   evaluates each one by training and validating it on folds of the training
+   set. A comparator ranks the hyperparameter candidates. The results are kept
+   so they can be analyzed later. The test set is not touched.
+3. **Train and evaluate.** The best hyperparameter candidate is trained on the
+   whole training set and evaluated once on the test set, which neither the
+   exploration nor the training has seen. The test set yields three kinds of
    test case: held-out spells, backward spells (the held-out spells with their
    positions in reverse order) and non-spell recordings. A backward spell
    counts as not a spell. The measures are computed over a range of confidence
-   thresholds, and the results choose the confidence threshold. The candidate
-   is then trained again on all the data and saved as a classifier, with the
-   evidence for the choice.
+   thresholds, and the results choose the confidence threshold. The model is
+   saved as a classifier, with the evidence for the choice.
 
-All gestures are shuffled into one pool and split by percentage, as with any
-public dataset. Samples of one session resemble each other, so scores on this
-split are likely to be higher than for a person the classifier has not seen;
-the training data can be filtered, for example by author, to test that case.
+Samples of one session resemble each other, so scores on a random split are
+likely to be higher than for a person the classifier has not seen; the
+training data can be filtered, for example by author, to test that case.
 
 Non-spell recordings are stored as ordinary samples under a label that
 `config/labels.yaml` marks as not a spell. Training does not learn that label
@@ -260,18 +263,19 @@ three functions (section 2.3), built from four components:
   loads the table, filters it by column, shuffles it, splits it by percentage
   and delivers it whole or in batches.
 - **Trainer.** The one interface through which a model of any family is
-  trained, evaluated, saved and loaded. It takes a set of hyperparameter
-  values, trains on one subset of the training data and evaluates on another,
-  and reports a standard set of metrics. A family may add metrics of its own.
+  trained and evaluated, and its trained model saved. It takes a set of
+  hyperparameter values, a set to train on and a set to evaluate on, and
+  reports a standard set of metrics. A family may add metrics of its own.
   Each family has a trainer; a family that needs nothing special uses the
   common implementation, and a data scientist can subclass it when one is
   needed. A trainer validates the hyperparameter values it receives.
-- **Explorer.** Enumerates the candidates of a hyperparameter space, invokes
-  the trainer for each candidate on each validation fold, collects the
-  metrics, ranks the candidates with a comparator and stores the results. A
-  stored exploration can be loaded to answer questions about its candidates.
-  There is one explorer for each way of validating a candidate, such as
-  k-fold or a single split.
+- **Explorer.** Enumerates the hyperparameter candidates of a space, selects the
+  validation folds of the training set, invokes the trainer for each
+  hyperparameter candidate on each fold, collects the metrics, ranks the
+  hyperparameter candidates with a comparator and stores the results. A stored
+  exploration can be loaded to answer questions about its hyperparameter
+  candidates. There is one explorer for each way of validating a hyperparameter
+  candidate, such as k-fold or a single split.
 - **Experiment definitions.** Named files in git, treated as code, that
   state the family, the hyperparameter space, the validation scheme and the
   comparator of an exploration. Each exploration run keeps a copy of the
@@ -281,8 +285,8 @@ The classifier families are open. Examples are a probabilistic model such as
 Naive Bayes, a margin-based model such as a support vector machine, an
 ensemble such as a random forest, and a neural network such as a multilayer
 perceptron. A family is added with a trainer and an experiment definition, and
-the workflow does not change. The families implemented first are listed in
-`training/docs/design.md`.
+the workflow does not change. Each family has a design document of its own
+that describes its hyperparameters.
 
 Every exploration and every training run writes a report in `reports/`, and
 every trained classifier is saved in `models/`, as laid out in section 6.
@@ -401,10 +405,11 @@ A model trained on labeled gestures. Input: one normalized gesture. Output: a
 spell (a label identifier) and a confidence score between 0 and 1.
 
 - A **classifier** wraps a trained model of one family. Every family
-  implements one interface: predict a spell with its confidence, save and
-  load. Inference loads and uses only this interface. Training a classifier
-  is the work of the training subsystem's trainers, so inference needs none
-  of the training code or its dependencies.
+  implements one interface: load, and predict a spell with its confidence.
+  Inference uses only this interface. Training a model, and saving it in the
+  form the classifier loads, is the work of the training subsystem's
+  trainers, so inference needs none of the training code or its
+  dependencies.
 - The confidence is the probability the model gives to the predicted spell.
 - A motion that is not a spell, or a spell drawn backward, is rejected by a low
   confidence, not by a class of its own. The confidence threshold that rejects
@@ -438,9 +443,9 @@ in more than one subsystem. Design: `lib/docs/design.md`.
   motion and the live moving or idle state.
 - **Normalizer** implements gesture normalization.
 - **Classifiers** hold the classifier interface and the classifier families:
-  predict, save and load. They hold no training code. A family with a heavy
-  dependency, such as a neural network, makes it optional, so an installation
-  without it still runs the other families.
+  load and predict. They hold no training code and save nothing. A family with a
+  heavy dependency, such as a neural network, makes it optional, so an
+  installation without it still runs the other families.
 - **Color calibrator** derives vision settings from points the user clicks on
   the tip.
 - **Motion calibrator** proposes motion settings from a short measurement of
@@ -583,10 +588,10 @@ datasets are shared through git, and video clips are excluded from it.
 Training reads all of them, or the ones the user names.
 
 `reports/` and `models/` are organized by classifier family. The results of
-explorations, which cover many candidates, and the results of final training,
-which cover one model, are kept apart. A model has an identifier of the form
-`<family>-<timestamp>`, and the same identifier names its report and its
-files:
+explorations, which cover many hyperparameter candidates, and the results of
+final training, which cover one model, are kept apart. A model has an identifier
+of the form `<family>-<timestamp>`, and the same identifier names its report and
+its files:
 
 ```text
 reports/

@@ -13,10 +13,8 @@ belong to one component are defined in that component's documents.
 
 - **Calibration**: choosing and testing the camera, the vision settings and
   the motion settings against a live view, before a data collection session.
-- **Candidate**: one combination of hyperparameter values that an exploration
-  evaluates.
-- **Classifier**: a trained model of one family, wrapped so that it can
-  predict a spell with a confidence, be saved and be loaded. Inference uses
+- **Classifier**: a trained model of one family, wrapped so that it can be
+  loaded and can predict a spell with a confidence. Inference uses
   classifiers; it never trains them.
 - **Component**: a building block inside a subsystem, or in the shared
   library, such as vision or the classifier.
@@ -27,12 +25,14 @@ belong to one component are defined in that component's documents.
 - **Experiment definition**: a named file, kept in git as code, that states
   the classifier family, the hyperparameter space, the validation scheme and
   the comparator of an exploration.
-- **Exploration**: evaluating the candidates of a hyperparameter space for
-  one classifier family and ranking them.
+- **Exploration**: evaluating the hyperparameter candidates of a hyperparameter
+  space for one classifier family and ranking them.
 - **Gesture**: one deliberate motion of the tip, bounded by idle at the start
   and end.
 - **Hyperparameter**: a setting of a classifier family that is chosen before
   training, such as a learning rate, and not learned from data.
+- **Hyperparameter candidate**: one combination of hyperparameter values that
+  an exploration evaluates.
 - **Idle**: the state in which the tip is not moving, or moves below the speed
   threshold, so that natural hand tremor is ignored.
 - **Label**: the name of a spell.
@@ -50,8 +50,12 @@ belong to one component are defined in that component's documents.
   sample from the dataset entirely.
 - **Subsystem**: one of the three parts of the system, each with its own
   folder and documents: data collection, training and inference.
+- **Test set**: the part of the training data that is set aside, and used only
+  to evaluate a finished model, never to explore or to train.
 - **Tip**: the approximate center of the ping pong ball on the wand. It is the
   point whose motion the system tracks.
 - **Training data**: the consolidated table of all accepted gestures of the
   datasets, each with its raw positions, its normalized form and its metadata,
   that training reads. It is derived from the datasets.
+- **Training set**: the part of the training data used to explore
+  hyperparameters and to train a model.
