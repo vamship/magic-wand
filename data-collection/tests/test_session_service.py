@@ -15,7 +15,7 @@ from wand_collect.state import (
     SessionRole,
     SettingsState,
 )
-from wand_core.dataset import DatasetStore
+from wand_core.dataset import DatasetStore, Handedness
 from wand_core.settings import MotionSettings, VisionSettings
 from wand_core.sources import CameraInfo, CameraMode, FrameSource
 
@@ -611,3 +611,104 @@ def test_a_session_change_needs_a_field_and_a_known_session(rig):
     missing = "00000000-0000-4000-8000-000000000000"
     response = rig.client.patch(f"/api/sessions/{missing}", json={"name": "a"})
     assert response.status_code == 404
+
+
+# --- End any open session ----------------------------------------------------
+
+
+def make_open_session(rig, name="Held"):
+    """An open session on disk that is not loaded (as after a hold)."""
+    session = rig.store.create_session("Ada", Handedness.RIGHT, name=name)
+    return session.session_id
+
+
+def test_an_open_session_that_is_not_loaded_can_be_ended(tmp_path):
+    rig = Rig(tmp_path)  # no camera is needed
+    try:
+        session_id = make_open_session(rig)
+        before = rig.state.snapshot
+        assert (
+            rig.client.post(f"/api/sessions/{session_id}/end").status_code
+            == 204
+        )
+        assert session_on_disk(rig, session_id).ended_at is not None
+        assert rig.state.snapshot is before  # the state did not change
+        assert rig.log == []  # nothing was stopped
+        listed = rig.client.get("/api/sessions").json()
+        assert [(e["id"], e["open"]) for e in listed] == [(session_id, False)]
+    finally:
+        rig.close()
+
+
+def test_ending_the_session_loaded_for_capture_stops_capture(rig):
+    session_id = rig.start().json()["id"]
+    response = rig.client.post(f"/api/sessions/{session_id}/end")
+    assert response.status_code == 204
+    assert rig.log == ["stop"]
+    assert session_on_disk(rig, session_id).ended_at is not None
+    assert rig.state.snapshot.session is None
+    unlocked = rig.client.put(
+        "/api/settings", json={"vision": {"hueCenter": 5}}
+    )
+    assert unlocked.status_code == 204
+
+
+def test_ending_the_session_loaded_for_review_unloads_it(rig):
+    session_id = make_open_session(rig)
+    rig.client.post(f"/api/sessions/{session_id}/load?mode=review")
+    assert rig.state.snapshot.session.role is SessionRole.REVIEW
+    assert rig.client.post(f"/api/sessions/{session_id}/end").status_code == 204
+    assert rig.state.snapshot.session is None
+    assert session_on_disk(rig, session_id).ended_at is not None
+    assert rig.log == []  # nothing was capturing
+
+
+def test_ending_another_session_leaves_the_loaded_one_alone(rig):
+    other = make_open_session(rig, "Other")
+    loaded = rig.start().json()["id"]
+    assert rig.client.post(f"/api/sessions/{other}/end").status_code == 204
+    assert session_on_disk(rig, other).ended_at is not None
+    assert session_on_disk(rig, loaded).ended_at is None
+    assert rig.state.snapshot.session.id == loaded
+    assert rig.state.snapshot.session.role is SessionRole.CAPTURE
+    assert rig.log == []
+
+
+def test_an_ended_session_cannot_be_ended_again(rig):
+    session_id = make_open_session(rig)
+    assert rig.client.post(f"/api/sessions/{session_id}/end").status_code == 204
+    ended_at = session_on_disk(rig, session_id).ended_at
+    again = rig.client.post(f"/api/sessions/{session_id}/end")
+    assert again.status_code == 409
+    assert again.json()["error"]["code"] == "session_ended"
+    assert session_on_disk(rig, session_id).ended_at == ended_at
+
+
+def test_an_unknown_session_cannot_be_ended(rig):
+    response = rig.client.post("/api/sessions/nope/end")
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "not_found"
+
+
+def test_an_ended_session_cannot_be_resumed_but_can_be_reviewed(rig):
+    session_id = make_open_session(rig)
+    rig.client.post(f"/api/sessions/{session_id}/end")
+    resume = rig.client.post(f"/api/sessions/{session_id}/load?mode=resume")
+    assert resume.status_code == 409
+    assert resume.json()["error"]["code"] == "session_ended"
+    review = rig.client.post(f"/api/sessions/{session_id}/load?mode=review")
+    assert review.status_code == 200
+
+
+def test_the_current_session_endpoint_closes_a_review_without_ending(rig):
+    session_id = make_open_session(rig)
+    rig.client.post(f"/api/sessions/{session_id}/load?mode=review")
+    assert rig.client.post("/api/sessions/current/end").status_code == 204
+    assert rig.state.snapshot.session is None
+    assert session_on_disk(rig, session_id).ended_at is None
+
+
+def test_the_current_session_endpoint_still_needs_a_loaded_session(rig):
+    response = rig.client.post("/api/sessions/current/end")
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "no_session"

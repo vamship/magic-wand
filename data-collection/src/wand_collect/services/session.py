@@ -95,6 +95,12 @@ class SessionService:
             "/sessions/current/end", self.end, methods=["POST"], status_code=204
         )
         add(
+            "/sessions/{session_id}/end",
+            self.end_session,
+            methods=["POST"],
+            status_code=204,
+        )
+        add(
             "/sessions/current/hold",
             self.hold,
             methods=["POST"],
@@ -328,8 +334,41 @@ class SessionService:
     # --- End -------------------------------------------------------------
 
     def end(self) -> None:
-        """End the loaded session for good: it accepts no more samples."""
+        """End the loaded session for good: it accepts no more samples.
+
+        A session loaded for review is only closed, and stays as it was (this
+        is how the Web UI closes a review).
+        """
         self._leave(finish=True)
+
+    def end_session(self, session_id: str) -> None:
+        """End any open session, loaded or not, for good.
+
+        If it is the loaded session, in either role, capturing stops and the
+        session is unloaded. Ending another session leaves the loaded one
+        alone. An ended session is refused.
+        """
+        with self._lock:
+            try:
+                record = self._store.get_session(session_id)
+            except SessionNotFoundError as error:
+                raise NotFoundError(str(error)) from error
+            if record.ended_at is not None:
+                raise ConflictError(
+                    "session_ended", "the session has already ended"
+                )
+            loaded = self._state.snapshot.session
+            is_loaded = loaded is not None and loaded.id == session_id
+            if (
+                is_loaded
+                and loaded.role is SessionRole.CAPTURE
+                and self._controller is not None
+            ):
+                # Stop first, so that no sample is saved after the end.
+                self._controller.stop()
+            self._store.end_session(session_id)
+            if is_loaded:
+                self._state.update(Owner.SESSION_SERVICE, session=None)
 
     def hold(self) -> None:
         """Put the loaded session on hold: capturing stops and the session
