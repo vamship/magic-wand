@@ -1,6 +1,6 @@
 # Data Collection Application - Design
 
-> **Version** 22 | **Updated** 2026-11-15 | **Approved**
+> **Version** 23 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
@@ -95,7 +95,7 @@ built from eleven components:
 - **Calibration Service**: camera choice, color calibration, motion tuning and
   calibration profiles.
 - **Session Service**: starting, ending, listing, loading and resuming
-  sessions.
+  sessions, and choosing, creating and merging datasets.
 - **Capture Controller**: runs the capture cycle and turns gestures into
   samples.
 - **Capture Engine**: owns the camera; finds the wand and detects gestures
@@ -360,6 +360,7 @@ it.
 
 - **Session**: none, or the session's id and name and whether it is loaded for
   capture or for review only. Owner: Session Service.
+- **Dataset**: the name of the dataset in use. Owner: Session Service.
 - **Settings**: the working vision and motion settings, and the name of the
   loaded profile, if any. Owner: Calibration Service.
 - **Camera**: the camera in use and the mode it delivers. Owner: Capture
@@ -523,7 +524,7 @@ Reads and writes `config/profiles/`.
 ### 4.5 Session Service
 
 **What it does.** It owns the session: starting, ending, listing, loading and
-resuming, and the numbering of samples.
+resuming, and the numbering of samples. It also owns the choice of dataset.
 
 **How it works.**
 
@@ -539,8 +540,21 @@ resuming, and the numbering of samples.
 - **Hold**: the same as End without recording `endedAt`: it tells the Capture
   Controller to stop and clears the session in the Application State, and the
   session stays open on disk.
-- **List**: the sessions in the data folder, with name, author, start time,
+- **List**: the sessions in the dataset in use, with name, author, start time,
   sample count, and whether each is open or ended.
+- **Datasets**: lists the datasets in the data location, each with its name
+  and its session and sample counts. The user can choose the dataset in use
+  and create a new one (a folder with the layout of `docs/data-handling.md`).
+  Both are refused while a session is loaded. Choosing a dataset opens it
+  through the Dataset Store, with the cleanup at open, and tells the Sample
+  Library to reindex. The dataset named in the settings is chosen at startup.
+- **Merge datasets**: given the names of source datasets and a target (an
+  existing dataset or a new one), runs the merge operation of
+  `docs/data-handling.md` through the Dataset Store. It reports the sessions
+  copied, skipped as identical and in conflict, and replaces a target's
+  session only when the user chooses the replace option for that conflict.
+  Clips are copied unless the user skips them. It is refused while a session
+  is loaded, because the target may be the dataset in use.
 - **Load for review**: any session. It records it in the Application State as
   loaded for review only, and opens review on the session's samples without
   starting capture.
@@ -770,10 +784,11 @@ Reads and writes `config/labels.yaml`.
 ### 4.11 Dataset Store
 
 **What it does.** It is the one component that reads and writes the data
-folder. It is part of the shared library, so the classifier reads data with the
-same code that wrote it.
+folder. It is part of the shared library, so training reads data with the same
+code that wrote it.
 
-**How it works.** It implements `docs/data-handling.md`: the folder layout, the
+**How it works.** It implements `docs/data-handling.md`: finding the datasets
+in the data location, the folder layout, the
 file formats, the three crash-safe write routines (replace, append and delete),
 the export, merge and consistency check operations, and the cleanup at open.
 It notifies its subscribers of every change it makes: a sample added, updated
@@ -814,6 +829,10 @@ the Web UI shows about the current state comes from `state`.
 | `POST /api/profiles/{name}/load` | Load a profile |
 | `DELETE /api/profiles/{name}` | Delete a profile |
 | `GET /api/sessions` | List sessions, open and ended |
+| `GET /api/datasets` | List the datasets in the data location |
+| `POST /api/datasets` | Create a dataset |
+| `PUT /api/dataset` | Choose the dataset in use (refused during a session) |
+| `POST /api/datasets/merge` | Merge datasets into a target dataset |
 | `POST /api/sessions` | Start a session |
 | `POST /api/sessions/{id}/load` | Load a session; `mode=review` or `resume` |
 | `POST /api/sessions/current/end` | End the session |
@@ -849,10 +868,13 @@ status.
 | `wand-collect serve` | Start the application |
 | `wand-collect export` | Write a consolidated file from data folders |
 | `wand-collect merge` | Merge data folders into a target folder |
+| `wand-collect datasets` | List the datasets in the data location |
 | `wand-collect check` | Run the consistency check |
 
-Export, merge and check use the Dataset Store, work without a camera, and follow
-the rules in `docs/data-handling.md`.
+`serve` takes `--config <folder>`, `--data-location <folder>` and
+`--dataset <name>`, which override the settings of section 5.4. Export, merge,
+check and datasets use the Dataset Store, work without a camera, and follow the
+rules in `docs/data-handling.md`.
 
 ### 5.4 Application settings
 
@@ -860,7 +882,8 @@ Set in `config/data-collection.yaml`, with camel case keys:
 
 | Key | Meaning | Default |
 |---|---|---|
-| `dataFolder` | Where datasets are stored | `data` |
+| `dataLocation` | Folder that holds the datasets | `data` |
+| `dataset` | Dataset to record into | `default` |
 | `server.host`, `server.port` | Where the app listens | local only, 8000 |
 | `camera.index` | Preferred camera | 0 |
 | `camera.width`, `.height`, `.fps` | Requested mode | 640, 480, 30 |
@@ -897,9 +920,10 @@ writes:
   the Capture Engine picks up changed settings on its next frame.
 - **Session Service**: start, end, list and load; an ended session cannot be
   resumed but can be reviewed and edited; closing the application leaves a
-  session open; resume needs a camera but not the recorded one, and capture waits for
-  the camera check;
-  sample numbers continue after a delete and after a resume.
+  session open; resume needs a camera but not the recorded one, and capture
+  waits for the camera check; sample numbers continue after a delete and after
+  a resume; choosing, creating and merging datasets work and are refused while
+  a session is loaded.
 - **Other services**: against a temporary data folder, including settings
   locking, label rules, Sample Library queries, and samples whose clip is
   missing or removed.
@@ -923,7 +947,8 @@ writes:
 |---|---|
 | R1 Setup and calibration | 3.3, 4.4, 5.2 |
 | R2 Session management | 3.2, 4.3, 4.5, 6, `docs/data-handling.md` |
-| R2.5 Merge | 5.3, `docs/data-handling.md` |
+| R2.5 Merge | 4.5, 5.2, 5.3, `docs/data-handling.md` |
+| R2.10 Datasets | 4.3, 4.5, 4.11, 5.2, 5.4, `docs/data-handling.md` |
 | R2.6, R2.7 Load, resume, end | 3.2, 4.3, 4.5, 5.2 |
 | R2.9 Name and notes | 4.5, 5.2 |
 | R3 Labels | 4.10 |
