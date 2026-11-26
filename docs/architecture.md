@@ -1,6 +1,6 @@
 # Architecture
 
-> **Version** 10 | **Updated** 2026-11-26 | **Approved**
+> **Version** 11 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
@@ -222,10 +222,10 @@ and train and evaluate a model. Each takes inputs and produces outputs:
    so they can be analyzed later. The test set is not touched.
 3. **Train and evaluate.** The best hyperparameter candidate is trained on the
    whole training set and evaluated once on the test set, which neither the
-   exploration nor the training has seen. The test set yields three kinds of
-   test case: held-out spells, backward spells (the held-out spells with their
-   positions in reverse order) and non-spell recordings. A backward spell
-   counts as not a spell. The measures include some that need no threshold, such
+   exploration nor the training has seen. The test set yields two kinds of
+   test case: held-out spells, and backward spells (the held-out spells with
+   their positions in reverse order). A backward spell counts as not a spell.
+   The measures include some that need no threshold, such
    as accuracy, log loss and the area under the ROC curve (AUC), and curve data
    over a range of confidence thresholds that shows how false triggers trade
    off against recognition. The model is saved as a classifier, with the
@@ -235,9 +235,11 @@ Samples of one session resemble each other, so scores on a random split are
 likely to be higher than for a person the classifier has not seen; the
 training data can be filtered, for example by author, to test that case.
 
-Non-spell recordings are stored as ordinary samples under a label that
-`config/labels.yaml` marks as not a spell. Training does not learn that label
-as a class; it uses those samples only as test cases.
+The classifier has no class for motions that are not spells, and no such
+motions are recorded. A motion that is not a spell is a pattern that the
+classifier matches to every spell with a low probability, so its confidence
+falls below the threshold and no action is performed. Backward spells, the
+closest thing to a non-spell, are the test of this.
 
 ### 2.4 Shared Implementation
 
@@ -526,9 +528,8 @@ Field-level definitions are in `lib/docs/design.md` and
 All configuration is in `config/`.
 
 - `labels.yaml` (in git): the labels. Each has an identifier, used in stored
-  samples and in classifier output, a display name shown to users, and whether
-  it is a spell (a label for non-spell recordings is not). Data collection
-  reads and edits it.
+  samples and in classifier output, and a display name shown to users. Data
+  collection reads and edits it.
 - `vision.yaml` (in git): default values for the vision settings, such as the
   ball's color range and size limits. Calibration starts from these.
 - `motion.yaml` (in git): default values for the motion settings, such as the
@@ -619,8 +620,6 @@ load.
 
 Items to fill in before final submission:
 
-- Data collection: recording non-spell samples under a label that is not a
-  spell.
 - Action trigger: the effects for each spell, and physical actuation if time
   permits.
 - Inference application: its user interface and how it applies a calibration

@@ -1,6 +1,6 @@
 # Training Subsystem - Design
 
-> **Version** 4 | **Updated** 2026-11-26 | **Approved**
+> **Version** 5 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
@@ -205,7 +205,6 @@ Training data is a folder `training-data/` holding two files.
 | `sampleId`, `sessionId` | Identifiers from the dataset |
 | `author`, `handedness` | From the session |
 | `label` | Label id |
-| `isSpell` | Whether the label is a spell |
 | `durationS` | Gesture duration in seconds |
 | `frameWidth`, `frameHeight` | Frame size in pixels |
 | `rawTimeS`, `rawX`, `rawY` | Raw positions, as lists |
@@ -248,8 +247,8 @@ The input to a classifier is `steps` followed by `durationS`.
 
 Loading gives a set that covers the whole table. A set offers:
 
-- **Select** rows by the values of columns, for example one author, one
-  label or spells only. The result is a set.
+- **Select** rows by the values of columns, for example one author or one
+  label. The result is a set.
 - **Shuffle** with a seed, and **split** by percentage into two or more sets.
   A split can be stratified so every side keeps the label shares.
 - **Read** the whole set or batches of a size, as arrays of the normalized
@@ -259,8 +258,7 @@ Loading gives a set that covers the whole table. A set offers:
 A set is a view of the loaded table (a list of row positions), so selecting
 and splitting copy nothing.
 
-The training set and the test set come from one operation: the rows of labels
-that are not spells all go to the test set, and the remaining rows are
+The training set and the test set come from one operation: the rows are
 shuffled with the seed and split by label-stratified percentage, 80 training
 and 20 test by default. The split depends only on the training data, the seed
 and the percentage, and is made again, not stored, when a run needs it. A run
@@ -475,9 +473,8 @@ used to train it.
 
 | Kind | Source | Correct outcome |
 |---|---|---|
-| Spell | Test set samples of spells | The sample's label |
+| Spell | Test set samples | The sample's label |
 | Backward | The spell samples, reversed | Not recognized |
-| Non-spell | Test set samples of non-spells | Not recognized |
 
 A reversed gesture visits the positions from last to first, with times
 measured from the new first position, so a backward spell lasts as long as the
@@ -493,17 +490,17 @@ of every label. From these the evaluator computes two groups of measures.
 |---|---|
 | Accuracy, macro F1, log loss | As in section 6, on spell cases |
 | Label AUC | ROC area of each label against the others, and the mean |
-| Rejection AUC | ROC area for spell cases versus backward and non-spell |
+| Rejection AUC | ROC area for spell cases versus backward cases |
 
 The label AUC is computed on the spell cases from the probability of the
 label. The rejection AUC uses the confidence as the score, with spell cases as
-the positives and backward and non-spell cases as the negatives.
+the positives and backward cases as the negatives. Motions that are not
+spells are not recorded; the backward cases stand for them, because they are
+the nearest thing to a non-spell, with the speed and duration of a real spell.
 
 The confusion matrix, the precision and recall of each label, and the time to
 classify one gesture are also reported. The time is the mean and the 95th
-percentile, measured one gesture at a time as inference runs. When the data has
-no non-spell samples, the rejection AUC uses the backward cases alone and the
-report says so.
+percentile, measured one gesture at a time as inference runs.
 
 **Curve data over thresholds.** A prediction is **recognized** when its
 confidence is at or above a threshold. The measures are computed for every
@@ -515,7 +512,6 @@ threshold from 0 to 1 in steps of 0.01:
 | Misrecognition rate | spell cases recognized, wrong label |
 | Missed rate | spell cases not recognized |
 | Backward false trigger rate | backward cases recognized as a spell |
-| Non-spell false trigger rate | non-spell cases recognized as a spell |
 
 At threshold 0 the recognition rate is the plain accuracy. These rates, plotted
 against each other, are the curves from which the AUC values come.
@@ -527,8 +523,8 @@ threshold that is set in the inference configuration (`docs/architecture.md`,
 section 4.5), and the user sets it after reading the report.
 
 To help, the report shows the lowest threshold at which the backward false
-trigger rate and, when non-spell cases exist, the non-spell false trigger rate
-are both at or below a limit (default 0.05, set with `--max-false-trigger`).
+trigger rate is at or below a limit (default 0.05, set with
+`--max-false-trigger`).
 The false trigger rates fall and the missed rate rises as the threshold rises,
 so this is the threshold with the highest recognition rate that meets the
 limit. If none meets the limit, the report says so. The value is
@@ -619,8 +615,7 @@ hyperparameter candidate, and `--max-false-trigger` for `train`. `explore` and
   content; a session present in two datasets is used once, and differing
   copies stop the build; a file of an unknown format version is refused.
 - **Access**: Selecting by column, seeded shuffles, stratified splits and
-  batches give the expected rows and shapes, and the non-spell rows land in
-  the test set.
+  batches give the expected rows and shapes.
 - **Definitions**: A valid file and each kind of invalid one give the expected
   outcome or message; ranges and lists enumerate the expected values
   (linear, log, integer with duplicates).
@@ -669,6 +664,3 @@ Items to fill in before this document is approved:
 
 - Family designs: A design document for each family that is implemented,
   with its hyperparameters, defaults and special behavior.
-- Data collection: Recording non-spell samples under a label that is not a
-  spell, and the `isSpell` mark in `config/labels.yaml` (a label without the
-  mark is a spell).
