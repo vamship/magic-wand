@@ -1,6 +1,6 @@
 # Data Collection Application - Design
 
-> **Version** 24 | **Updated** 2026-11-26 | **Approved**
+> **Version** 25 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
@@ -545,7 +545,10 @@ resuming, and the numbering of samples. It also owns the choice of dataset.
   one, in either role, it also tells the Capture Controller to stop and clears
   the session in the Application State; ending another session leaves the
   loaded one alone. An ended session is refused with `session_ended`. Closing
-  the application leaves the session open.
+  the application leaves the session open. The loaded-session endpoint
+  (`POST /api/sessions/current/end`) ends a session loaded for capture; for a
+  session loaded for review it only closes the review and leaves the session
+  as it was, which is how the Web UI closes a review.
 - **Hold**: the same as End without recording `endedAt`: it tells the Capture
   Controller to stop and clears the session in the Application State, and the
   session stays open on disk.
@@ -844,7 +847,7 @@ the Web UI shows about the current state comes from `state`.
 | `POST /api/datasets/merge` | Merge datasets into a target dataset |
 | `POST /api/sessions` | Start a session |
 | `POST /api/sessions/{id}/load` | Load a session; `mode=review` or `resume` |
-| `POST /api/sessions/current/end` | End the loaded session |
+| `POST /api/sessions/current/end` | End the loaded session, or close a review |
 | `POST /api/sessions/{id}/end` | End an open session, loaded or not |
 | `POST /api/sessions/current/hold` | Put the session on hold: unload it and keep it open |
 | `PATCH /api/sessions/{id}` | Change the name and/or notes of any session |
