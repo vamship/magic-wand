@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 33 | **Updated** 2026-11-26 | **Approved**
+> **Version** 33 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
@@ -165,7 +165,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A17 | Camera list cache | Completed |
 | DC-A18 | Dataset settings and command line | Not started |
 | DC-A19 | Dataset service | Not started |
-| DC-A20 | End any open session | In progress |
+| DC-A20 | End any open session | Completed |
 | DC-U15 | Wording, hover and resume-flow polish | Completed |
 | DC-U16 | Accepted and rejected markers | Completed |
 | DC-U17 | Browse grid layout | Completed |
@@ -1912,7 +1912,7 @@ as the Session Service of `DC` 4.5 describes.
 ### DC-A20 End any open session
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-A9
 - **Requirements**: R2.7
 - **Design**: DC 3.2, 4.5, 5.2
@@ -1936,19 +1936,19 @@ session by its id, as the Session Service of `DC` 4.5 describes:
 
 **Acceptance criteria.**
 
-- [ ] Ending an open session that is not loaded writes its `endedAt`, leaves the
+- [x] Ending an open session that is not loaded writes its `endedAt`, leaves the
       state unchanged, and the next `GET /api/sessions` shows it as ended.
-- [ ] Ending the session loaded for capture stops capturing (the capture state
+- [x] Ending the session loaded for capture stops capturing (the capture state
       becomes STOPPED), clears the session in the state and records `endedAt`.
-- [ ] Ending the session loaded for review unloads it and records `endedAt`.
-- [ ] Ending a session while a different one is loaded leaves the loaded one and
+- [x] Ending the session loaded for review unloads it and records `endedAt`.
+- [x] Ending a session while a different one is loaded leaves the loaded one and
       the capture state unchanged.
-- [ ] An ended or unknown session returns the stated errors and changes nothing.
-- [ ] An ended session cannot be resumed (the existing refusal) and its samples
+- [x] An ended or unknown session returns the stated errors and changes nothing.
+- [x] An ended session cannot be resumed (the existing refusal) and its samples
       can still be reviewed and edited.
-- [ ] `POST /api/sessions/current/end` behaves as before, including closing a
+- [x] `POST /api/sessions/current/end` behaves as before, including closing a
       review without ending the session.
-- [ ] No camera is needed to end a session that is not loaded.
+- [x] No camera is needed to end a session that is not loaded.
 
 **Implementation notes.** Extend `services/session.py` so that End takes a
 session id, with the current-session endpoint as a shortcut; add the route in
