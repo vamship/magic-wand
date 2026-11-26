@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 32 | **Updated** 2026-11-26 | **Draft**
+> **Version** 32 | **Updated** 2026-11-26 | **Approved**
 
 ## 1. Overview
 

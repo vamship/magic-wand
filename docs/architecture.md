@@ -1,6 +1,6 @@
 # Architecture
 
-> **Version** 11 | **Updated** 2026-11-26 | **Draft**
+> **Version** 11 | **Updated** 2026-11-26 | **Approved**
 
 ## 1. Overview
 
