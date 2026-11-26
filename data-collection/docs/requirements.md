@@ -1,6 +1,6 @@
 # Data Collection Application - Requirements
 
-> **Version** 14 | **Updated** 2026-11-21 | **Approved**
+> **Version** 15 | **Updated** 2026-11-26 | **Approved**
 
 ## 1. Overview
 
@@ -71,8 +71,10 @@ this document:
   positions are never mirrored; any handling of handedness is deferred to
   training.
 - R2.5 **Merge.** Data recorded in parallel (for example by different users
-  on different machines) can be merged into one dataset. Merging never alters
-  a session, and reports any conflict instead of silently overwriting.
+  on different machines) can be merged into one dataset, from the command line
+  and from the application. In the application the user selects the datasets
+  to merge and the dataset to merge them into, which can be new. Merging never
+  alters a session, and reports any conflict instead of silently overwriting.
 - R2.6 **Load an existing session.** The user can load a previously recorded
   session from the dataset. An open session can be **reviewed** or
   **resumed**; an ended session can only be reviewed. Review opens the
@@ -86,9 +88,10 @@ this document:
   session record then takes the camera that is in use.
 - R2.7 **Ending a session.** A session ends only when the user ends it.
   Closing the application leaves the session open, so it can be resumed
-  later. The user can also **put a session on hold** (the Pause button) without ending it:
-  capturing stops and the session is unloaded but stays open, so another
-  session can be started or loaded meanwhile and the held one resumed later.
+  later. The user can also **put a session on hold** (the Pause button)
+  without ending it: capturing stops and the session is unloaded but stays
+  open, so another session can be started or loaded meanwhile and the held one
+  resumed later.
   An ended session accepts no new samples, but its samples can still be
   reviewed and edited (R5, R7).
 - R2.8 **Deleting a session.** The user can delete a session that is not
@@ -100,6 +103,12 @@ this document:
   capturing, while it is open for review, and after it has ended. These
   describe the session and are not settings, so R2.2 does not lock them.
   Clearing a field removes it. Nothing else about a session can be edited.
+- R2.10 **Datasets.** Several datasets can live side by side in the data
+  location (`docs/data-handling.md`). The application lists them, and the user
+  chooses the dataset to record into and can create a new one. The chosen
+  dataset is the one whose sessions are listed, loaded and edited. The
+  dataset cannot be changed while a session is loaded. At startup the
+  application uses the dataset named in its settings.
 
 ### R3. Gesture label management (P1)
 - R3.1 The label set is a project configuration file shared by all users,
@@ -117,9 +126,9 @@ this document:
   it at any time. Each captured sample is tagged with the active label.
 - R4.2 **Rapid capture cycle.** After the user starts capturing, the app
   repeats:
-  1. a **countdown** that tells the user when to get ready;
-  2. the app becomes **ready**, and the user performs the gesture;
-  3. the **result** (the path image) is shown while the next countdown runs.
+  1. A **countdown** that tells the user when to get ready;
+  2. The app becomes **ready**, and the user performs the gesture;
+  3. The **result** (the path image) is shown while the next countdown runs.
 - R4.3 The countdown length is configurable in the application config. The
   default is 3 seconds.
 - R4.4 After the countdown ends, the app is ready for the next gesture, with no
@@ -149,8 +158,8 @@ this document:
   through them.
 - R5.2 For the selected sample the app shows the wand path with direction cues
   (start/end markers or a color gradient). The user can switch between:
-  - path only (color on black), and
-  - path overlaid on one camera frame (e.g. the first frame of the sample),
+  - Path only (color on black), and
+  - Path overlaid on one camera frame (e.g. the first frame of the sample),
     available when the sample has a video clip.
 - R5.3 For the selected sample the user can **reject** it (or accept it
   again), **delete** it, and **change its label**. Changes are saved

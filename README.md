@@ -28,7 +28,8 @@ the changed keys in a `*.local.yaml` file beside the original (for example
 `config/data-collection.local.yaml`), which is not committed. Options:
 
 ```text
-uv run wand-collect serve --config <folder> --data-folder <folder>
+uv run wand-collect serve --config <folder> --data-location <folder> \
+  --dataset <name>
 ```
 
 Recorded datasets are stored in `data/`, one folder for each dataset (in git,
