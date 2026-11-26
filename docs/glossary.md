@@ -1,6 +1,6 @@
 # Glossary
 
-> **Version** 4 | **Updated** 2026-11-26 | **Draft**
+> **Version** 4 | **Updated** 2026-11-26 | **Approved**
 
 ## Overview
 
