@@ -145,7 +145,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L9 | Dataset store: sessions and samples | Completed |
 | DC-L10 | Dataset store: check, export and load | Completed |
 | DC-L11 | Dataset store: merge | Completed |
-| DC-L12 | Dataset discovery | Not started |
+| DC-L12 | Dataset discovery | In progress |
 | DC-A1 | Application State | Completed |
 | DC-A2 | Application Server | Completed |
 | DC-A3 | Capture Engine | Completed |
@@ -982,7 +982,7 @@ half-copied session.
 ### DC-L12 Dataset discovery
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-L11
 - **Requirements**: R2.5, R2.10
 - **Design**: DH 3, 3.1, 7.1; Lib 12
