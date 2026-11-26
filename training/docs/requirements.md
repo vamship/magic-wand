@@ -1,143 +1,184 @@
-# Training Tool - Requirements
+# Training Subsystem - Requirements
 
-> **Version** 1 | **Updated** 2026-11-25 | **Draft**
+> **Version** 2 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
-This document lists what the training tool must do (functional requirements
-R1 to R9) and the qualities it must have (N1 to N5). After reading it you
-will know what the tool is for, what a user can do with it, and which
-requirement IDs the design and task documents refer to.
+This document lists what the training subsystem must do (functional
+requirements R1 to R7) and the qualities it must have (N1 to N6). After
+reading it you will know what the subsystem is for, what a user can do with
+it, and which requirement IDs the design and task documents refer to.
 
-The tool turns the shared training dataset into a trained gesture classifier.
-It compares the classifier families named in `docs/architecture.md` (Naive
-Bayes, a support vector machine, a random forest and a neural network for time
-series) on the same data and the same measures, so that the project can pick
-one and justify the choice. It uses the shared library for gesture
-normalization and for the classifiers, so that inference runs the code that
-training evaluated.
+The subsystem has three functions:
+
+1. **Consolidation.** It turns the shared training data into one table of raw
+   and normalized gestures, ready for training.
+2. **Exploration.** It searches the hyperparameter space of each classifier
+   family and ranks the candidates.
+3. **Training.** It trains the best candidate of a family, evaluates it on
+   data it has not seen, chooses a confidence threshold and saves the
+   classifier.
+
+The families to compare are Naive Bayes, a support vector machine, a random
+forest and a neural network for time series (`docs/architecture.md`, section
+3.2). Normalization and the classifiers that inference loads come from the
+shared library, so inference runs the code that training evaluated.
 
 ## 2. Definitions
 
-Terms used across the project (gesture, sample, session, label, status and
-others) are defined in `docs/glossary.md`. Terms specific to this document:
+Terms used across the project (gesture, sample, session, label, status,
+gesture data, hyperparameter, candidate, exploration, experiment definition,
+classifier, model id and others) are defined in `docs/glossary.md`. Terms
+specific to this document:
 
-- **Experiment**: one configuration file that describes what to train and how
-  to evaluate it (R1).
-- **Run**: one execution of an experiment, with its own output folder (R7).
-- **Fold**: one division of the data into a training side and a test side. An
-  experiment has one or more folds.
-- **Test case**: one gesture shown to a trained classifier during evaluation,
-  with the outcome that counts as correct (R5).
-- **Confidence threshold**: the confidence below which a prediction is
-  treated as "not recognized" (R6).
+- **Tuning set** and **test set**: the two parts of the gesture data. The
+  tuning set is used to explore and to train; the test set is used only to
+  evaluate the finished candidate (R6).
+- **Validation scheme**: how a candidate is judged inside an exploration, on
+  parts of the tuning set (R5).
+- **Comparator**: the rule that ranks candidates by their metrics (R5).
+- **Test case**: one gesture shown to a trained classifier during final
+  evaluation, with the outcome that counts as correct (R6).
 
 ## 3. Functional Requirements
 
-### R1. Experiments
-- R1.1 One experiment file describes one experiment: the dataset, which
-  labels to learn, the treatment of handedness, the normalization settings,
-  the split, the classifiers with their settings, and the evaluation
-  settings.
-- R1.2 Every setting has a documented default, so a minimal experiment file
-  names only the classifiers.
-- R1.3 The tool rejects an experiment file with an unknown key, a value out
-  of range or an unknown classifier family, and says which key is wrong,
-  before any training starts.
+### R1. Gesture data
+- R1.1 The tool builds the gesture data from a data folder or an export file
+  (by default the shared training data). Each accepted sample becomes one row
+  holding its raw positions, its normalized form, and its metadata (sample,
+  session, author, handedness, label, whether the label is a spell, and the
+  duration).
+- R1.2 Normalization is done by the shared library with fixed settings that
+  the user cannot change. The settings and the library's normalization version
+  are recorded in the gesture data.
+- R1.3 The gesture data records where it came from: the sessions it covers and
+  a fingerprint of their samples, so that two copies can be compared.
+- R1.4 Building is deterministic: the same data folder gives the same gesture
+  data.
+- R1.5 The user can check whether committed gesture data matches a data
+  folder. Training needs only the gesture data and never the data folder.
+- R1.6 The tool refuses gesture data in a format version it does not know.
 
-### R2. Data loading
-- R2.1 The tool reads a data folder (by default the shared training data) or
-  an export file.
-- R2.2 It uses only accepted samples. Samples of labels that are spells are
-  training data and test cases; samples of labels that are not spells are
-  test cases only.
-- R2.3 It reports how many samples each label has, per author and in total,
-  and stops with a clear message if a label to be learned has no samples.
-- R2.4 Samples whose handedness differs from the experiment's handedness are
-  excluded, or mirrored to the experiment's handedness, as the experiment
-  chooses.
+### R2. Access to gesture data
+- R2.1 The user can load the gesture data, and select rows by the values of
+  one or more columns to produce a smaller set with the same abilities.
+- R2.2 A set can be shuffled with a seed and split by percentage into two or
+  more sets. A split can keep the share of each label the same on every side.
+- R2.3 A set can be read as a whole or in batches, as arrays in the flat form
+  and in the sequence form of the normalized gesture, with the labels.
+- R2.4 The user can see how many samples a set has, per label and per author.
+- R2.5 Selecting, shuffling and splitting do not copy the data.
 
-### R3. Normalization
-- R3.1 Every gesture is normalized by the shared library's normalizer with the
-  experiment's settings (number of points, context values).
-- R3.2 Any scaling of features that a classifier needs is learned from the
-  training side only and is saved with the classifier.
+### R3. Trainers
+- R3.1 One interface trains a model of any family on one set, evaluates it on
+  another, saves it, loads it, and reports its metrics. The workflow contains
+  no code specific to a family.
+- R3.2 Every trainer reports the same standard metrics: accuracy, macro F1, log
+  loss, the time to classify one gesture and the time to train. A trainer may
+  report further metrics of its own.
+- R3.3 A trainer can report, for each gesture of the evaluation set, the
+  spell it predicts and its confidence.
+- R3.4 A trainer accepts values for the hyperparameters of its family, uses a
+  documented default for any it is not given, and rejects an unknown
+  hyperparameter or a value of the wrong kind or out of range, naming the
+  hyperparameter.
+- R3.5 A trainer produces a classifier of the shared library that inference
+  can load, with no training code or training dependency.
+- R3.6 Anything a trainer learns from data, such as feature scaling or the
+  stopping point of the neural network, comes from the training set it was
+  given.
+- R3.7 There is a trainer for each of the four families. A new family is added
+  with a trainer and an experiment definition, and nothing else changes.
 
-### R4. Splitting
-- R4.1 Samples are split by session, so that no session has samples on both
-  sides of a split.
-- R4.2 The experiment chooses between a random split of sessions with a given
-  test fraction, and leaving out one author at a time (one fold per author).
-- R4.3 A split is determined by the experiment's seed. The same dataset, seed
-  and settings give the same split.
-- R4.4 Every classifier of an experiment gets the same folds.
-- R4.5 The tool stops with a clear message if the training side of a fold has
-  no samples of some label to be learned.
+### R4. Experiment definitions
+- R4.1 An experiment definition names the family, the hyperparameter space,
+  the validation scheme and the comparator of an exploration.
+- R4.2 Each hyperparameter in the space is either a range, given by its
+  minimum, its maximum, the number of values and whether they are spaced
+  linearly or logarithmically, or an explicit list of values.
+- R4.3 Experiment definitions are named files kept in the repository by
+  family. They are reviewed and changed like code.
+- R4.4 The tool rejects a definition with an unknown key, an invalid range or a
+  hyperparameter the family does not accept, before any training starts.
 
-### R5. Test cases
-- R5.1 The test side of a fold yields three kinds of test case: held-out
-  spells (correct outcome: the right label), backward spells and non-spell
-  recordings (correct outcome for both: not recognized).
-- R5.2 A backward spell is a held-out spell with its positions in reverse
-  order.
-- R5.3 When the dataset has no non-spell recordings, the tool runs without
-  them and says so in its report.
+### R5. Exploration
+- R5.1 The tool enumerates every candidate of the space: one value for each
+  hyperparameter, in all combinations. It states the number of candidates
+  before starting.
+- R5.2 It evaluates each candidate with the definition's validation scheme on
+  the tuning set only. Two schemes are available: k-fold and a single split.
+- R5.3 For each candidate it collects the trainer's metrics on every
+  validation fold and aggregates them over the folds.
+- R5.4 The comparator ranks the candidates by their aggregated metrics. A
+  comparator can rank by one metric in either direction, with a second
+  metric as tie-breaker.
+- R5.5 An exploration run writes its own folder holding a copy of the
+  definition, the settings of the run, and the metrics of every candidate and
+  fold. A run never overwrites another run.
+- R5.6 Results are written as candidates finish, so an interrupted run keeps
+  what it measured.
+- R5.7 The user can load a finished or interrupted run and ask for the best
+  candidate, the best n candidates, the metrics of a candidate, and the effect
+  of one hyperparameter on a metric.
+- R5.8 The tool shows progress while it runs.
 
 ### R6. Training and evaluation
-- R6.1 Each classifier of the experiment is trained on the training side of
-  every fold through the classifier interface of the shared library; the tool
-  contains no code specific to a family.
-- R6.2 Evaluation reports, for each classifier and for a range of confidence
-  thresholds: the share of held-out spells recognized correctly, the share
-  recognized as the wrong spell, the share not recognized, the share of
-  backward spells that trigger, and the share of non-spell recordings that
-  trigger.
-- R6.3 Evaluation also reports the confusion between labels, precision and
-  recall per label, and the time a classifier needs per gesture, including
-  normalization.
-- R6.4 With several folds, the tool reports the measures per fold and over
-  all folds together.
-- R6.5 The tool recommends a confidence threshold for each classifier: the
-  one that recognizes the most held-out spells while keeping the share of
-  triggering backward spells, and of triggering non-spell recordings, at or
-  below an experiment setting.
+- R6.1 The tool splits the gesture data into a tuning set and a test set by
+  percentage, with a seed. Every sample of a label that is not a spell goes to
+  the test set. The same data, seed and percentage always give the same
+  split, so an exploration and the training that follows it share one test set.
+- R6.2 The tool trains the candidate on the tuning set, taking its
+  hyperparameters from a candidate of an exploration run (by default the best
+  one) or from values given directly.
+- R6.3 The tool evaluates the trained candidate on the test set, with three
+  kinds of test case: held-out spells, backward spells (held-out spells with
+  their positions in reverse order) and non-spell recordings. When there are no
+  non-spell recordings it says so and goes on without them.
+- R6.4 Evaluation reports, over a range of confidence thresholds: the share of
+  spells recognized with the right label, the share recognized with a wrong
+  label, the share not recognized, the share of backward spells that trigger,
+  and the share of non-spell recordings that trigger. It also reports the
+  confusion between labels, precision and recall per label, and the time per
+  gesture.
+- R6.5 The tool recommends a confidence threshold: the one that recognizes the
+  most spells while the shares of triggering backward spells and of triggering
+  non-spell recordings stay at or below a limit that the user can set.
+- R6.6 After evaluation the tool trains the candidate again on all the gesture
+  data and saves that classifier with the recommended threshold.
+- R6.7 A saved classifier carries its labels, its normalization settings, the
+  recommended threshold, its hyperparameters, a summary of its test metrics, a
+  reference to its exploration run, and the fingerprint of the gesture data.
 
-### R7. Runs
-- R7.1 Each run writes its own folder holding the experiment file as it was
-  run, the identity of the dataset, the folds, every prediction of the
-  evaluation, the metrics, and the trained classifiers.
-- R7.2 The dataset's identity is enough to tell whether two runs used the same
-  data.
-- R7.3 A run never overwrites another run.
-- R7.4 The classifier saved by a run is trained on all samples of the
-  learned labels, with the settings that were evaluated, and carries the
-  recommended threshold from R6.5.
-
-### R8. Comparison
-- R8.1 A report puts the classifiers of one or more runs side by side on the
-  measures of R6.2, R6.3 and R6.5, and shows, for each classifier, how
-  recognition trades off against false triggering across thresholds.
-- R8.2 The report states, for each run, the experiment's key settings and the
-  dataset's identity.
-
-### R9. Export for inference
-- R9.1 The user can publish one classifier of one run to `models/` under a
-  name of their choice, with its metrics summary.
-- R9.2 A published classifier holds everything inference needs: the model,
-  its labels, its normalization settings and its recommended threshold.
+### R7. Reports and models
+- R7.1 Every exploration and every training run writes a report in Markdown,
+  with its figures and the tables it was made from, so that it can be read
+  and shared through git.
+- R7.2 An exploration report shows its definition, the ranked candidates and,
+  for each hyperparameter, its effect on the compared metric.
+- R7.3 A training report shows the split, the measures of R6.4 as tables and
+  charts, the recommended threshold and the hyperparameters used.
+- R7.4 Reports and models are organized by family. An exploration is kept
+  apart from a training run, and every trained classifier has a model id that
+  names its report and its files.
+- R7.5 An index lists every exploration and every model with a link to its
+  report, and is updated whenever one is written.
+- R7.6 Deleting an exploration run does not affect any model or training
+  report.
+- R7.7 A training run or a saved model never overwrites another.
 
 ## 4. Non-functional Requirements
 
-- **N1. Reproducible.** A run can be repeated from its folder: the same
-  experiment and dataset give the same split and, for the classifiers that
-  allow it, the same model.
-- **N2. No leakage.** Nothing learned from the test side influences training,
-  including feature scaling, early stopping and the choice of settings.
-- **N3. Extensible.** Adding a classifier family needs no change to the
-  workflow: it implements the library's interface and is named in the
-  experiment.
-- **N4. Practical speed.** On a laptop, an experiment with the three
-  non-neural classifiers on the shared dataset takes minutes, not hours; the
-  neural network is allowed longer.
-- **N5. Testable.** The tool's tests need no camera and no real dataset;
-  they use small synthetic datasets.
+- **N1. Reproducible.** The same gesture data, definition and seed give the
+  same split and the same ranking, for the families whose training can be
+  repeated exactly.
+- **N2. No leakage.** The test set is never seen by exploration or by
+  training. Everything learned from data comes from the set being trained on.
+- **N3. Extensible.** A new family or a new validation scheme is added without
+  changes to the parts that exist.
+- **N4. Practical speed.** Building the gesture data takes seconds. An
+  exploration of the three non-neural families takes minutes on a laptop; the
+  neural network may take longer.
+- **N5. Testable.** The tests need no camera and no real dataset; they use
+  small synthetic data.
+- **N6. Light inference.** Using a saved classifier needs only the shared
+  library; nothing in training has to be installed.

@@ -1,258 +1,395 @@
-# Training Tool - Design
+# Training Subsystem - Design
 
-> **Version** 1 | **Updated** 2026-11-25 | **Draft**
+> **Version** 2 | **Updated** 2026-11-26 | **Draft**
 
 ## 1. Overview
 
-This document describes how the training tool turns the shared training
-dataset into a trained classifier: the components, the flow of one run, the
-experiment file, the settings of each classifier, how classifiers are
-evaluated and how a threshold is chosen, and the files a run writes. After
-reading it you will know what each part does and how to specify and read an
-experiment. Requirements are in `training/docs/requirements.md`; system
-context is in `docs/architecture.md`; the dataset layout is in
+This document describes how the training subsystem consolidates the training
+data, explores the hyperparameters of each classifier family, and trains,
+evaluates and saves classifiers. After reading it you will know the
+components and their responsibilities, how a run flows through them, the
+formats of the gesture data, the experiment definitions, the reports and the
+saved models, and the commands that drive it. Requirements are in
+`training/docs/requirements.md`; the system context is in
+`docs/architecture.md`; the shape of the stored sessions is in
 `docs/data-handling.md`.
 
-The tool must answer one question fairly: which classifier recognizes spells
-best for a person and a camera it has not seen, while ignoring backward
-spells and everyday motion? Three things make the answer reliable:
-
-- all classifiers see the same split and the same test cases;
-- the split is by session or by author, so that near-duplicate samples never
-  sit on both sides;
-- the confidence threshold is chosen from measured results, not guessed.
+The subsystem has to produce, for each classifier family, the best model the
+data supports, and to show how that was found. The design addresses this in
+three steps. Gesture data puts everything training needs in one table, so
+every family trains on the same inputs. A single explorer, composed with a
+family's trainer, searches the hyperparameter space the same way for every
+family. A final step evaluates the chosen candidate on gestures that no step
+before it has seen.
 
 ## 2. The data it works on
 
-The shared training data (29 sessions, 3 authors, about 4,500 accepted
-samples, all right-handed) shapes the defaults below.
+The shared training data holds 4,821 accepted samples from 29 sessions and
+three authors, all right-handed.
 
-- A median gesture has about 50 positions and lasts 1.7 seconds; the middle
-  80 percent last 1.2 to 2.4 seconds and have 34 to 73 positions.
-- Five spells have about 760 samples from three authors. Two spells have about
-  500 samples from two authors.
-- There are no non-spell recordings yet. Data collection will add them under a
-  label that `config/labels.yaml` marks as not a spell; a label without that
-  mark is a spell.
+- Five spells have about 760 samples each, and two have about 500.
+- A median gesture has 50 positions and lasts 1.7 seconds; the middle 80
+  percent last 1.2 to 2.4 seconds. The longest has 108 positions.
+- There are no non-spell recordings yet. They will be added under a label that
+  `config/labels.yaml` marks as not a spell; a label without the mark is a
+  spell.
 
 ## 3. Components
 
-- **Experiment loader**: reads and validates an experiment file and fills in
-  defaults.
-- **Data loader**: reads the dataset through the shared library, keeps the
-  accepted samples, applies the handedness rule and reports counts.
-- **Splitter**: divides the sessions into folds.
-- **Test case builder**: turns the test side of a fold into test cases.
-- **Trainer**: normalizes the training side, trains each classifier on it and
-  runs each classifier over the test cases.
-- **Evaluator**: computes the measures from the predictions and recommends a
-  threshold.
-- **Run writer**: writes the run folder.
-- **Reporter**: builds the comparison across classifiers and runs.
-- **Publisher**: copies a classifier of a run to `models/`.
+- **Gesture data builder**: reads a data folder through the shared library,
+  normalizes each accepted gesture and writes the gesture data.
+- **Gesture data access**: loads the gesture data and provides selecting,
+  shuffling, splitting and reading in whole or in batches.
+- **Trainer**: trains, evaluates, saves and loads a model of one family
+  (section 6). Each family has one.
+- **Experiment definition**: a named file that states an exploration
+  (section 7).
+- **Explorer**: enumerates the candidates of a hyperparameter space, has the
+  trainer train and validate each, ranks them with a comparator and stores the
+  results (section 8). One explorer exists for each validation scheme.
+- **Evaluator**: builds the test cases and computes the measures and the
+  threshold recommendation (section 9).
+- **Reporter**: writes the reports, the figures and the index (section 10).
+- **Model store**: saves and lists the trained classifiers (section 10).
 
-The normalizer and the classifiers are not part of the tool; they come from
-the shared library (`docs/architecture.md`, sections 4.3 and 4.4), which is
-also what inference uses.
+Normalization and the classifiers come from the shared library
+(`docs/architecture.md`, sections 4.3 and 4.4). A classifier holds a trained
+model of one family and can predict, save and load; it has no training code.
+A trainer holds the training code of the family and produces a classifier.
 
-## 4. Flow of a run
+## 4. System flow
 
 ```text
- experiment file
-       |
-       v
- Experiment loader --> Data loader --> Splitter --> folds
-                                                      |
-       +----------------------------------------------+
-       | for each fold
-       v
- Trainer: normalize training side, train every classifier
-       |
-       v
- Test case builder: spells, backward spells, non-spells
-       |
-       v
- Trainer: normalize and classify every test case
-       |  (prediction, confidence, time)
-       v
- Evaluator (all folds pooled) --> measures, thresholds
-       |
-       v
- Trainer: train each classifier again on all samples
-       |
-       v
- Run writer --> runs/<run>/            Reporter, Publisher read it later
+ 1. build                  training data (sessions)
+                                    |
+                                    v
+                            Gesture data builder
+                                    |
+                                    v
+                            gesture-data/ (table)
+
+ 2. explore                 experiment definition
+                                    |
+                                    v
+ gesture-data/ --> split --> tuning set     test set (kept aside)
+                                |
+                                v
+         Explorer: for each candidate, for each validation fold
+                   Trainer fits on one part, validates on the other
+                                |
+                                v  metrics, ranking
+                      reports/<family>/exploration/<run id>/
+
+ 3. train       exploration run + candidate (or hyperparameters)
+                                |
+                                v
+         Trainer fits on the tuning set --> Evaluator on the test set
+                                |           measures, threshold
+                                v
+         Trainer fits on all data --> models/<family>/<model id>/
+                                      reports/<family>/training/<model id>/
 ```
 
-1. The experiment loader checks the file (R1.3) and the data loader reads
-   the dataset. The loader stops if a label to learn has no samples.
-2. The splitter makes the folds (section 6). Each fold is a list of training
-   sessions and a list of test sessions.
-3. For each fold, each classifier is trained on the normalized training side
-   and then classifies every test case. The tool records the predicted label,
-   its confidence and the time taken, with the test case's kind and correct
-   outcome.
-4. The evaluator pools the predictions of all folds and computes the measures
-   in section 8, for every threshold in a range, and picks the recommended
-   threshold (section 9).
-5. Each classifier is trained once more on all accepted samples of the learned
-   labels. This is the classifier the run saves, because it has seen the most
-   data; its threshold comes from the held-out results of step 4.
-6. The run writer saves everything (section 10).
+1. **Build.** The builder writes the gesture data. This is done when the
+   training data changes, and the result is committed.
+2. **Explore.** The run splits the gesture data into a tuning set and a test
+   set (section 5.3) and uses only the tuning set. The explorer runs the
+   candidates and writes the results as it goes.
+3. **Train.** The run uses the same split. The trainer fits the chosen
+   candidate on the tuning set and the evaluator measures it on the test
+   set. The trainer then fits it again on all the data, and the result is
+   saved with the threshold the evaluator recommended.
 
-## 5. The experiment file
+## 5. Gesture data
 
-An experiment is one YAML file with camel case keys. Every key has a default;
-the minimal file lists only the classifiers.
+### 5.1 Normalization
 
-```yaml
-name: baseline
-dataset: training-data
-seed: 42
-labels: all
-handedness:
-  use: right
-  others: exclude
-normalization:
-  points: 32
-  context: [duration, startPosition]
-split:
-  strategy: author
-evaluation:
-  maxFalseTriggerRate: 0.05
-classifiers:
-  - family: naiveBayes
-  - family: svm
-  - family: randomForest
-  - family: neuralNet
+Normalization is the library's (`docs/architecture.md`, section 4.3) with
+fixed settings: 64 points, and the duration and the start position as
+context values. A gesture becomes 63 motion vectors of two numbers each, plus
+the duration in seconds and the start position, which is 129 numbers in the
+flat form. The sequence form is the same 63 vectors as 63 steps of two
+channels, with the three context values given separately.
+
+The settings are fixed because tuning is about the models, and one form for
+every family keeps their results comparable. 64 points lose little: on the
+training data a resampled path stays within 0.003 frame-heights of the
+original for the median gesture and within 0.008 for the 95th percentile.
+
+### 5.2 Format
+
+Gesture data is a folder `gesture-data/` holding two files.
+
+`gestures.parquet` has one row per accepted sample, with these columns:
+
+| Column | Content |
+|---|---|
+| `sampleId`, `sessionId` | Identifiers from the training data |
+| `author`, `handedness` | From the session |
+| `label` | Label id |
+| `isSpell` | Whether the label is a spell |
+| `durationS` | Gesture duration in seconds |
+| `frameWidth`, `frameHeight` | Frame size in pixels |
+| `rawTimeS`, `rawX`, `rawY` | Raw positions, as lists |
+| `vectors` | 126 numbers: horizontal and vertical of each vector |
+| `startX`, `startY` | Start position, in frame-heights |
+
+`gestures.json` describes the file:
+
+```json
+{
+  "formatVersion": 1,
+  "builtAt": "2026-11-26T14:15:02-04:00",
+  "source": "training-data",
+  "sourceCommit": "0813bf3",
+  "sessionIds": ["3f8c1d2e-9a4b-4c7e-8f10-5b6d7e8f9a0b"],
+  "sampleCount": 4821,
+  "fingerprint": "9c1f...",
+  "normalization": {
+    "points": 64,
+    "context": ["duration", "startPosition"],
+    "version": 1
+  }
+}
 ```
 
-| Key | Meaning | Default |
-|---|---|---|
-| `name` | Name used in the run folder | file name |
-| `dataset` | Data folder or export file | `training-data` |
-| `seed` | Seed of the split and random choices | 42 |
-| `labels` | `all` spells, or a list of ids | `all` |
-| `handedness.use` | Hand the classifier is for | `right` |
-| `handedness.others` | `exclude` or `mirror` other hand | `exclude` |
-| `normalization.points` | Points per gesture | 32 |
-| `normalization.context` | `duration`, `startPosition` | both |
-| `split.strategy` | `author` or `sessions` | `author` |
-| `split.testFraction` | Test share (`sessions` only) | 0.25 |
-| `evaluation.maxFalseTriggerRate` | Limit for threshold | 0.05 |
-| `classifiers` | Families and settings (section 7) | required |
+- The **fingerprint** is a SHA-256 hash over the sorted sample ids, each with
+  its label and status. Two gesture data files cover the same samples when
+  their fingerprints match. `sourceCommit` is the git commit of the
+  repository when the source was `training-data`, and is empty otherwise.
+- The `normalization.version` is the library's normalization version. A
+  trainer or a classifier that records a different version is reported as a
+  mismatch.
+- Gesture data is derived from the training data and is rebuilt, not merged,
+  when sessions are added. Rebuilding is deterministic, so a conflict in git
+  is resolved by rebuilding. Comparing contents, and not file bytes, tells
+  whether two builds agree.
+- Only accepted samples are included. Rejected samples are left out.
 
-Notes on the choices:
+### 5.3 Access and splitting
 
-- **Points = 32.** Half of all gestures have fewer than 50 positions, and 10
-  percent have fewer than 34, so 32 points keep nearly all of the detail of
-  most gestures while rarely interpolating much. A larger number adds
-  features without adding information. Other values are tried by running
-  another experiment.
-- **Both context values** let a classifier use the speed of the gesture and
-  where in the frame it was drawn. An experiment can drop either one to test
-  whether it helps or only fits the people who recorded.
-- **Handedness.** The dataset has only right-handed samples. `mirror` converts
-  left-handed samples to right-handed by reversing the horizontal direction of
-  the positions before normalization. Any classifier trained for the left
-  hand uses `handedness.use: left` in its own experiment.
-- **No reject class.** The classifiers learn only the spells. Backward spells
-  and non-spell recordings are rejected by low confidence, as the
-  architecture specifies; they are used as test cases only, so the classifier
-  is never trained on a "not a spell" class whose variety it cannot cover.
-- The `author` strategy holds out each author once, so the dataset's three
-  authors give three folds. The `sessions` strategy gives one fold.
+Loading gives a set that covers the whole table. A set offers:
 
-## 6. Splitting
+- **Select** rows by the values of columns, for example one author, one
+  label or spells only. The result is a set.
+- **Shuffle** with a seed, and **split** by percentage into two or more sets.
+  A split can be stratified so every side keeps the label shares.
+- **Read** the whole set or batches of a size, as arrays in the flat form or
+  the sequence form with the context values, and the labels.
+- **Count** the samples per label and per author.
 
-- Sessions, not samples, are the unit of the split, so that one person's
-  session (one camera, one lighting, one set of habits) is never on both
-  sides.
-- **Author strategy.** One fold per author; the test side holds all of that
-  author's sessions and the training side holds everyone else's. It measures
-  the case that matters at a demonstration: a person the classifier has not
-  seen.
-- **Sessions strategy.** The sessions are shuffled with the seed and the
-  test fraction of them goes to the test side. Sessions are dealt out so that
-  each label keeps sessions on the training side.
-- A fold whose training side lacks a label to learn is an error that names
-  the fold and label. With the shared data this does not occur, because
-  every label has at least two authors.
-- Anything the model learns from data, such as feature scaling, a validation
-  carve-out for the neural network's stopping point, or a classifier setting
-  chosen by a search, uses the training side only (N2). The validation
-  carve-out is also made by session.
+A set is a view of the loaded table (a list of row positions), so selecting
+and splitting copy nothing.
 
-## 7. Classifiers
+The tuning and test sets come from one operation: the rows of labels that are
+not spells all go to the test set, and the remaining rows are shuffled with
+the seed and split by label-stratified percentage, 85 tuning and 15 test by
+default. The split depends only on the gesture data, the seed and the
+percentage, and is made again, not stored, when a run needs it. A run
+records those three values, so training reproduces the split of an
+exploration exactly.
 
-Every family implements the interface in `docs/architecture.md`, section 4.4.
-Features are the flat form of the normalized gesture for the first three
-families and the sequence form for the neural network
-(`docs/architecture.md`, section 4.3). With 32 points and both context
-values, the flat form has 65 numbers: 31 vectors of two numbers, the
-duration, and the two start coordinates.
+Samples of one session resemble each other, so a random split rates a
+classifier more favorably than a person it has not seen would. Selecting
+by author gives that stricter test when it is wanted.
 
-The confidence of every family is the probability it gives to the label it
-predicts. Settings are the keys in the `classifiers` entry of the experiment
-file; omitted keys take the default shown.
+## 6. Trainers
 
-| Family | Settings and defaults |
+A trainer is the one interface through which a family is trained and
+evaluated. It does the following:
+
+- **Train** on a set, given the values of the family's hyperparameters.
+- **Evaluate** on a set, returning the standard metrics and, on request, the
+  predicted label and confidence of every gesture.
+- **Save and load** its trained model.
+- **Produce a classifier** from the trained model for the shared library, to
+  save in `models/`.
+- **Validate** the hyperparameter values it is given before training: an
+  unknown name, a value of the wrong kind or a value out of range is an error
+  that names the hyperparameter.
+
+Metrics are reported as named numbers. Every trainer reports the **standard
+metrics**:
+
+| Metric | Meaning |
+|---|---|
+| `accuracy` | Share of gestures given the right label |
+| `macroF1` | F1 averaged over labels |
+| `logLoss` | Log loss of the predicted probabilities |
+| `timePerGestureMs` | Mean time to classify one gesture |
+| `trainSeconds` | Time to train |
+
+A family may add metrics of its own, for example the number of epochs the
+neural network ran or the number of support vectors of the SVM. They are
+stored with the others and are never used to compare families.
+
+Each family has a trainer. The common implementation serves a family that
+needs nothing special, and a subclass adds what a family needs.
+
+| Family | Hyperparameters and defaults |
 |---|---|
 | `naiveBayes` | `varSmoothing` 1e-9 |
-| `randomForest` | `trees` 300, `maxDepth` none, `minSamplesLeaf` 1 |
 | `svm` | `kernel` rbf, `c` 10, `gamma` scale |
-| `neuralNet` | `epochs` 60, `learningRate` 0.001, `batchSize` 64, |
-| | `patience` 8 |
+| `randomForest` | `trees` 300, `maxDepth` none, `minSamplesLeaf` 1 |
+| `neuralNet` | `learningRate` 0.001, `batchSize` 64, `filters` 32, |
+| | `hiddenUnits` 64, `dropout` 0.2, `maxEpochs` 60, `patience` 8 |
 
-Where the confidence comes from:
+- **Features.** Naive Bayes, the SVM and the forest read the flat form. The
+  neural network reads the sequence form: a small one-dimensional
+  convolutional network, with the context values joined to its learned summary
+  before the output layer.
+- **Confidence.** For every family it is the probability given to the
+  predicted label: the class probability of Naive Bayes, the share of trees
+  voting for the label, probability estimates fitted on the training set for
+  the SVM, and the softmax output of the network.
+- **Scaling.** The SVM and the network standardize their features with the mean
+  and spread of the set they are trained on; the values are saved with the
+  classifier. Naive Bayes and the forest need none.
+- **Stopping.** The network trains until `patience` epochs pass without
+  improvement on a validation part taken from the set it is trained on (15
+  percent), and keeps the best epoch.
+- Random choices use the seed of the run.
 
-- Naive Bayes: the class probability of its Gaussian model.
-- Random forest: the share of trees voting for the label.
-- SVM: probability estimates fitted on the training side.
-- Neural network: the softmax output.
+## 7. Experiment definitions
 
-- **Naive Bayes** is the baseline: it assumes the features are independent
-  given the spell.
-- **SVM and the neural network** need features of similar scale, so their
-  features are standardized with the mean and spread of the training side;
-  the values are saved with the classifier. Naive Bayes and the forest do not
-  need this.
-- **Neural network.** A small one-dimensional convolutional network reads the
-  sequence of vectors, with the context values joined to its learned summary
-  before the output layer. It trains with early stopping: training ends after
-  `patience` epochs without improvement on a validation set, carved from the
-  training side by session (15 percent of the sessions), and the best epoch
-  is kept. The network is deliberately small, since there are only a few
-  thousand samples.
-- Random choices use the experiment's seed.
-- Settings are fixed in the experiment file. Searching over settings is done
-  by running several experiments and comparing them.
+A definition is a JSON file in `training/experiments/<family>/<name>.json`,
+with camel case keys. It is kept in git and changed like code.
 
-## 8. Test cases and measures
+```json
+{
+  "formatVersion": 1,
+  "name": "svm-coarse",
+  "family": "svm",
+  "validation": {"scheme": "kFold", "folds": 5},
+  "comparator": {
+    "metric": "accuracy",
+    "direction": "max",
+    "tieBreaker": {"metric": "timePerGestureMs", "direction": "min"}
+  },
+  "hyperparameters": {
+    "kernel": ["rbf"],
+    "c": {"min": 0.1, "max": 100, "count": 4, "type": "log"},
+    "gamma": ["scale", "auto"]
+  }
+}
+```
 
-### 8.1 Test cases
+| Key | Meaning |
+|---|---|
+| `name` | Name of the definition; also its file name |
+| `family` | One of the families of section 6 |
+| `validation.scheme` | `kFold` or `singleSplit` |
+| `validation.folds` | Folds, for `kFold` (default 5) |
+| `validation.fraction` | Validation share, for `singleSplit` (0.2) |
+| `comparator.metric` | A metric the trainer reports |
+| `comparator.direction` | `max` or `min`: which value is better |
+| `comparator.tieBreaker` | Optional second metric and direction |
+| `hyperparameters` | The space (below) |
 
-The test side of a fold gives:
+A hyperparameter that is not in `hyperparameters` takes the family's default.
+Each entry in the space is one of:
+
+- a **range**: `{"min": 0.0001, "max": 0.01, "count": 10, "type": "linear"}`
+  gives 10 values spaced evenly from min to max; `"type": "log"` spaces them
+  evenly on a logarithmic scale. Adding `"integer": true` rounds the values
+  to whole numbers and removes duplicates;
+- a **list** of values: `[100, 120, 150]` gives those three values.
+
+The candidates are all combinations of one value from each entry, so their
+number is the product of the entries' value counts. The tool prints that
+number before it starts.
+
+The tool rejects a definition with an unknown key, an invalid range (min above
+max, a count below 1, or a log range that includes zero or less) or a
+hyperparameter that the family's trainer does not accept.
+
+## 8. Explorer
+
+The explorer is composed of a trainer, a hyperparameter space, a validation
+scheme and a comparator, all taken from the definition. A factory builds it
+from a definition and, later, from a stored run.
+
+For a run, the explorer does this:
+
+1. It enumerates the candidates and numbers them in a fixed order.
+2. For each candidate, and for each validation fold of the tuning set, it
+   has the trainer train on the training part and evaluate on the validation
+   part, and appends the metrics to the results.
+3. When all candidates are done, it aggregates each metric of a candidate over
+   its folds, as the mean and the standard deviation, and the comparator
+   ranks the candidates by the mean of its metric, with the tie-breaker's
+   metric for equal values.
+
+**Validation schemes.** One explorer exists for each scheme and all share the
+rest of the logic:
+
+- `kFold` shuffles the tuning set with the seed, splits it into `folds`
+  parts of equal label shares, and uses each part once for validation.
+- `singleSplit` makes one label-stratified split of the tuning set, 1 minus
+  `fraction` to train and `fraction` to validate.
+
+A fold's training part is also the set a trainer learns scaling and stopping
+from (N2), and the test set is never part of either.
+
+**Stored runs.** An exploration run writes
+`reports/<family>/exploration/<run id>/`, where the run id is
+`<timestamp>-<definition name>`:
+
+```text
+<run id>/
+  definition.json    copy of the definition as it was run
+  run.json           seed, test fraction, gesture data fingerprint,
+                     master definition name, times, candidate count
+  results.csv        one row per candidate and fold
+  report.md          the report (section 10)
+  figures/
+```
+
+`results.csv` has the columns `candidate` and `fold`, then one column per
+hyperparameter and one per metric. Rows are appended as candidates finish, so
+an interrupted run keeps what it measured.
+
+An explorer can be built from a stored run (`definition.json` and
+`run.json`) and then answers questions about it without training anything:
+the best candidate, the best n, the metrics of one candidate, and, for one
+hyperparameter, the mean of a metric at each of its values. The ranking is
+computed from the results each time, so a changed comparator in a later
+version of the code reranks old results instead of breaking them. The user is
+responsible for keeping the comparator the same when a comparison between runs
+matters.
+
+## 9. Final training and evaluation
+
+### 9.1 Training
+
+The training run reads the hyperparameters from a candidate of an exploration
+run (the best one unless another is named) or from a file of values. It makes
+the split with the run's seed and test fraction, and stops if the gesture data
+no longer has the fingerprint that the exploration recorded. It then:
+
+1. trains the candidate on the tuning set;
+2. evaluates it on the test set (section 9.2) and chooses the threshold
+   (section 9.3);
+3. trains the candidate again on all the gesture data, which gives the
+   classifier to save;
+4. writes the report and saves the classifier (section 10).
+
+### 9.2 Test cases and measures
 
 | Kind | Source | Correct outcome |
 |---|---|---|
-| Spell | Held-out samples of spells | The sample's label |
-| Backward | Spell samples, reversed | Not recognized |
-| Non-spell | Held-out non-spell samples | Not recognized |
+| Spell | Test set samples of spells | The sample's label |
+| Backward | The spell samples, reversed | Not recognized |
+| Non-spell | Test set samples of non-spells | Not recognized |
 
-A spell case is correct only when the confidence is also at or above the
-threshold (section 8.2).
+A reversed gesture visits the positions from last to first, with times
+measured from the new first position, so a backward spell lasts as long as the
+original and moves at the same speeds. A classifier cannot reject it by
+duration or speed, only by direction.
 
-A reversed gesture runs through the same positions from last to first, with
-times measured from the new first position, so a backward spell lasts as long
-as the original and moves at the same speeds. A classifier cannot reject it
-by duration or speed, only by direction.
-
-### 8.2 Measures
-
-A prediction counts as **recognized** when its confidence is at or above the
-threshold, and as **not recognized** below it. The measures are computed for
-every threshold from 0 to 1 in steps of 0.01:
+A prediction is **recognized** when its confidence is at or above the
+threshold. The measures are computed for every threshold from 0 to 1 in
+steps of 0.01:
 
 | Measure | Share of ... that ... |
 |---|---|
@@ -262,135 +399,145 @@ every threshold from 0 to 1 in steps of 0.01:
 | Backward false trigger rate | backward cases recognized as a spell |
 | Non-spell false trigger rate | non-spell cases recognized as a spell |
 
-At threshold 0 every case is recognized, so recognition rate at 0 is the
-plain accuracy of the classifier. Also reported:
+At threshold 0 the recognition rate is the plain accuracy. Also reported are
+the confusion matrix and the precision and recall of each label at threshold
+0 and at the recommended threshold, and the time to classify one gesture, as
+the mean and the 95th percentile, measured one gesture at a time as inference
+runs. When the data has no non-spell samples the report says so.
 
-- the confusion matrix and the precision and recall of each label at
-  threshold 0 and at the recommended threshold;
-- accuracy per author (author strategy) so a weak fold is visible;
-- the time to normalize and classify one gesture, as the mean and the 95th
-  percentile over the test cases, measured one gesture at a time as inference
-  runs;
-- the number of training samples and test cases of each kind.
+### 9.3 Threshold
 
-With several folds the predictions of all folds are pooled before the
-measures are computed, and the per-fold values are reported beside them.
+The recommended threshold is the lowest one at which the backward false
+trigger rate and, when non-spell cases exist, the non-spell false trigger rate
+are both at or below a limit (default 0.05, set with `--max-false-trigger`).
+The false trigger rates fall and the missed rate rises as the threshold rises,
+so the lowest threshold that meets the limit gives the highest recognition
+rate. If none meets the limit, the recommendation is 1 and the report says so.
+The recommendation is a starting value, which the action trigger can override
+(`docs/architecture.md`, section 4.5).
 
-## 9. Threshold recommendation
+## 10. Reports and models
 
-For each classifier the recommended threshold is the lowest one at which the
-backward false trigger rate and, when non-spell cases exist, the non-spell
-false trigger rate are both at or below `evaluation.maxFalseTriggerRate`.
-The lowest such threshold gives the highest recognition rate that meets the
-limit, because the false trigger rates fall and the missed rate rises as the
-threshold rises. If no threshold meets the limit, the recommendation is
-threshold 1 and the report says the limit could not be met.
-
-The recommendation is a starting value. The action trigger can override it in
-configuration (`docs/architecture.md`, section 4.5).
-
-## 10. Run folder
-
-A run writes `runs/<timestamp>-<name>/`, with the timestamp in the form
-`20261125-141502`. The folder is never reused (R7.3).
+### 10.1 Layout
 
 ```text
-runs/<timestamp>-<name>/
-  run.json              identity, timings, tool version, summary
-  experiment.yaml       the experiment as run, defaults filled in
-  dataset.json          the dataset's identity and counts
-  folds.json            session ids of each fold's two sides
-  predictions.jsonl     one line per test case and classifier
-  metrics.json          every measure of section 8, per threshold
-  classifiers/
-    <family>/
-      classifier.json   metadata of the saved classifier
-      model             the trained model
+reports/
+  index.md
+  <family>/
+    exploration/<run id>/          section 8
+    training/<model id>/
+      source.json                  where the candidate came from
+      metrics.csv                  the measures of section 9.2 per threshold
+      predictions.parquet          one row per test case
+      report.md
+      figures/
+models/
+  <family>/<model id>/
+    classifier                     the model, in the family's own form
+    classifier.json                metadata
 ```
 
-- **Dataset identity** (`dataset.json`) holds the dataset's location, the
-  git commit of the repository when the dataset is `training-data`, the ids
-  of its sessions, and a fingerprint: a SHA-256 hash over the sorted sample
-  ids with each sample's label and status. Two runs used the same data when
-  their fingerprints match.
-- **`predictions.jsonl`** has one line per classifier and test case: fold,
-  sample id, kind, correct label (or null), predicted label, confidence and
-  time in milliseconds. The measures can be recomputed from it without
-  retraining.
-- **`classifier.json`** carries `formatVersion`, the family, the label ids,
-  the normalization settings, the recommended threshold, the run it came from
-  and a summary of its metrics. The model file is the family's own
-  serialization.
+The model id is `<family>-<timestamp>`, for example `svm-20261126-141502`. It
+names the training folder and the model folder, and is never reused.
+
+### 10.2 Files
+
+- `source.json` holds the exploration run id and candidate number (or null
+  for values given directly), the hyperparameter values used, the seed, the
+  test fraction and the gesture data fingerprint. Because it holds the values,
+  a training report does not depend on the exploration run staying.
+- `classifier.json` holds `formatVersion`, the model id, the family, the label
+  ids, the normalization settings, the recommended threshold, the
+  hyperparameter values, a summary of the test metrics, the gesture data
+  fingerprint and the path of the training report.
+- `predictions.parquet` has, for each test case, its sample id, kind, correct
+  label (or null), predicted label, confidence and the time to classify it,
+  so the measures can be recomputed without training.
+
+### 10.3 Reports
+
+An exploration report has the definition's key settings and the gesture data
+fingerprint, a table of the candidates in rank order with the compared metric
+and its spread, and, for each hyperparameter, a chart of the compared metric
+against its values.
+
+A training report has the split sizes, the hyperparameters, the measures of
+section 9.2 as tables and charts, the threshold and its reason, the
+confusion matrix, and the timing. Charts are PNG files in `figures/`,
+referenced from the Markdown.
+
+`index.md` lists every exploration run and every model, by family, with the
+date, the compared metric or the test summary, and links. The reporter
+rebuilds it from the folders each time a report is written. Reports and
+models stay valid when exploration runs are deleted; only the index entries
+of deleted runs disappear.
 
 ## 11. Commands
 
+The commands start with `wand-train`:
+
 | Command | What it does |
 |---|---|
-| `wand-train run <experiment>` | Runs the experiment |
-| `wand-train data <dataset>` | Prints dataset counts, no training |
-| `wand-train compare <run>...` | Writes a comparison report for the runs |
-| `wand-train publish <run> <family> <name>` | Copies to `models/<name>/` |
+| `gesture-data build [source]` | Builds `gesture-data/` |
+| `gesture-data check [source]` | Compares it with a data folder |
+| `gesture-data summary` | Prints counts per label and author |
+| `explore <definition>` | Runs an exploration |
+| `show <run id>` | Prints the best, top n and parameter effects |
+| `train <run id>` | Trains the best candidate of a run |
+| `train --family <f> --values <file>` | Trains from given values |
+| `index` | Rebuilds `reports/index.md` |
 
-`wand-train run` prints progress per fold and classifier and a summary table
-at the end. `wand-train compare` writes `report.md` and the images it refers
-to into the first run's folder, or into the folder named by `--out`.
-
-### 11.1 Comparison report
-
-The report has one section per run, with the key settings and the dataset
-identity, then:
-
-- a table of classifiers with recognition rate, misrecognition rate, missed
-  rate, the two false trigger rates at the recommended threshold, and the
-  time per gesture;
-- a chart per run of recognition rate against backward false trigger rate as
-  the threshold varies, one curve per classifier;
-- the confusion matrix of each classifier at its recommended threshold;
-- the accuracy per author.
-
-When runs of different experiments are compared, the report lists the
-settings in which the experiments differ.
+Common options: `--seed` (default 42), `--test-fraction` (default 0.15),
+`--top` for `show`, `--candidate` for `train` to choose another candidate,
+and `--max-false-trigger` for `train`. `explore` and `train` write their
+reports and the index as they finish.
 
 ## 12. Testing
 
-- **Experiment loader**: a valid file, defaults, an unknown key, an unknown
-  family and a value out of range each give the expected result or message.
-- **Splitter**: no session has samples on both sides; the same seed gives the
-  same folds; the author strategy gives one fold per author; a missing label
-  on the training side is reported.
-- **Test case builder**: reversing a gesture gives reversed positions with
-  re-timed timestamps; non-spell samples are test cases and never training
-  data.
-- **Evaluator**: measures computed from small hand-made predictions match
-  hand-computed values, including the threshold rules and the case where no
-  threshold meets the limit.
-- **Whole run**: a small synthetic dataset, with spells that are simple
-  distinct shapes, run through every family. Every family beats chance, the
-  run folder holds every file of section 10, and a second run with the same
-  seed gives the same folds and measures.
-- **Publish and reload**: a published classifier loaded by the library's
-  loader predicts the same labels and confidences as in the run.
-- Real data is not used in tests; the tool is also run on the shared dataset
-  by hand when its tasks are verified.
+- **Gesture data**: a small synthetic data folder gives rows with the right
+  columns, normalized values equal to the library's, and a fingerprint that
+  changes when a label or status changes; building twice gives the same
+  content; a file of an unknown format version is refused.
+- **Access**: selecting by column, seeded shuffles, stratified splits and
+  batches give the expected rows and shapes, and the non-spell rows land in
+  the test set.
+- **Definitions**: a valid file and each kind of invalid one give the expected
+  outcome or message; ranges and lists enumerate the expected values
+  (linear, log, integer with duplicates).
+- **Trainers**: each family on a small synthetic set of simple shapes beats
+  chance, reports the standard metrics, rejects an unknown or out-of-range
+  hyperparameter, and its classifier loads without the training code.
+- **Explorer**: a fake trainer with known metrics gives the expected ranking,
+  aggregates, partial results after an interruption and answers to queries;
+  with k-fold every training row is validated exactly once; a stored run
+  reloads to the same answers.
+- **Evaluator**: measures from small hand-made predictions match hand-computed
+  values, including the threshold rule and the case where no threshold meets
+  the limit; reversing a gesture reverses its positions with re-timed
+  times.
+- **Whole run**: build, explore and train on a synthetic data folder leave
+  every file of section 10, and the saved classifier predicts the same labels
+  and confidences when loaded by the library alone.
+- Real data is not used in tests; the tool is run on the shared data by hand
+  when its tasks are verified.
 
 ## 13. Requirement coverage
 
 | Requirement | Design |
 |---|---|
-| R1 | 5 |
-| R2 | 2, 3, 4 |
-| R3 | 4, 7 |
-| R4 | 6 |
-| R5 | 8.1 |
-| R6 | 4, 7, 8, 9 |
-| R7 | 4, 10 |
-| R8 | 11.1 |
-| R9 | 10, 11 |
-| N1 | 5, 10 |
-| N2 | 6, 7 |
-| N3 | 3, 7 |
-| N4 | 7 |
+| R1 | 5.1, 5.2 |
+| R2 | 5.3 |
+| R3 | 6 |
+| R4 | 7 |
+| R5 | 8 |
+| R6 | 9 |
+| R7 | 10 |
+| N1 | 5.3, 8 |
+| N2 | 5.3, 6, 8 |
+| N3 | 6, 8 |
+| N4 | 6, 8 |
 | N5 | 12 |
+| N6 | 3, 6 |
 
 ## 14. To Do
 
