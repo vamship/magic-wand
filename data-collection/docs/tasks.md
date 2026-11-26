@@ -163,7 +163,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A15 | Camera check on resume | Completed |
 | DC-A16 | Put a session on hold | Completed |
 | DC-A17 | Camera list cache | Completed |
-| DC-A18 | Dataset settings and command line | Not started |
+| DC-A18 | Dataset settings and command line | In progress |
 | DC-A19 | Dataset service | Not started |
 | DC-A20 | End any open session | Completed |
 | DC-U15 | Wording, hover and resume-flow polish | Completed |
@@ -1824,7 +1824,7 @@ restart of the application scans again.
 ### DC-A18 Dataset settings and command line
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-L12, DC-A11
 - **Requirements**: R2.10
 - **Design**: DC 5.3, 5.4; DH 3
