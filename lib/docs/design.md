@@ -241,8 +241,8 @@ displacement and its magnitude, and add the duration.
 Draws a gesture's path with a color gradient from green at the start to red at
 the end and small markers at both ends. It draws the positions it is given;
 mirroring for display is the caller's choice. Two modes: the path alone on a
-black background, or the path over a supplied camera frame. Rendering is a small drawing operation, fast enough to
-generate on demand.
+black background, or the path over a supplied camera frame. Rendering is a
+small drawing operation, fast enough to generate on demand.
 
 ## 12. Dataset store
 
