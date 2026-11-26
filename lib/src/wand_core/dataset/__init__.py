@@ -1,6 +1,22 @@
 """The dataset: record models, file formats and crash-safe writes."""
 
-from wand_core.dataset.check import CheckReport, Finding, Level, check_folder
+from wand_core.dataset.check import (
+    CheckReport,
+    Finding,
+    Level,
+    check_folder,
+    check_folders,
+)
+from wand_core.dataset.discovery import (
+    DatasetExistsError,
+    DatasetSummary,
+    InvalidDatasetNameError,
+    SessionConflictError,
+    create_dataset,
+    find_datasets,
+    is_valid_dataset_name,
+    session_conflicts,
+)
 from wand_core.dataset.export import (
     LoadedSample,
     SampleFilter,
@@ -61,6 +77,15 @@ __all__ = [
     "Finding",
     "Level",
     "check_folder",
+    "check_folders",
+    "DatasetExistsError",
+    "DatasetSummary",
+    "InvalidDatasetNameError",
+    "SessionConflictError",
+    "create_dataset",
+    "find_datasets",
+    "is_valid_dataset_name",
+    "session_conflicts",
     "LoadedSample",
     "SampleFilter",
     "export_samples",

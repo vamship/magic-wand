@@ -9,11 +9,12 @@ error, because clips are optional.
 from __future__ import annotations
 
 import json
-from collections.abc import Collection
+from collections.abc import Collection, Iterable
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 
+from wand_core.dataset.discovery import session_conflicts, session_dirs
 from wand_core.dataset.fileio import (
     DATASET_FILE,
     SAMPLES_FILE,
@@ -225,3 +226,51 @@ def _read_samples(session_dir: Path, report: CheckReport):
             report.add(level, code, path, f"line {number}: {error}")
         else:
             yield record, number
+
+
+def check_folders(
+    folders: Iterable[Path], labels: Collection[str] | None = None
+) -> CheckReport:
+    """Check one or several data folders. Never writes.
+
+    The report holds the findings of every folder, plus, as information, every
+    session that is still open, and, as an error, every session that is in
+    more than one folder with different content.
+    """
+    folders = [Path(f) for f in folders]
+    report = CheckReport()
+    for folder in folders:
+        part = check_folder(folder, labels)
+        report.findings.extend(part.findings)
+        report.sessions += part.sessions
+        report.samples += part.samples
+        if (folder / DATASET_FILE).is_file():
+            try:
+                open_sessions = [
+                    (path, session)
+                    for path, session in session_dirs(folder)
+                    if session.ended_at is None
+                ]
+            except DatasetError:
+                open_sessions = []  # damaged files are already reported
+            for path, session in open_sessions:
+                report.add(
+                    Level.INFO,
+                    "open_session",
+                    path,
+                    f"session {session.session_id} is still open",
+                )
+    if len(folders) > 1:
+        try:
+            conflicts = session_conflicts(folders)
+        except DatasetError:
+            conflicts = {}
+        for session_id, paths in sorted(conflicts.items()):
+            where = ", ".join(str(p.parent.parent) for p in paths)
+            report.add(
+                Level.ERROR,
+                "session_conflict",
+                paths[0],
+                f"session {session_id} has different content in: {where}",
+            )
+    return report
