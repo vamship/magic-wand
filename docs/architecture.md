@@ -337,8 +337,8 @@ gesture into the same form, in four steps:
 The normalization is fixed: 64 points, with both context values. It is
 not a tunable setting. The number of points is chosen so that resampling
 changes the shape of a typical gesture very little. The settings are saved
-with every classifier, so that inference can detect a mismatch. Input: the positions of one gesture.
-Output: the normalized gesture.
+with every classifier, so that inference can detect a mismatch. Input: the
+positions of one gesture. Output: the normalized gesture.
 
 Resampling in time, and not along the path's length, keeps the speed profile
 of the gesture, which can tell spells apart.
