@@ -89,8 +89,8 @@ is classified and acted on as soon as it ends.
 5. The classifier receives the normalized gesture and outputs a spell and a
    confidence score.
 6. The action trigger performs the action for the spell. If the confidence is
-   below the minimum threshold, no action is performed and the user is told
-   the gesture was not recognized.
+   below the configured minimum threshold, no action is performed and the user
+   is told the gesture was not recognized.
 
 ### 2.2 Data collection
 
@@ -203,7 +203,7 @@ and train and evaluate a model. Each takes inputs and produces outputs:
  | 3. TRAIN AND EVALUATE                                                 |
  |  In:   training set, test set, the chosen hyperparameter candidate    |
  |  Does: train on the whole training set; evaluate on the test set      |
- |  Out:  classifier (in git), metrics, confidence threshold, report     |
+ |  Out:  classifier (in git), metrics, report                           |
  +-----------------------------------------------------------------------+
 ```
 
@@ -225,9 +225,11 @@ and train and evaluate a model. Each takes inputs and produces outputs:
    exploration nor the training has seen. The test set yields three kinds of
    test case: held-out spells, backward spells (the held-out spells with their
    positions in reverse order) and non-spell recordings. A backward spell
-   counts as not a spell. The measures are computed over a range of confidence
-   thresholds, and the results choose the confidence threshold. The model is
-   saved as a classifier, with the evidence for the choice.
+   counts as not a spell. The measures include some that need no threshold, such
+   as accuracy, log loss and the area under the ROC curve (AUC), and curve data
+   over a range of confidence thresholds that shows how false triggers trade
+   off against recognition. The model is saved as a classifier, with the
+   evidence in a report. Training chooses no threshold.
 
 Samples of one session resemble each other, so scores on a random split are
 likely to be higher than for a person the classifier has not seen; the
@@ -413,9 +415,10 @@ spell (a label identifier) and a confidence score between 0 and 1.
 - The confidence is the probability the model gives to the predicted spell.
 - A motion that is not a spell, or a spell drawn backward, is rejected by a low
   confidence, not by a class of its own. The confidence threshold that rejects
-  them is chosen in training.
-- A saved classifier carries its list of labels, the normalization settings it
-  needs, and the recommended confidence threshold.
+  them is set in the configuration of the action trigger; the training reports
+  show how to choose it.
+- A saved classifier carries its list of labels and the normalization settings
+  it needs.
 - The classifier does not decide whether to act on the result; the action
   trigger applies the confidence threshold.
 
@@ -425,8 +428,9 @@ Maps a recognized spell to an effect: an on-screen visual, a sound, or, if
 time permits, device control. Input: a spell and its confidence. The effect for
 each spell is set in `config/actions.yaml`. The trigger applies the confidence
 threshold: below it nothing is performed and the user is told the gesture was
-not recognized. The threshold starts at the value saved with the classifier
-and can be overridden in configuration.
+not recognized. The threshold is a setting in `config/actions.yaml`; the
+training reports show how false triggers and recognition trade off, to help
+choose it.
 
 ### 4.6 Shared library
 
@@ -531,7 +535,7 @@ All configuration is in `config/`.
   speed thresholds, the valid gesture duration and the minimum gesture size.
   Calibration starts from these.
 - `actions.yaml` (in git): the effect for each spell, and the confidence
-  threshold override of the action trigger.
+  threshold of the action trigger.
 - `data-collection.yaml` (in git): settings of the data collection
   application, such as where datasets are stored, the requested camera mode,
   the countdown length, the video clip padding and the keyboard shortcuts.

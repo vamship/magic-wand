@@ -44,7 +44,7 @@ described in a design document of its own, written when the family is added.
   with a comparator and stores the results (section 8). One explorer exists for
   each validation scheme.
 - **Evaluator**: Builds the test cases and computes the measures and the
-  threshold recommendation (section 9).
+  threshold information (section 9).
 - **Reporter**: Writes the reports, the figures and the index (section 10).
 - **Model store**: Saves and lists the trained models (section 10).
 
@@ -155,7 +155,7 @@ Training has three phases. Each has inputs, steps and outputs:
  |  Steps:   1. make the same split                                      |
  |           2. trainer trains on the whole training set                 |
  |           3. evaluator tests the model once on the test set           |
- |           4. choose the confidence threshold                          |
+ |           4. compute the measures and the threshold curve data        |
  |  Output:  model (models/<family>/<model id>/), training report        |
  +-----------------------------------------------------------------------+
 ```
@@ -463,9 +463,10 @@ training data no longer has the fingerprint that the exploration recorded. It
 then:
 
 1. Trains the model on the whole training set.
-2. Evaluates it on the test set (section 9.2) and chooses the threshold
-   (section 9.3).
-3. Writes the report and saves the model with the threshold (section 10).
+2. Evaluates it on the test set (section 9.2) and reports the threshold
+   information (section 9.3).
+3. Writes the report and saves the model (section 10). The model carries no
+   threshold.
 
 The model that is saved is the one that was evaluated. The test set is never
 used to train it.
@@ -483,9 +484,30 @@ measured from the new first position, so a backward spell lasts as long as the
 original and moves at the same speeds. A classifier cannot reject it by
 duration or speed, only by direction.
 
-A prediction is **recognized** when its confidence is at or above the
-threshold. The measures are computed for every threshold from 0 to 1 in
-steps of 0.01:
+Every test case yields a predicted label, its confidence, and the probability
+of every label. From these the evaluator computes two groups of measures.
+
+**Measures that need no threshold:**
+
+| Measure | Meaning |
+|---|---|
+| Accuracy, macro F1, log loss | As in section 6, on spell cases |
+| Label AUC | ROC area of each label against the others, and the mean |
+| Rejection AUC | ROC area for spell cases versus backward and non-spell |
+
+The label AUC is computed on the spell cases from the probability of the
+label. The rejection AUC uses the confidence as the score, with spell cases as
+the positives and backward and non-spell cases as the negatives.
+
+The confusion matrix, the precision and recall of each label, and the time to
+classify one gesture are also reported. The time is the mean and the 95th
+percentile, measured one gesture at a time as inference runs. When the data has
+no non-spell samples, the rejection AUC uses the backward cases alone and the
+report says so.
+
+**Curve data over thresholds.** A prediction is **recognized** when its
+confidence is at or above a threshold. The measures are computed for every
+threshold from 0 to 1 in steps of 0.01:
 
 | Measure | Share of ... that ... |
 |---|---|
@@ -495,24 +517,22 @@ steps of 0.01:
 | Backward false trigger rate | backward cases recognized as a spell |
 | Non-spell false trigger rate | non-spell cases recognized as a spell |
 
-At threshold 0 the recognition rate is the plain accuracy. Also reported are
-the confusion matrix and the precision and recall of each label at threshold
-0 and at the recommended threshold, and the time to classify one gesture, as
-the mean and the 95th percentile, measured one gesture at a time as inference
-runs. When the data has no non-spell samples the report says so.
+At threshold 0 the recognition rate is the plain accuracy. These rates, plotted
+against each other, are the curves from which the AUC values come.
 
-### 9.3 Threshold
+### 9.3 Threshold information
 
-The recommended threshold is the lowest one at which the backward false
+Training chooses no threshold and saves none. The action trigger applies a
+threshold that is set in the inference configuration (`docs/architecture.md`,
+section 4.5), and the user sets it after reading the report.
+
+To help, the report shows the lowest threshold at which the backward false
 trigger rate and, when non-spell cases exist, the non-spell false trigger rate
 are both at or below a limit (default 0.05, set with `--max-false-trigger`).
 The false trigger rates fall and the missed rate rises as the threshold rises,
-so the lowest threshold that meets the limit gives the highest recognition
-rate. If none meets the limit, the recommendation is 1 and the report says so.
-The threshold is chosen from the test results, so the rates reported at it are
-slightly optimistic, and the report says so. The recommendation is a starting
-value, which the action trigger can override (`docs/architecture.md`, section
-4.5).
+so this is the threshold with the highest recognition rate that meets the
+limit. If none meets the limit, the report says so. The value is
+information only, and is computed from the test results.
 
 ## 10. Reports and models
 
@@ -525,7 +545,7 @@ reports/
     exploration/<run id>/          section 8
     training/<model id>/
       source.json                  where the candidate came from
-      metrics.csv                  the measures of section 9.2 per threshold
+      metrics.csv                  the measures and curve data of section 9.2
       predictions.parquet          one row per test case
       report.md
       figures/
@@ -545,13 +565,13 @@ names the training folder and the model folder, and is never reused.
   the test fraction and the training data fingerprint. Because it holds the
   values, a training report does not depend on the exploration run staying.
 - `classifier.json` holds `formatVersion`, the model id, the family, the label
-  ids, the normalization settings, the recommended threshold, the
-  hyperparameter values, a summary of the test metrics, the training data
-  fingerprint and the path of the training report. Its fields are specified in
-  `lib/docs/design.md`.
+  ids, the normalization settings, the hyperparameter values, a summary of the
+  test metrics, the training data fingerprint and the path of the training
+  report. Its fields are specified in `lib/docs/design.md`.
 - `predictions.parquet` has, for each test case, its sample id, kind, correct
-  label (or null), predicted label, confidence and the time to classify it,
-  so the measures can be recomputed without training.
+  label (or null), predicted label, confidence, the probability of every label
+  and the time to classify it, so that the measures, the AUC values and any
+  later measure can be computed without training.
 
 ### 10.3 Reports
 
@@ -561,8 +581,8 @@ metrics and the spread over folds, and, for each hyperparameter, a chart of a
 metric against its values.
 
 A training report has the split sizes, the hyperparameters, the measures of
-section 9.2 as tables and charts, the threshold and its reason, the
-confusion matrix, and the timing. Charts are PNG files in `figures/`,
+sections 9.2 and 9.3 as tables and charts, the confusion matrix, and the
+timing. Charts are PNG files in `figures/`,
 referenced from the Markdown.
 
 `index.md` lists every exploration run and every model, by family, with the
@@ -615,8 +635,9 @@ hyperparameter candidate, and `--max-false-trigger` for `train`. `explore` and
   appears in a fold; every hyperparameter candidate sees the same folds; a
   stored run reloads to the same answers.
 - **Evaluator**: Measures from small hand-made predictions match
-  hand-computed values, including the threshold rule and the case where no
-  threshold meets the limit; reversing a gesture reverses its positions with
+  hand-computed values, including the AUC of a perfect and of a random
+  ranking, the threshold information and the case where no threshold meets the
+  limit; reversing a gesture reverses its positions with
   re-timed times.
 - **Whole run**: Build, explore and train on a synthetic dataset leave every
   file of section 10, and the saved model predicts the same labels and

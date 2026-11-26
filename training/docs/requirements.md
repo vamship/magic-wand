@@ -17,8 +17,8 @@ The subsystem has three functions:
 2. **Exploration.** It searches the hyperparameter space of each classifier
    family and ranks the hyperparameter candidates.
 3. **Training.** It trains the best hyperparameter candidate of a family on
-   the training set, evaluates it on a test set it has not seen, chooses a
-   confidence threshold and saves the classifier.
+   the training set, evaluates it on a test set it has not seen, and saves
+   the classifier.
 
 The families to compare are open. Examples are Naive Bayes, a support vector
 machine, a random forest and a multilayer perceptron (MLP, a neural network).
@@ -143,20 +143,27 @@ document:
   kinds of test case: held-out spells, backward spells (held-out spells with
   their positions in reverse order) and non-spell recordings. When there are no
   non-spell recordings it says so and goes on without them.
-- R6.4 Evaluation reports, over a range of confidence thresholds: the share of
-  spells recognized with the right label, the share recognized with a wrong
-  label, the share not recognized, the share of backward spells that trigger,
-  and the share of non-spell recordings that trigger. It also reports the
+- R6.4 Evaluation reports measures that need no threshold: accuracy, macro F1,
+  log loss, the area under the ROC curve (AUC) of each label against the
+  others, and a rejection AUC that shows how well the confidence separates
+  spells from backward spells and non-spell recordings. It also reports the
   confusion between labels, precision and recall per label, and the time per
   gesture.
-- R6.5 The tool recommends a confidence threshold: the one that recognizes the
-  most spells while the shares of triggering backward spells and of triggering
-  non-spell recordings stay at or below a limit that the user can set.
-- R6.6 The tool saves the model trained on the training set, with the
-  recommended threshold. It does not train again on the test set.
-- R6.7 A saved classifier carries its labels, its normalization settings, the
-  recommended threshold, its hyperparameters, a summary of its test metrics, a
-  reference to its exploration run, and the fingerprint of the training data.
+- R6.5 Evaluation also reports, over a range of confidence thresholds, the
+  share of spells recognized with the right label, the share recognized with a
+  wrong label, the share not recognized, the share of backward spells that
+  trigger, and the share of non-spell recordings that trigger. It shows, for
+  information, the lowest threshold at which the two false trigger shares are
+  at or below a limit that the user can set. The tool chooses no threshold and
+  saves none.
+- R6.6 The tool saves every prediction of the evaluation with its confidence
+  and the probability of every label, so that further measures can be computed
+  later without training.
+- R6.7 The tool saves the model trained on the training set. It does not train
+  again on the test set.
+- R6.8 A saved classifier carries its labels, its normalization settings, its
+  hyperparameters, a summary of its test metrics, a reference to its
+  exploration run, and the fingerprint of the training data.
 
 ### R7. Reports and models
 - R7.1 Every exploration and every training run writes a report in Markdown,
@@ -164,8 +171,8 @@ document:
   and shared through git.
 - R7.2 An exploration report shows its definition, the ranked hyperparameter
   candidates and, for each hyperparameter, its effect on the compared metric.
-- R7.3 A training report shows the split, the measures of R6.4 as tables and
-  charts, the recommended threshold and the hyperparameters used.
+- R7.3 A training report shows the split, the measures of R6.4 and R6.5 as
+  tables and charts, and the hyperparameters used.
 - R7.4 Reports and models are organized by family. An exploration is kept
   apart from a training run, and every trained classifier has a model id that
   names its report and its files.

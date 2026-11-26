@@ -278,8 +278,8 @@ library specifies that form, because the library has to read it.
 
 A classifier is a folder holding the model in the family's own form, and a
 `classifier.json` file with `formatVersion`, the family, the label ids in the
-order of the probabilities, the normalization settings and version, and the
-recommended confidence threshold. Training adds further fields (the model id,
+order of the probabilities, and the normalization settings and version.
+Training adds further fields (the model id,
 the hyperparameters, a summary of the metrics, the training data fingerprint
 and the report path); the library ignores them.
 
