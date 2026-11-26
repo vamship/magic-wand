@@ -56,63 +56,52 @@ the form the classifier loads.
 
 ## 3. Classes
 
+The key classes and what each is responsible for. Their attributes and
+methods are decided when the code is written.
+
 ```text
  DATA
- +----------------------+      +--------------------------------+
- | TrainingDataBuilder  |      | GestureSet                     |
- |----------------------|      |--------------------------------|
- | build(datasets)      |----->| select(columns), shuffle(seed) |
- | check(datasets)      |      | split(fractions, stratify)     |
- +----------------------+      | batches(size), counts()        |
-      writes training-data/    +---------------^----------------+
+ +----------------------+     +----------------------------------+
+ | TrainingDataBuilder  |---->| GestureSet                       |
+ | Builds the training  |     | A view of rows of the training   |
+ | data from datasets   |     | data: select, shuffle, split,    |
+ +----------------------+     | read in whole or in batches      |
+                              +----------------^-----------------+
                                                | reads
  EXPLORATION                                   |
- +----------------------+   +-------------------+------------------+
- | ExperimentDefinition |   | Explorer  (abstract)                 |
- |----------------------|   |--------------------------------------|
- | family, validation,  |-->| explore(training set)                |
- | comparator, space    |   | load(run), best(), top(n), effect()  |
- +----------------------+   | folds(training set)  <- abstract     |
- +----------------------+   +------^----------------------^--------+
- | ExplorerFactory      |          |                      |
- |----------------------|   +------+--------+    +--------+--------+
- | create(definition)   |   | KFoldExplorer |    | SingleSplit-    |
- | from_run(run folder) |   +---------------+    | Explorer        |
- +----------------------+                        +-----------------+
- +----------------------+   +------------------------------------+
- | HyperparameterSpace  |   | Comparator  (abstract)             |
- |----------------------|   |------------------------------------|
- | enumerate()          |   | compare(a, b) -> which is better   |
- | validate()           |   +-----------------^------------------+
- +-----------+----------+                     | e.g. ByMetricComparator
-             | makes
- +-----------v----------+   +------------------------------------+
- | HyperparameterCand.  |-->| CandidateResult                    |
- |----------------------|   |------------------------------------|
- | id, values           |   | candidate, metrics per fold,       |
- +----------------------+   | aggregated metrics                 |
-                            +------------------------------------+
- TRAINING
- +-----------------------------------+      +-----------------------+
- | Trainer  (abstract)               |      | Classifier (library)  |
- |-----------------------------------|      |-----------------------|
- | validate(hyperparameters)         |      | load(folder)          |
- | train(training set, eval set,     |writes| predict(gestures)     |
- |       hyperparameters) -> Result  |----->+-----------------------+
- | evaluate(set) -> Metrics          |         e.g. a Naive Bayes, SVM,
- | save(folder)                      |         forest or MLP classifier
- +------------------^----------------+
-                    | one subclass for each family, or the common one
- +------------------+----------------+
- | e.g. SvmTrainer, MlpTrainer       |
- +-----------------------------------+
- +----------------+  +--------------+  +--------------+  +---------------+
- | Evaluator      |  | Reporter     |  | ModelStore   |  | ExplorationRun|
- |----------------|  |--------------|  |--------------|  |---------------|
- | test cases     |  | reports,     |  | save, list   |  | folder, defn  |
- | measures,      |  | figures,     |  | models       |  | copy, results |
- | threshold      |  | index        |  +--------------+  +---------------+
- +----------------+  +--------------+
+ +----------------------+     +----------------+-----------------+
+ | ExplorerFactory      |---->| Explorer  (abstract)             |
+ | Builds an explorer   |     | Enumerates hyperparameter        |
+ | from a definition or |     | candidates, runs each over the   |
+ | from a stored run    |     | folds, aggregates, sorts, stores |
+ +----------------------+     +----^----------------------^------+
+                                   |                      |
+                        +----------+-------+    +---------+--------+
+                        | KFoldExplorer    |    | SingleSplit-     |
+                        | k folds          |    | Explorer         |
+                        +------------------+    +------------------+
+                                   | uses
+              +--------------------+--------------------+
+              v                                         v
+ +----------------------------+     +--------------------------------+
+ | Comparator  (abstract)     |     | Trainer  (abstract)            |
+ | Says which of two          |     | Trains on a set it is given,   |
+ | candidate results is       |     | evaluates on another, saves    |
+ | better                     |     | the model                      |
+ +-------------^--------------+     +---------------+----------------+
+               | e.g. ByMetric                      | writes what the
+                                                    | classifier loads
+                                                    v
+                                    +--------------------------------+
+                                    | Classifier  (library)          |
+                                    | Loads a saved model, predicts  |
+                                    +--------------------------------+
+ OUTPUT
+ +------------------+  +------------------+  +------------------------+
+ | Evaluator        |  | Reporter         |  | ModelStore             |
+ | Builds test      |  | Writes reports,  |  | Saves and lists        |
+ | cases, measures  |  | figures, index   |  | trained models         |
+ +------------------+  +------------------+  +------------------------+
 ```
 
 - **GestureSet** is a view of rows of the training data. Selecting, shuffling
@@ -120,15 +109,17 @@ the form the classifier loads.
 - **Trainer** is the base class. It is given a training set and an evaluation
   set explicitly and knows nothing about folds. A family uses the common
   implementation or a subclass of it.
-- **Explorer** is the base class. It owns the loop over hyperparameter
-  hyperparameter candidates and the aggregation of metrics, and leaves the
-  choice of folds to its subclasses: `KFoldExplorer` and `SingleSplitExplorer`.
+- **Explorer** is the base class. It enumerates the hyperparameter candidates
+  from the space in the experiment definition, owns the loop over them and the
+  aggregation of metrics, and leaves the choice of folds to its subclasses.
 - **Comparator** is the interface for ranking. It compares the results of two
-  hyperparameter candidates; `ByMetricComparator` is one implementation.
+  hyperparameter candidates; `ByMetric` is one implementation.
 - **ExplorerFactory** builds an explorer from an experiment definition, or
   from a stored exploration run.
 - **Classifier** is the library's class (`lib/docs/design.md`). A trainer
   writes what it loads.
+- The experiment definition and an exploration run are plain records, not
+  classes with behavior.
 
 ## 4. System flow
 
