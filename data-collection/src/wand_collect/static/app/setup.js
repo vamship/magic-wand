@@ -5,6 +5,7 @@
 import { useEffect, useState } from "preact/hooks";
 
 import { api } from "./api.js";
+import { DatasetsPanel } from "./datasets.js";
 import { EndButton } from "./end.js";
 import { HoldButton } from "./hold.js";
 import { html } from "./html.js";
@@ -316,7 +317,9 @@ function SessionList({ snapshot, notices, goTo }) {
   const locked = isCapturing(snapshot);
   const isCurrent = (entry) =>
     locked && Boolean(session) && session.id === entry.id;
-  const key = session ? `${session.id}:${session.role}` : "none";
+  const key =
+    (session ? `${session.id}:${session.role}` : "none") +
+    `:${snapshot.dataset}`;
 
   const refresh = async () => {
     const list = await notices.attempt(() => api.get("/api/sessions"));
@@ -442,6 +445,7 @@ export function Setup({ snapshot, store, notices, goTo }) {
       </div>
       <div>
         <${CurrentSession} snapshot=${snapshot} notices=${notices} />
+        <${DatasetsPanel} snapshot=${snapshot} notices=${notices} />
         <${NewSession} snapshot=${snapshot} store=${store} goTo=${goTo} />
       </div>
     </div>
