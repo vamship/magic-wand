@@ -131,7 +131,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-A2 | Gesture sets | Completed |
 | TR-A3 | Trainer base and metrics | Completed |
 | TR-A4 | Experiment definitions | Completed |
-| TR-A5 | Explorer | Not started |
+| TR-A5 | Explorer | In progress |
 | TR-A6 | Stored explorations | Not started |
 | TR-A7 | Evaluator | Not started |
 | TR-A8 | Final training and models | Not started |
@@ -614,7 +614,7 @@ example definition is added by its own task.
 ### TR-A5 Explorer
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: TR-A3, TR-A4
 - **Requirements**: R5.1 to R5.4, R5.8, N1, N2, N3, N5
 - **Design**: TD 3, 8
