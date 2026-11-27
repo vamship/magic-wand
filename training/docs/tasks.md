@@ -124,7 +124,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-D1 | Requirements | Completed |
 | TR-D2 | Design | Completed |
 | TR-D3 | Task list | In progress |
-| TR-F1 | Training package and tooling | Not started |
+| TR-F1 | Training package and tooling | In progress |
 | TR-L1 | Normalizer | Not started |
 | TR-L2 | Classifier loading | Not started |
 | TR-A1 | Training data builder | Not started |
@@ -212,7 +212,7 @@ Every part of the approved design is assigned to at least one task.
 ### TR-F1 Training package and tooling
 
 - **Type**: chore
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: none
 - **Requirements**: N5
 - **Design**: TD 11; Arch 6; `docs/standards.md` 2
