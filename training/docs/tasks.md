@@ -125,7 +125,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-D2 | Design | Completed |
 | TR-D3 | Task list | In progress |
 | TR-F1 | Training package and tooling | Not started |
-| TR-L1 | Normalizer | Not started |
+| TR-L1 | Normalizer | In progress |
 | TR-L2 | Classifier loading | Not started |
 | TR-A1 | Training data builder | Not started |
 | TR-A2 | Gesture sets | Not started |
@@ -255,7 +255,7 @@ own instructions file.
 ### TR-L1 Normalizer
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: none
 - **Requirements**: R1.2, N6
 - **Design**: Lib 10; Arch 4.3; TD 5.1
