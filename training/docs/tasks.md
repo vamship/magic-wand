@@ -127,7 +127,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-F1 | Training package and tooling | Completed |
 | TR-L1 | Normalizer | Completed |
 | TR-L2 | Classifier loading | Not started |
-| TR-A1 | Training data builder | Not started |
+| TR-A1 | Training data builder | In progress |
 | TR-A2 | Gesture sets | Not started |
 | TR-A3 | Trainer base and metrics | Not started |
 | TR-A4 | Experiment definitions | Not started |
@@ -367,7 +367,7 @@ inside the family loaders.
 ### TR-A1 Training data builder
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: TR-F1, TR-L1, DC-L12
 - **Requirements**: R1, N1, N4, N5
 - **Design**: TD 5.1, 5.2, 11; DH 3, 3.1, 5
