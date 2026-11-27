@@ -323,7 +323,7 @@ family is added.
 
 ## 7. Experiment definitions
 
-A definition is a JSON file in `experiment-definitions/<family>/<name>.json`,
+A definition is a JSON file in `experiments/<family>/<name>.json`,
 with camel case keys. It is kept in git and changed like code. This example is
 for an SVM, as an illustration:
 

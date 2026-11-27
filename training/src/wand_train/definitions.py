@@ -1,7 +1,7 @@
 """Experiment definitions (``training/docs/design.md`` section 7).
 
 A definition is a JSON file with camel case keys in
-``experiment-definitions/<family>/<name>.json``. It is checked here; the
+``experiments/<family>/<name>.json``. It is checked here; the
 hyperparameter candidates are listed by ``explore.enumerate``.
 """
 

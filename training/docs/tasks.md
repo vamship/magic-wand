@@ -79,7 +79,7 @@ lib/src/wand_core/
   normalize.py                       (the normalizer)
   classifiers/  base.py  registry.py  files.py
 
-experiment-definitions/<family>/<name>.json   (experiment definitions)
+experiments/<family>/<name>.json   (experiment definitions)
 
 training/
   CLAUDE.md
@@ -241,8 +241,8 @@ own instructions file.
 - [x] `training/CLAUDE.md` exists. Like the other components' instructions
       files, it states the role, the task and the process, and points to
       `training/docs/` and the root documents.
-- [x] The folder `experiment-definitions/` exists at the repository root and
-      is tracked in git (add a `.gitkeep`).
+- [x] The folder `experiments/` exists at the repository root and is tracked
+      in git (add a `.gitkeep`).
 
 **Implementation notes.**
 
@@ -609,7 +609,7 @@ them) and clip probabilities in the log loss.
 **Implementation notes.** `wand_train/definitions.py` and
 `explore/enumerate.py`. Use `pydantic` models (already a dependency of the
 library) or hand-written checks. Use `itertools.product`. Write definitions to
-and read them from `experiment-definitions/<family>/<name>.json`; a family's
+and read them from `experiments/<family>/<name>.json`; a family's
 example definition is added by its own task.
 
 ### TR-A5 Explorer

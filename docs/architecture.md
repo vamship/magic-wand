@@ -581,8 +581,7 @@ magic-wand/
     src/              application code
     tests/
   data/               datasets, one folder per dataset; in git, no video
-  experiment-definitions/
-                      experiment definitions, by family; in git
+  experiments/        experiment definitions, by family; in git
   training-data/      consolidated raw and normalized gestures; in git
   reports/            exploration and training reports; in git
   models/             trained classifiers; in git
