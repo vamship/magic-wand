@@ -3,7 +3,7 @@ name = "magic-wand"
 version = "0.1.0"
 description = "Workspace root for the magic wand project."
 requires-python = ">=3.11"
-dependencies = ["wand-core", "wand-collect"]
+dependencies = ["wand-core", "wand-collect", "wand-train"]
 
 [tool.uv]
 package = false
@@ -11,9 +11,10 @@ package = false
 [tool.uv.sources]
 wand-core = { workspace = true }
 wand-collect = { workspace = true }
+wand-train = { workspace = true }
 
 [tool.uv.workspace]
-members = ["lib", "data-collection"]
+members = ["lib", "data-collection", "training"]
 
 [dependency-groups]
 dev = [
@@ -29,7 +30,7 @@ line-length = 80
 select = ["E", "F", "I", "N"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["wand_core", "wand_collect"]
+known-first-party = ["wand_core", "wand_collect", "wand_train"]
 
 [tool.pytest.ini_options]
-testpaths = ["lib/tests", "data-collection/tests"]
+testpaths = ["lib/tests", "data-collection/tests", "training/tests"]

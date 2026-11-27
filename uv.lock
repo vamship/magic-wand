@@ -11,6 +11,7 @@ members = [
     "magic-wand",
     "wand-collect",
     "wand-core",
+    "wand-train",
 ]
 
 [[package]]
@@ -208,6 +209,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "wand-collect" },
     { name = "wand-core" },
+    { name = "wand-train" },
 ]
 
 [package.dev-dependencies]
@@ -221,6 +223,7 @@ dev = [
 requires-dist = [
     { name = "wand-collect", editable = "data-collection" },
     { name = "wand-core", editable = "lib" },
+    { name = "wand-train", editable = "training" },
 ]
 
 [package.metadata.requires-dev]
@@ -803,3 +806,14 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2" },
     { name = "pyyaml", specifier = ">=6" },
 ]
+
+[[package]]
+name = "wand-train"
+version = "0.1.0"
+source = { editable = "training" }
+dependencies = [
+    { name = "wand-core" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "wand-core", editable = "lib" }]
