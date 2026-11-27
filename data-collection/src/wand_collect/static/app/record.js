@@ -2,12 +2,14 @@
 // view, the state of the capture cycle, the countdown, the active label and
 // its count, and the latest sample. It offers no review actions; pressing
 // Escape or clicking anywhere pauses capturing, and the shell then moves to
-// the Review page.
+// the Review page. The Session panel can pause the session (put it on hold)
+// or end it.
 
 import { useCallback, useEffect, useRef } from "preact/hooks";
 
 import { api } from "./api.js";
 import { useCountdown } from "./countdown.js";
+import { EndButton } from "./end.js";
 import { HoldButton } from "./hold.js";
 import { html } from "./html.js";
 import {
@@ -167,9 +169,18 @@ export function Record({ snapshot, shortcuts, notices }) {
         <div class="panel">
           <h3>Session</h3>
           <p class="hint">
-            Pause the session to start or resume another one.
+            Pause the session to start or resume another one, or end it for
+            good.
           </p>
-          <${HoldButton} notices=${notices} />
+          <div class="row">
+            <${HoldButton} notices=${notices} />
+            ${snapshot.session &&
+            html`<${EndButton}
+              id=${snapshot.session.id}
+              name=${snapshot.session.name}
+              notices=${notices}
+            />`}
+          </div>
         </div>
       </div>
     </div>

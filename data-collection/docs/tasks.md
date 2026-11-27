@@ -172,7 +172,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-U18 | Infinite scroll and the Review workspace | Completed |
 | DC-U19 | Point counts and one page width | Completed |
 | DC-U20 | Dataset selection and merge | Not started |
-| DC-U21 | End a session from Record, Review and Setup | Not started |
+| DC-U21 | End a session from Record, Review and Setup | Completed |
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Completed |
 | DC-U3 | Calibrate page | Completed |
@@ -2743,7 +2743,7 @@ replace option.
 ### DC-U21 End a session from Record, Review and Setup
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-A20, DC-U2, DC-U4, DC-U5
 - **Requirements**: R2.7
 - **Design**: DC 3.2, 4.1
@@ -2766,18 +2766,18 @@ the Calibrate page or selecting the session first.
 
 **Acceptance criteria.**
 
-- [ ] Record shows Pause and End session; Review shows End session beside
+- [x] Record shows Pause and End session; Review shows End session beside
       Pause.
-- [ ] On the Record page, clicking End session does not also pause capturing
+- [x] On the Record page, clicking End session does not also pause capturing
       (the page's click-to-pause ignores buttons).
-- [ ] Each button opens the confirmation; cancelling changes nothing;
+- [x] Each button opens the confirmation; cancelling changes nothing;
       confirming ends the session.
-- [ ] After ending from Record or Review, the user is on Setup and the session
+- [x] After ending from Record or Review, the user is on Setup and the session
       is listed as ended.
-- [ ] On Setup, every open session, loaded or not, has End session; ended
+- [x] On Setup, every open session, loaded or not, has End session; ended
       sessions do not. Ending one updates the list at once.
-- [ ] Ending a session that is on hold works without loading it.
-- [ ] A failed request shows its error message and leaves the page as it was.
+- [x] Ending a session that is on hold works without loading it.
+- [x] A failed request shows its error message and leaves the page as it was.
 
 **Implementation notes.** `static/app/record.js`, `review.js` and `setup.js`;
 reuse the confirmation used by the Calibrate page's End session button and by
