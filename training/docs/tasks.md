@@ -128,7 +128,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-L1 | Normalizer | Completed |
 | TR-L2 | Classifier loading | Completed |
 | TR-A1 | Training data builder | Completed |
-| TR-A2 | Gesture sets | In progress |
+| TR-A2 | Gesture sets | Completed |
 | TR-A3 | Trainer base and metrics | Not started |
 | TR-A4 | Experiment definitions | Not started |
 | TR-A5 | Explorer | Not started |
@@ -433,7 +433,7 @@ or `wand_core/testing`).
 ### TR-A2 Gesture sets
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: TR-A1
 - **Requirements**: R2, N1, N5
 - **Design**: TD 3, 5.3
@@ -467,17 +467,17 @@ data.
 
 **Acceptance criteria.**
 
-- [ ] Each operation gives the expected rows and shapes on a small table.
-- [ ] `shuffle` and `split` are deterministic for a seed and differ for another
+- [x] Each operation gives the expected rows and shapes on a small table.
+- [x] `shuffle` and `split` are deterministic for a seed and differ for another
       seed; the union of the parts of `split` equals the input, with no row
       twice.
-- [ ] With `stratify`, the label shares of every part are within one row of
+- [x] With `stratify`, the label shares of every part are within one row of
       the proportional share.
-- [ ] `select` then `split` keeps only the selected rows.
-- [ ] `batches(size)` covers every row once, and the last batch may be smaller.
-- [ ] Creating views does not copy the table (check that the underlying arrays
+- [x] `select` then `split` keeps only the selected rows.
+- [x] `batches(size)` covers every row once, and the last batch may be smaller.
+- [x] Creating views does not copy the table (check that the underlying arrays
       are shared).
-- [ ] The default train and test split is 80 and 20 percent.
+- [x] The default train and test split is 80 and 20 percent.
 
 **Implementation notes.** `wand_train/data/gestureset.py`. Hold the table once
 and a NumPy array of row indices in each set. For the stratified split, shuffle
