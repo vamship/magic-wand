@@ -134,7 +134,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-A4 | Experiment definitions | Completed |
 | TR-A5 | Explorer | Completed |
 | TR-A6 | Stored explorations | Completed |
-| TR-A7 | Evaluator | Not started |
+| TR-A7 | Evaluator | In progress |
 | TR-A8 | Final training and models | Not started |
 | TR-A9 | Reporter | Not started |
 | TR-V1 | End-to-end test | Not started |
@@ -749,7 +749,7 @@ TR-A9.
 ### TR-A7 Evaluator
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: TR-A3
 - **Requirements**: R6.3 to R6.6, N5
 - **Design**: TD 9.2, 9.3
