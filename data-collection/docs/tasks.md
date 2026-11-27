@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 33 | **Updated** 2026-11-26 | **Draft**
+> **Version** 34 | **Updated** 2026-11-27 | **Draft**
 
 ## 1. Overview
 
@@ -131,7 +131,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-D3 | Task list | Completed |
 | DC-F1 | Workspace and tooling | Completed |
 | DC-F2 | Configuration and settings models | Completed |
-| DC-F3 | Data layout migration | In progress |
+| DC-F3 | Data layout migration | Completed |
 | DC-S1 | H.264 encoding spike | Completed |
 | DC-S2 | Linux verification | In progress |
 | DC-L1 | Frame sources | Completed |
@@ -389,7 +389,7 @@ place.
 ### DC-F3 Data layout migration
 
 - **Type**: chore
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-A18
 - **Requirements**: R2.10
 - **Design**: DH 2, 3, 3.1; Arch 6
@@ -437,7 +437,7 @@ ignores.
       `data/`; a video clip placed in a dataset is not tracked.
 - [x] `uv run wand-collect check data/<author>` reports no errors for every
       dataset, and given all of them reports no session in conflict.
-- [ ] The owner's local sessions are in `data/vamship` with their video clips,
+- [x] The owner's local sessions are in `data/vamship` with their video clips,
       and the temporary folder was kept until this was confirmed.
 - [x] `uv run wand-collect serve --dataset vamship` opens that dataset and
       lists its sessions.
@@ -451,22 +451,15 @@ after (4,821 in 29 sessions), `wand-collect check` reports no errors on every
 dataset and on all three together, and the app opens `data/vamship` (verified
 by building the application on it). Only files tracked in git were touched.
 
-Still to do, by the owner of the local data (step 3), because it touches files
-that are not in git: the local `data/dataset.json` and `data/sessions/` (3
-sessions with video clips) are still in `data/` and must be merged into
-`data/vamship`:
-
-```text
-mkdir ~/wand-local-backup
-mv data/dataset.json data/sessions ~/wand-local-backup/
-uv run wand-collect merge ~/wand-local-backup --target data/vamship
-uv run wand-collect check data/vamship
-```
-
-and `dataset: vamship` set in `config/data-collection.local.yaml`. The merge
-only reads the backup, which stays until the result has been checked. Until
-this is done, the application prints a warning that `data/` is itself a
-dataset (the old layout).
+**Progress (2026-11-27).** Step 3 is done by the owner. Of the 3 local
+sessions, 2 were already in `data/vamship` and were skipped as identical, and
+1 (`36d04e2d`, still open) was added and committed. The video clips of the 2
+skipped sessions (258 each) were moved into their session folders by hand,
+because the merge copies clips only for sessions it adds. `wand-collect check
+data/vamship` reports no errors. The owner chose not to create
+`config/data-collection.local.yaml`; the dataset is chosen with `--dataset
+vamship` or in the Web UI, and until then the application starts on the
+dataset `default` of `config/data-collection.yaml`.
 
 **Implementation notes.** A small script run once is enough; do not commit it
 unless it is worth keeping. Do the move in one commit and the `.gitignore`
