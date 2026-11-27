@@ -134,7 +134,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-A4 | Experiment definitions | Completed |
 | TR-A5 | Explorer | Completed |
 | TR-A6 | Stored explorations | Completed |
-| TR-A7 | Evaluator | In progress |
+| TR-A7 | Evaluator | Completed |
 | TR-A8 | Final training and models | Not started |
 | TR-A9 | Reporter | Not started |
 | TR-V1 | End-to-end test | Not started |
@@ -749,7 +749,7 @@ TR-A9.
 ### TR-A7 Evaluator
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: TR-A3
 - **Requirements**: R6.3 to R6.6, N5
 - **Design**: TD 9.2, 9.3
@@ -794,23 +794,23 @@ trained model over them and computes every measure of `TD` 9.2 and 9.3.
 
 **Acceptance criteria.**
 
-- [ ] Reversing a gesture reverses the positions and re-times them as stated; a
+- [x] Reversing a gesture reverses the positions and re-times them as stated; a
       test with known positions checks the result.
-- [ ] Every measure matches a hand-computed value on small hand-made
+- [x] Every measure matches a hand-computed value on small hand-made
       predictions (a perfect classifier, a random one, a mix), including the
       label AUC, the rejection AUC (1.0 for perfect separation, 0.5 for equal
       scores), the confusion matrix and the curve data.
-- [ ] At threshold 0 the recognition rate equals the accuracy, and every
+- [x] At threshold 0 the recognition rate equals the accuracy, and every
       backward case is recognized; at threshold 1 only cases with confidence 1
       are recognized.
-- [ ] The threshold information is the lowest qualifying threshold, and is
+- [x] The threshold information is the lowest qualifying threshold, and is
       reported as none when the limit cannot be met.
-- [ ] A label with no spell cases or with all of them is skipped for its AUC
+- [x] A label with no spell cases or with all of them is skipped for its AUC
       without failing.
-- [ ] The predictions table has the stated columns, and every measure can be
+- [x] The predictions table has the stated columns, and every measure can be
       recomputed from it alone (a test recomputes accuracy, the curve data and
       the rejection AUC from the table).
-- [ ] The evaluator uses only the test set it is given.
+- [x] The evaluator uses only the test set it is given.
 
 **Implementation notes.** `wand_train/evaluate.py`. `scikit-learn`'s
 `roc_auc_score` is fine for the AUC values. The time per gesture is measured by
