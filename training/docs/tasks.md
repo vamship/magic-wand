@@ -131,7 +131,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-A2 | Gesture sets | Completed |
 | TR-A3 | Trainer base and metrics | Completed |
 | TR-A4 | Experiment definitions | Completed |
-| TR-A5 | Explorer | In progress |
+| TR-A5 | Explorer | Completed |
 | TR-A6 | Stored explorations | Not started |
 | TR-A7 | Evaluator | Not started |
 | TR-A8 | Final training and models | Not started |
@@ -614,7 +614,7 @@ example definition is added by its own task.
 ### TR-A5 Explorer
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: TR-A3, TR-A4
 - **Requirements**: R5.1 to R5.4, R5.8, N1, N2, N3, N5
 - **Design**: TD 3, 8
@@ -657,23 +657,23 @@ example definition is added by its own task.
 
 **Acceptance criteria.**
 
-- [ ] With a fake trainer that returns known metrics for each candidate and
+- [x] With a fake trainer that returns known metrics for each candidate and
       fold, the results, aggregates (mean and standard deviation) and ranking
       match hand-computed values, for `max` and for `min`.
-- [ ] With k-fold, every training row is a validation row in exactly one fold,
+- [x] With k-fold, every training row is a validation row in exactly one fold,
       and training and validation parts never overlap.
-- [ ] Every candidate is evaluated on the same folds (the fake trainer records
+- [x] Every candidate is evaluated on the same folds (the fake trainer records
       the folds it was given).
-- [ ] A test set passed in by mistake is impossible: `explore` takes only the
+- [x] A test set passed in by mistake is impossible: `explore` takes only the
       training set, and a test confirms rows of a held-out set never reach a
       trainer.
-- [ ] A candidate with an invalid hyperparameter fails before any training, and
+- [x] A candidate with an invalid hyperparameter fails before any training, and
       the error names the hyperparameter and the candidate.
-- [ ] Equal candidates keep their enumeration order.
-- [ ] `on_candidate` is called once per candidate, in order, as each finishes,
+- [x] Equal candidates keep their enumeration order.
+- [x] `on_candidate` is called once per candidate, in order, as each finishes,
       and `progress` counts every fold.
-- [ ] An unknown comparator name or invalid comparator settings are rejected.
-- [ ] A new validation scheme or comparator can be added without changes to the
+- [x] An unknown comparator name or invalid comparator settings are rejected.
+- [x] A new validation scheme or comparator can be added without changes to the
       explorer base.
 
 **Implementation notes.** `wand_train/explore/explorer.py` and
