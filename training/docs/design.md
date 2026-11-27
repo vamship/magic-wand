@@ -1,6 +1,6 @@
 # Training Subsystem - Design
 
-> **Version** 5 | **Updated** 2026-11-26 | **Approved**
+> **Version** 6 | **Updated** 2026-11-27 | **Approved**
 
 ## 1. Overview
 
@@ -323,7 +323,7 @@ family is added.
 
 ## 7. Experiment definitions
 
-A definition is a JSON file in `training/experiments/<family>/<name>.json`,
+A definition is a JSON file in `experiments/<family>/<name>.json`,
 with camel case keys. It is kept in git and changed like code. This example is
 for an SVM, as an illustration:
 
