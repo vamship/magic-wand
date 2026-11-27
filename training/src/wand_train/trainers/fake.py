@@ -27,7 +27,12 @@ MODEL_FILE = "model.json"
 def probabilities_from_means(
     features: np.ndarray, means: np.ndarray, sharpness: float
 ) -> np.ndarray:
-    """Softmax of ``-sharpness * distance`` to each mean."""
+    """Softmax of ``-sharpness * distance`` to each mean.
+
+    The last number of a normalized gesture is its duration in seconds, which
+    would swamp the steps, so the distance leaves it out.
+    """
+    features, means = features[:, :-1], means[:, :-1]
     distances = np.linalg.norm(features[:, None, :] - means[None, :, :], axis=2)
     scores = -sharpness * distances
     scores -= scores.max(axis=1, keepdims=True)

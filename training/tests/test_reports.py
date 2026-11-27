@@ -257,7 +257,7 @@ def test_the_index_lists_explorations_and_models_by_family(made):
     assert f"[{run.name}](fake/exploration/{run.name}/report.md)" in text
     assert f"[{model.name}](fake/training/{model.name}/report.md)" in text
     assert "2026-12-01" in text
-    assert "accuracy 0." in text
+    assert re.search(r"accuracy \d\.\d{4}", text)
     assert "Rejection AUC" in text
 
 
