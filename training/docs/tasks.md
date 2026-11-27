@@ -125,7 +125,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-D2 | Design | Completed |
 | TR-D3 | Task list | In progress |
 | TR-F1 | Training package and tooling | Completed |
-| TR-L1 | Normalizer | Not started |
+| TR-L1 | Normalizer | Completed |
 | TR-L2 | Classifier loading | Not started |
 | TR-A1 | Training data builder | Not started |
 | TR-A2 | Gesture sets | Not started |
@@ -255,7 +255,7 @@ own instructions file.
 ### TR-L1 Normalizer
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: none
 - **Requirements**: R1.2, N6
 - **Design**: Lib 10; Arch 4.3; TD 5.1
@@ -284,28 +284,28 @@ normalizes many gestures. The old vector builder (`DC-L4`) is removed.
 
 **Acceptance criteria.**
 
-- [ ] For 5 points, the gesture of the worked example in `Arch` 4.3 (positions
+- [x] For 5 points, the gesture of the worked example in `Arch` 4.3 (positions
       `(0.30, 0.50)`, `(0.34, 0.44)`, `(0.40, 0.38)`, `(0.52, 0.30)`,
       `(0.54, 0.30)`, `(0.60, 0.38)`, `(0.62, 0.46)` at times 0, 0.10, 0.20,
       0.45, 0.50, 0.80, 1.00 seconds, with a square frame so no scaling) gives
       the steps and the duration of that example, to 3 decimals.
-- [ ] With the default settings, any gesture of at least 2 positions gives 190
+- [x] With the default settings, any gesture of at least 2 positions gives 190
       numbers.
-- [ ] The same shape drawn in 1 second and in 2 seconds gives identical steps
+- [x] The same shape drawn in 1 second and in 2 seconds gives identical steps
       and durations 1.0 and 2.0.
-- [ ] The same shape drawn in another part of the frame gives identical
+- [x] The same shape drawn in another part of the frame gives identical
       results.
-- [ ] A gesture recorded with fewer frames, or with a dropped frame, gives the
+- [x] A gesture recorded with fewer frames, or with a dropped frame, gives the
       same number of points, and the same steps up to the interpolation error
       on a smooth path.
-- [ ] The same positions at two frame sizes with the same aspect ratio give
+- [x] The same positions at two frame sizes with the same aspect ratio give
       identical results; at a different aspect ratio the horizontal values are
       scaled.
-- [ ] Fewer than 2 positions, a duration of zero or less, and mismatched array
+- [x] Fewer than 2 positions, a duration of zero or less, and mismatched array
       lengths are rejected with a clear error. Positions with equal timestamps
       are merged (their average is used) before interpolation.
-- [ ] Normalizing a batch gives the same result as normalizing one by one.
-- [ ] The vector builder module, its tests and its exports are removed, and
+- [x] Normalizing a batch gives the same result as normalizing one by one.
+- [x] The vector builder module, its tests and its exports are removed, and
       nothing else in the repository imports it.
 
 **Implementation notes.** `wand_core/normalize.py`; use `numpy.interp`. Delete
