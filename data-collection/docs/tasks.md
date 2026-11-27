@@ -131,7 +131,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-D3 | Task list | Completed |
 | DC-F1 | Workspace and tooling | Completed |
 | DC-F2 | Configuration and settings models | Completed |
-| DC-F3 | Data layout migration | Not started |
+| DC-F3 | Data layout migration | In progress |
 | DC-S1 | H.264 encoding spike | Completed |
 | DC-S2 | Linux verification | In progress |
 | DC-L1 | Frame sources | Completed |
@@ -389,7 +389,7 @@ place.
 ### DC-F3 Data layout migration
 
 - **Type**: chore
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-A18
 - **Requirements**: R2.10
 - **Design**: DH 2, 3, 3.1; Arch 6
