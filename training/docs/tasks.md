@@ -136,7 +136,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-A6 | Stored explorations | Completed |
 | TR-A7 | Evaluator | Completed |
 | TR-A8 | Final training and models | Completed |
-| TR-A9 | Reporter | In progress |
+| TR-A9 | Reporter | Completed |
 | TR-V1 | End-to-end test | Not started |
 | TR-V2 | Real datasets | Not started |
 
@@ -890,7 +890,7 @@ Writing the report that goes with the training run is added by TR-A9.
 ### TR-A9 Reporter
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: TR-A6, TR-A8
 - **Requirements**: R7.1 to R7.5, N5
 - **Design**: TD 10.3, 11
