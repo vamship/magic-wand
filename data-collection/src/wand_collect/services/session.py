@@ -10,10 +10,11 @@ from __future__ import annotations
 
 import threading
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any, Literal, Protocol
 
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from wand_collect.cameras import CameraCatalog, as_catalog
 from wand_collect.engine import CaptureEngine
@@ -30,15 +31,23 @@ from wand_collect.state import (
     SessionInfo,
     SessionRole,
 )
-from wand_core.casing import camel_keys
+from wand_core.casing import camel_keys, to_camel
 from wand_core.dataset import (
+    Action,
     CameraRecord,
     DatasetError,
+    DatasetExistsError,
     DatasetStore,
     Handedness,
+    InvalidDatasetNameError,
     SessionNotFoundError,
     SessionRecord,
+    create_dataset,
+    find_datasets,
+    is_valid_dataset_name,
+    merge_folders,
 )
+from wand_core.dataset.fileio import DATASET_FILE
 from wand_core.dataset.models import ClipPadding, Mode
 from wand_core.sources import CameraInfo, CameraMode, list_cameras
 
@@ -65,6 +74,21 @@ class DetailsBody(BaseModel):
     notes: str | None = None
 
 
+class NameBody(BaseModel):
+    name: str
+
+
+class MergeBody(BaseModel):
+    """Datasets to merge, and into which dataset (which may be new)."""
+
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    sources: list[str]
+    target: str
+    on_conflict: Literal["skip", "replace"] = "skip"
+    skip_clips: bool = False
+
+
 class SessionService:
     def __init__(
         self,
@@ -76,6 +100,8 @@ class SessionService:
         camera_lister: Callable[[], list[CameraInfo]] | CameraCatalog = (
             list_cameras
         ),
+        data_location: Path | None = None,
+        dataset: str | None = None,
     ) -> None:
         self._state = state
         self._engine = engine
@@ -85,9 +111,18 @@ class SessionService:
         self._cameras = as_catalog(camera_lister)
         self._controller: CaptureControllerPort | None = None
         self._lock = threading.Lock()  # one start, load or end at a time
+        # The datasets live side by side in the data location; by default
+        # the one the store was opened on is one of them.
+        self._location = Path(data_location or store.path.parent)
+        self._dataset = dataset or store.path.name
+        state.update(Owner.SESSION_SERVICE, dataset=self._dataset)
 
         self.router = APIRouter()
         add = self.router.add_api_route
+        add("/datasets", self.get_datasets, methods=["GET"])
+        add("/datasets", self.post_dataset, methods=["POST"])
+        add("/datasets/merge", self.merge_datasets, methods=["POST"])
+        add("/dataset", self.put_dataset, methods=["PUT"], status_code=204)
         add("/sessions", self.get_sessions, methods=["GET"])
         add("/sessions", self.post_session, methods=["POST"])
         add("/sessions/{session_id}/load", self.load, methods=["POST"])
@@ -161,6 +196,110 @@ class SessionService:
                 }
             )
         return listed
+
+    # --- Datasets --------------------------------------------------------
+
+    def get_datasets(self) -> list[dict[str, Any]]:
+        """The datasets in the data location, and which one is in use."""
+        return [
+            {
+                "name": found.name,
+                "sessions": found.sessions,
+                "samples": found.samples,
+                "inUse": found.name == self._dataset,
+                **({"error": found.error} if found.error else {}),
+            }
+            for found in find_datasets(self._location)
+        ]
+
+    def post_dataset(self, body: NameBody) -> dict[str, Any]:
+        """Create a new, empty dataset."""
+        with self._lock:
+            self._require_no_session()
+            name = body.name.strip()
+            try:
+                create_dataset(self._location, name)
+            except InvalidDatasetNameError as error:
+                raise InvalidRequestError(str(error)) from error
+            except DatasetExistsError as error:
+                raise ConflictError("dataset_exists", str(error)) from error
+        return {"name": name}
+
+    def put_dataset(self, body: NameBody) -> None:
+        """Choose the dataset in use: sessions and samples come from it."""
+        with self._lock:
+            self._require_no_session()
+            name = body.name.strip()
+            path = self._existing_dataset(name)
+            try:
+                self._store.switch_to(path)
+            except DatasetError as error:
+                raise InvalidRequestError(str(error)) from error
+            self._dataset = name
+            self._state.update(Owner.SESSION_SERVICE, dataset=name)
+
+    def merge_datasets(self, body: MergeBody) -> dict[str, Any]:
+        """Merge datasets into a target dataset, which is created if new.
+
+        Sources are only read. The result lists what happened to each session.
+        """
+        with self._lock:
+            self._require_no_session()
+            if not body.sources:
+                raise InvalidRequestError("give at least one source dataset")
+            sources = [self._existing_dataset(n) for n in body.sources]
+            target = body.target.strip()
+            if not is_valid_dataset_name(target):
+                raise InvalidRequestError(
+                    f"{target!r} is not a valid dataset name"
+                )
+            if target in body.sources:
+                raise InvalidRequestError(
+                    "a dataset cannot be merged into itself"
+                )
+            try:
+                result = merge_folders(
+                    sources,
+                    self._location / target,
+                    on_conflict=body.on_conflict,
+                    skip_clips=body.skip_clips,
+                )
+            except (DatasetError, OSError, ValueError) as error:
+                raise InvalidRequestError(str(error)) from error
+            if target == self._dataset:
+                self._store.switch_to(self._location / target)  # reindex
+        return {
+            "target": target,
+            "sessions": [
+                {
+                    "sessionId": s.session_id,
+                    "source": s.source.parent.parent.name,
+                    "action": s.action.value,
+                    "message": s.message,
+                }
+                for s in result.sessions
+            ],
+            "counts": {
+                action.value: result.count(action)
+                for action in Action
+                if result.count(action)
+            },
+        }
+
+    def _existing_dataset(self, name: str) -> Path:
+        if not is_valid_dataset_name(name):
+            raise InvalidRequestError(f"{name!r} is not a valid dataset name")
+        path = self._location / name
+        if not (path / DATASET_FILE).is_file():
+            raise NotFoundError(f"there is no dataset named {name!r}")
+        return path
+
+    def _require_no_session(self) -> None:
+        if self._state.snapshot.session is not None:
+            raise ConflictError(
+                "session_active",
+                "a session is loaded; end it or put it on hold first",
+            )
 
     # --- Start -----------------------------------------------------------
 

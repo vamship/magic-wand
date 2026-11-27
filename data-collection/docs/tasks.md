@@ -164,7 +164,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A16 | Put a session on hold | Completed |
 | DC-A17 | Camera list cache | Completed |
 | DC-A18 | Dataset settings and command line | Completed |
-| DC-A19 | Dataset service | Not started |
+| DC-A19 | Dataset service | Completed |
 | DC-A20 | End any open session | Completed |
 | DC-U15 | Wording, hover and resume-flow polish | Completed |
 | DC-U16 | Accepted and rejected markers | Completed |
@@ -1864,7 +1864,7 @@ a dataset name, and add the matching command-line options and command.
 ### DC-A19 Dataset service
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-A18, DC-A9, DC-A8, DC-L11
 - **Requirements**: R2.5, R2.10
 - **Design**: DC 4.3, 4.5, 4.11, 5.2
@@ -1894,17 +1894,17 @@ as the Session Service of `DC` 4.5 describes.
 
 **Acceptance criteria.**
 
-- [ ] Each endpoint works on a temporary data location, and the response and the
+- [x] Each endpoint works on a temporary data location, and the response and the
       next state snapshot show the result.
-- [ ] After choosing another dataset, the session list and the sample list show
+- [x] After choosing another dataset, the session list and the sample list show
       only that dataset's contents, and the state's `dataset` changes.
-- [ ] Creating, choosing and merging are refused while a session is loaded, and
+- [x] Creating, choosing and merging are refused while a session is loaded, and
       allowed after it is ended or put on hold.
-- [ ] A merge into a new dataset creates it; a conflict is skipped or replaced
+- [x] A merge into a new dataset creates it; a conflict is skipped or replaced
       as asked; source datasets are unchanged.
-- [ ] Merging into the dataset in use updates the lists.
-- [ ] Invalid and duplicate names are refused with clear errors.
-- [ ] The application settings' `dataset` is the one in use at startup.
+- [x] Merging into the dataset in use updates the lists.
+- [x] Invalid and duplicate names are refused with clear errors.
+- [x] The application settings' `dataset` is the one in use at startup.
 
 **Implementation notes.** Extend `services/session.py`, `state.py` and
 `server.py`. Add the endpoints to the table in `DC` 5.2 if they are not there.

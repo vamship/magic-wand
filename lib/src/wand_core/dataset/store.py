@@ -68,6 +68,7 @@ class ChangeKind(str, Enum):
     SAMPLE_UPDATED = "sample_updated"
     SAMPLE_DELETED = "sample_deleted"
     SESSION_DELETED = "session_deleted"
+    DATASET_CHANGED = "dataset_changed"  # the store now reads another folder
 
 
 @dataclass(frozen=True)
@@ -136,6 +137,19 @@ class DatasetStore:
     @property
     def path(self) -> Path:
         return self.folder.path
+
+    def switch_to(self, path: Path) -> None:
+        """Read another data folder from now on, keeping this store.
+
+        The folder must exist (it is cleaned up as on any open). Everything
+        that holds this store then sees the other dataset, and subscribers
+        are told with ``DATASET_CHANGED``, so they can rebuild what they
+        keep. Switching to the folder already in use rebuilds as well.
+        """
+        folder = open_data_folder(Path(path))
+        with self._lock:
+            self.folder = folder
+        self._notify(Change(ChangeKind.DATASET_CHANGED, ""))
 
     # --- Notifications ---------------------------------------------------
 
