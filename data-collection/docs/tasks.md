@@ -171,7 +171,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-U17 | Browse grid layout | Completed |
 | DC-U18 | Infinite scroll and the Review workspace | Completed |
 | DC-U19 | Point counts and one page width | Completed |
-| DC-U20 | Dataset selection and merge | In progress |
+| DC-U20 | Dataset selection and merge | Completed |
 | DC-U21 | End a session from Record, Review and Setup | Completed |
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Completed |
@@ -2713,7 +2713,7 @@ frame count is not stored.
 ### DC-U20 Dataset selection and merge
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-U2, DC-A19
 - **Requirements**: R2.5, R2.10
 - **Design**: DC 4.1, 5.2
@@ -2723,18 +2723,18 @@ choose another, create one, or merge datasets.
 
 **Acceptance criteria.**
 
-- [ ] The Setup page shows the dataset in use (from the state) and a list of the
+- [x] The Setup page shows the dataset in use (from the state) and a list of the
       datasets from `GET /api/datasets` with their session and sample counts;
       choosing one uses `PUT /api/dataset`, and the session list updates.
-- [ ] A New dataset form takes a name, shows the error for an invalid or
+- [x] A New dataset form takes a name, shows the error for an invalid or
       existing name, and creates the dataset.
-- [ ] A Merge dialog lets the user select source datasets and a target (an
+- [x] A Merge dialog lets the user select source datasets and a target (an
       existing dataset or a new name), choose whether conflicts are skipped or
       replaced and whether clips are skipped, and shows the per-session result
       afterwards.
-- [ ] While a session is loaded, these controls are disabled and a notice says
+- [x] While a session is loaded, these controls are disabled and a notice says
       to end or hold the session first.
-- [ ] The dataset in use is visible in the page header on every page.
+- [x] The dataset in use is visible in the page header on every page.
 
 **Implementation notes.** `static/app/setup.js` and the shell of DC-U1.
 Merging replaces data, so ask for a confirmation before a merge with the

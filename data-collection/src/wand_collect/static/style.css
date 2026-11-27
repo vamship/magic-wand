@@ -71,6 +71,16 @@ nav button[aria-current="page"] {
   color: var(--accent);
 }
 
+.dataset-name {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.dataset-name + .indicator {
+  margin-left: 0;
+}
+
 .indicator {
   margin-left: auto;
   display: flex;
@@ -505,6 +515,14 @@ table.sessions {
 table.sessions td {
   padding: 6px 8px;
   border-top: 1px solid var(--border);
+}
+
+.merge fieldset {
+  margin: 8px 0;
+}
+
+.merge-result {
+  margin-top: 8px;
 }
 
 table.sessions td:last-child {

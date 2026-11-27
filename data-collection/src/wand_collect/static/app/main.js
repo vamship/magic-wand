@@ -58,6 +58,11 @@ function App() {
           </button>`,
         )}
       </nav>
+      ${snapshot &&
+      snapshot.dataset &&
+      html`<div class="dataset-name" title="The dataset in use">
+        Dataset: <strong>${snapshot.dataset}</strong>
+      </div>`}
       <${Indicator} connected=${connected} />
     </header>
     <${Notices} items=${items} notices=${notices} />
