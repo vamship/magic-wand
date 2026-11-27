@@ -126,7 +126,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-D3 | Task list | In progress |
 | TR-F1 | Training package and tooling | Completed |
 | TR-L1 | Normalizer | Completed |
-| TR-L2 | Classifier loading | In progress |
+| TR-L2 | Classifier loading | Completed |
 | TR-A1 | Training data builder | Not started |
 | TR-A2 | Gesture sets | Not started |
 | TR-A3 | Trainer base and metrics | Not started |
@@ -318,7 +318,7 @@ with one row per gesture.
 ### TR-L2 Classifier loading
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: TR-L1
 - **Requirements**: R3.5, R6.8, N6
 - **Design**: Lib 13; Arch 4.4; TD 10.2
@@ -343,18 +343,18 @@ belong to the training tool.
 
 **Acceptance criteria.**
 
-- [ ] With a fake family registered by the test, a folder with a valid
+- [x] With a fake family registered by the test, a folder with a valid
       `classifier.json` loads, and `predict` returns Predictions whose
       probabilities sum to 1, whose label is the most probable one, and whose
       confidence is its probability.
-- [ ] Batch and single predictions agree.
-- [ ] An unknown `formatVersion`, a different normalization `points` or
+- [x] Batch and single predictions agree.
+- [x] An unknown `formatVersion`, a different normalization `points` or
       `version`, an unknown family and a missing `classifier.json` are each
       rejected with a distinct, clear error.
-- [ ] A loader that raises an import error for an optional dependency results
+- [x] A loader that raises an import error for an optional dependency results
       in an error that names the dependency.
-- [ ] Extra fields in `classifier.json` are ignored.
-- [ ] Nothing in the library imports `wand_train`, and loading needs no
+- [x] Extra fields in `classifier.json` are ignored.
+- [x] Nothing in the library imports `wand_train`, and loading needs no
       training code.
 
 **Implementation notes.** `wand_core/classifiers/base.py` (the interface),
