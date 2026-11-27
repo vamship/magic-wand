@@ -19,15 +19,36 @@ def test_repository_config_matches_defaults():
     assert settings.server.host == "127.0.0.1"
 
 
-def test_local_override_for_data_folder(tmp_path):
-    (tmp_path / "data-collection.yaml").write_text("dataFolder: data\n")
+def test_local_override_for_the_data_location_and_the_dataset(tmp_path):
+    (tmp_path / "data-collection.yaml").write_text(
+        "dataLocation: data\ndataset: default\n"
+    )
     (tmp_path / "data-collection.local.yaml").write_text(
-        "dataFolder: /mnt/datasets\ncamera:\n  index: 1\n"
+        "dataLocation: /mnt/datasets\ndataset: ada\ncamera:\n  index: 1\n"
     )
     settings = load_app_settings(tmp_path)
-    assert settings.data_folder == "/mnt/datasets"
+    assert settings.data_location == "/mnt/datasets"
+    assert settings.dataset == "ada"
     assert settings.camera.index == 1
     assert settings.camera.width == 640
+
+
+def test_the_defaults_are_the_data_folder_and_a_default_dataset():
+    settings = DataCollectionSettings()
+    assert (settings.data_location, settings.dataset) == ("data", "default")
+
+
+def test_the_old_data_folder_key_is_rejected_naming_the_new_keys(tmp_path):
+    (tmp_path / "data-collection.yaml").write_text("dataFolder: data\n")
+    with pytest.raises(SettingsError) as error:
+        load_app_settings(tmp_path)
+    assert "dataLocation" in str(error.value) and "dataset" in str(error.value)
+
+
+@pytest.mark.parametrize("name", ["", "Ada", "has space", "a/b", "-x"])
+def test_an_invalid_dataset_name_is_rejected(name):
+    with pytest.raises(SettingsError, match="dataset"):
+        validate(DataCollectionSettings, {"dataset": name})
 
 
 def test_invalid_values_name_key():

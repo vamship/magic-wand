@@ -163,7 +163,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A15 | Camera check on resume | Completed |
 | DC-A16 | Put a session on hold | Completed |
 | DC-A17 | Camera list cache | Completed |
-| DC-A18 | Dataset settings and command line | In progress |
+| DC-A18 | Dataset settings and command line | Completed |
 | DC-A19 | Dataset service | Not started |
 | DC-A20 | End any open session | Completed |
 | DC-U15 | Wording, hover and resume-flow polish | Completed |
@@ -1824,7 +1824,7 @@ restart of the application scans again.
 ### DC-A18 Dataset settings and command line
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: DC-L12, DC-A11
 - **Requirements**: R2.10
 - **Design**: DC 5.3, 5.4; DH 3
@@ -1849,13 +1849,13 @@ a dataset name, and add the matching command-line options and command.
 
 **Acceptance criteria.**
 
-- [ ] The new keys and options work, and the app opens
+- [x] The new keys and options work, and the app opens
       `<dataLocation>/<dataset>`; a missing dataset is created.
-- [ ] The old key and the old option are rejected with a message naming the new
+- [x] The old key and the old option are rejected with a message naming the new
       ones.
-- [ ] An invalid dataset name is rejected at startup with a clear message.
-- [ ] `wand-collect datasets` lists the datasets of a test location.
-- [ ] The existing settings, startup and command-line tests are updated and
+- [x] An invalid dataset name is rejected at startup with a clear message.
+- [x] `wand-collect datasets` lists the datasets of a test location.
+- [x] The existing settings, startup and command-line tests are updated and
       pass, and ruff passes.
 
 **Implementation notes.** Touch `settings.py`, `app.py` and `cli.py` in

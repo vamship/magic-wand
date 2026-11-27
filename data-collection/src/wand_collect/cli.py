@@ -12,8 +12,10 @@ from wand_collect.app import (
     build_application,
     default_config_dir,
     is_loopback,
+    resolve_data_location,
 )
 from wand_collect.labels import LabelsError, load_labels
+from wand_collect.settings import load_app_settings
 from wand_collect.wiring import assemble
 from wand_core.dataset import (
     Action,
@@ -21,8 +23,9 @@ from wand_core.dataset import (
     Level,
     SampleFilter,
     SampleStatus,
-    check_folder,
+    check_folders,
     export_samples,
+    find_datasets,
     merge_folders,
 )
 
@@ -40,7 +43,30 @@ def build_parser() -> argparse.ArgumentParser:
         "--config", type=Path, help="configuration folder (default: config/)"
     )
     serve.add_argument(
-        "--data-folder", type=Path, help="where datasets are stored"
+        "--data-location",
+        type=Path,
+        help="the folder that holds the datasets (default: dataLocation)",
+    )
+    serve.add_argument(
+        "--dataset",
+        help="the dataset to record into, a folder name inside the data "
+        "location (default: dataset)",
+    )
+
+    datasets = commands.add_parser(
+        "datasets",
+        help="list the datasets in the data location",
+        description="List the datasets in the data location with their "
+        "numbers of sessions and samples. The dataset that the settings "
+        "record into is marked with *.",
+    )
+    datasets.add_argument(
+        "--data-location",
+        type=Path,
+        help="the folder that holds the datasets (default: dataLocation)",
+    )
+    datasets.add_argument(
+        "--config", type=Path, help="configuration folder (default: config/)"
     )
 
     export = commands.add_parser(
@@ -98,11 +124,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     check = commands.add_parser(
         "check",
-        help="run the consistency check on a data folder",
-        description="Report problems in a data folder without changing "
-        "anything. The exit status is 1 when there are errors.",
+        help="run the consistency check on data folders",
+        description="Report problems in one or several data folders without "
+        "changing anything. Open sessions are listed as notes, and a session "
+        "that differs between two folders is an error. The exit status is 1 "
+        "when there are errors.",
     )
-    check.add_argument("folder", type=Path, help="the data folder")
+    check.add_argument("folders", nargs="+", type=Path, help="data folders")
     check.add_argument(
         "--config",
         type=Path,
@@ -185,7 +213,7 @@ def check(args: argparse.Namespace) -> int:
         labels = {label.id for label in load_labels(config_dir / "labels.yaml")}
     except LabelsError as error:
         print(f"note: labels are not checked ({error})", file=sys.stderr)
-    report = check_folder(args.folder, labels)
+    report = check_folders(args.folders, labels)
     order = {Level.ERROR: 0, Level.WARNING: 1, Level.INFO: 2}
     for finding in sorted(report.findings, key=lambda f: order[f.level]):
         print(finding)
@@ -197,12 +225,43 @@ def check(args: argparse.Namespace) -> int:
     return 0 if report.ok else 1
 
 
+def datasets(args: argparse.Namespace) -> int:
+    config_dir = args.config or default_config_dir()
+    try:
+        settings = load_app_settings(config_dir)
+    except (OSError, ValueError) as error:
+        print(f"cannot read the settings: {error}", file=sys.stderr)
+        return 1
+    location = resolve_data_location(config_dir, settings, args.data_location)
+    found = find_datasets(location)
+    if not found:
+        print(f"No datasets in {location}")
+        return 0
+    width = max(len(d.name) for d in found)
+    for dataset in found:
+        mark = "*" if dataset.name == settings.dataset else " "
+        if dataset.error:
+            print(
+                f"{mark} {dataset.name:<{width}}  unreadable: {dataset.error}"
+            )
+        else:
+            print(
+                f"{mark} {dataset.name:<{width}}  "
+                f"{dataset.sessions} sessions, {dataset.samples} samples"
+            )
+    return 0
+
+
 def serve(args: argparse.Namespace) -> int:
     try:
-        application = build_application(args.config, args.data_folder)
-    except LabelsError as error:
+        application = build_application(
+            args.config, args.data_location, args.dataset
+        )
+    except (LabelsError, DatasetError, ValueError) as error:
         print(f"Cannot start: {error}", file=sys.stderr)
         return 1
+    if application.layout_warning:
+        print(f"WARNING: {application.layout_warning}", file=sys.stderr)
     server = application.settings.server
     if not is_loopback(server.host):
         print(
@@ -236,6 +295,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     commands = {
         "serve": serve,
+        "datasets": datasets,
         "export": export,
         "merge": merge,
         "check": check,
