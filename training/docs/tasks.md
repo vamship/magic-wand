@@ -130,7 +130,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-A1 | Training data builder | Completed |
 | TR-A2 | Gesture sets | Completed |
 | TR-A3 | Trainer base and metrics | Completed |
-| TR-A4 | Experiment definitions | In progress |
+| TR-A4 | Experiment definitions | Completed |
 | TR-A5 | Explorer | Not started |
 | TR-A6 | Stored explorations | Not started |
 | TR-A7 | Evaluator | Not started |
@@ -561,7 +561,7 @@ them) and clip probabilities in the log loss.
 ### TR-A4 Experiment definitions
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: TR-F1
 - **Requirements**: R4, N5
 - **Design**: TD 7
@@ -594,15 +594,15 @@ them) and clip probabilities in the log loss.
 
 **Acceptance criteria.**
 
-- [ ] The example definitions of `TD` 7 load, and the 3 x 3 x 5 example
+- [x] The example definitions of `TD` 7 load, and the 3 x 3 x 5 example
       enumerates 45 candidates.
-- [ ] Linear, log, integer-with-duplicates, single-count and list entries give
+- [x] Linear, log, integer-with-duplicates, single-count and list entries give
       the expected values (compare with hand-computed lists).
-- [ ] The enumeration order is the one stated, and repeating it gives the same
+- [x] The enumeration order is the one stated, and repeating it gives the same
       list.
-- [ ] Each kind of invalid definition is rejected with a message that names the
+- [x] Each kind of invalid definition is rejected with a message that names the
       key (one test each).
-- [ ] The camel case to snake case conversion uses the library's casing
+- [x] The camel case to snake case conversion uses the library's casing
       helpers.
 
 **Implementation notes.** `wand_train/definitions.py` and
