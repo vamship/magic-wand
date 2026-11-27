@@ -135,7 +135,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-A5 | Explorer | Completed |
 | TR-A6 | Stored explorations | Completed |
 | TR-A7 | Evaluator | Completed |
-| TR-A8 | Final training and models | Not started |
+| TR-A8 | Final training and models | Completed |
 | TR-A9 | Reporter | Not started |
 | TR-V1 | End-to-end test | Not started |
 | TR-V2 | Real datasets | Not started |
@@ -819,7 +819,7 @@ calling the prediction function for one gesture at a time.
 ### TR-A8 Final training and models
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: TR-A6, TR-A7, TR-L2
 - **Requirements**: R6.1, R6.2, R6.6 to R6.8, R7.4, R7.6, R7.7, N1, N2
 - **Design**: TD 9, 10
@@ -864,23 +864,23 @@ evaluated.
 
 **Acceptance criteria.**
 
-- [ ] On a synthetic dataset with the fake family, `train <run id>` writes every
+- [x] On a synthetic dataset with the fake family, `train <run id>` writes every
       file named above and the model folder, and prints their paths.
-- [ ] The split used by `train` equals the split of the exploration it follows
+- [x] The split used by `train` equals the split of the exploration it follows
       (same sample ids in the test set).
-- [ ] The trainer is given the training set to train on and the test set to
+- [x] The trainer is given the training set to train on and the test set to
       evaluate on, and no row is in both (a test checks).
-- [ ] `classifier.json` has the stated fields and no threshold; the model loads
+- [x] `classifier.json` has the stated fields and no threshold; the model loads
       with the library alone, without importing `wand_train` (check in a
       subprocess or with an import guard).
-- [ ] A changed training data fingerprint stops the command before any
+- [x] A changed training data fingerprint stops the command before any
       training.
-- [ ] Two models never share an id or overwrite files; deleting the exploration
+- [x] Two models never share an id or overwrite files; deleting the exploration
       run folder leaves the training report and the model intact.
-- [ ] `--values` with a file of hyperparameter values works without an
+- [x] `--values` with a file of hyperparameter values works without an
       exploration run, and `source.json` then records the values and a null
       exploration run.
-- [ ] An unknown candidate number, an unknown run id and a family without a
+- [x] An unknown candidate number, an unknown run id and a family without a
       registered trainer give clear errors.
 
 **Implementation notes.** `wand_train/models.py` and the `train` command in

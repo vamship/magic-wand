@@ -13,7 +13,7 @@ def test_commands_are_the_documented_ones():
     ]
 
 
-SHELLS = ["train", "index"]
+SHELLS = ["index"]
 
 
 @pytest.mark.parametrize("command", SHELLS)

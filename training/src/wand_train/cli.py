@@ -8,7 +8,7 @@ from pathlib import Path
 
 from wand_core.casing import to_snake
 from wand_core.dataset import DatasetError
-from wand_train import definitions
+from wand_train import definitions, models
 from wand_train.data import builder, gestureset
 from wand_train.data.format import TrainingDataError
 from wand_train.explore import runs
@@ -42,6 +42,8 @@ def build_parser() -> argparse.ArgumentParser:
             add_explore_options(command)
         elif name == "show":
             add_show_options(command)
+        elif name == "train":
+            add_train_options(command)
     return parser
 
 
@@ -59,6 +61,29 @@ def add_explore_options(parser: argparse.ArgumentParser) -> None:
         type=Path,
         help="the reports folder (default: reports/)",
     )
+
+
+def add_train_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "run", nargs="?", help="an exploration run id, or its folder"
+    )
+    parser.add_argument(
+        "--candidate",
+        type=int,
+        help="the hyperparameter candidate (default: the best)",
+    )
+    parser.add_argument("--family", help="the family, with --values")
+    parser.add_argument(
+        "--values", type=Path, help="a JSON file of hyperparameter values"
+    )
+    parser.add_argument("--seed", type=int, help="default 42; from a run")
+    parser.add_argument(
+        "--test-fraction", type=float, help="default 0.2; from a run"
+    )
+    parser.add_argument("--training-data", type=Path)
+    parser.add_argument("--reports", type=Path)
+    parser.add_argument("--models", type=Path)
+    parser.add_argument("--max-false-trigger", type=float, default=0.05)
 
 
 def add_show_options(parser: argparse.ArgumentParser) -> None:
@@ -197,6 +222,79 @@ def runs_table(results, explorer) -> str:
     return "\n".join(lines)
 
 
+def train(args: argparse.Namespace) -> int:
+    root = builder.repository_root()
+    reports = args.reports or root / "reports"
+    try:
+        if args.run and args.values:
+            raise ValueError("give a run or --values, not both")
+        if args.run:
+            if (
+                args.family
+                or args.seed is not None
+                or (args.test_fraction is not None)
+            ):
+                raise ValueError(
+                    "the family, seed and test fraction come from the run"
+                )
+            source = models.source_from_run(args.run, reports, args.candidate)
+        elif args.values:
+            if not args.family:
+                raise ValueError("--values needs --family")
+            if args.candidate is not None:
+                raise ValueError("--candidate needs an exploration run")
+            source = models.source_from_values(
+                args.family,
+                args.values,
+                models.DEFAULT_SEED if args.seed is None else args.seed,
+                models.DEFAULT_TEST_FRACTION
+                if args.test_fraction is None
+                else args.test_fraction,
+            )
+        else:
+            raise ValueError(
+                "give an exploration run or --values with --family"
+            )
+        trained = models.train_model(
+            source,
+            args.training_data or root / "training-data",
+            reports,
+            args.models or root / "models",
+            args.max_false_trigger,
+            root=root,
+        )
+    except (
+        OSError,
+        ValueError,
+        KeyError,
+        RuntimeError,
+        DatasetError,
+        TrainingDataError,
+        UnknownFamilyError,
+        HyperparameterError,
+    ) as error:
+        print(f"wand-train: {error}", file=sys.stderr)
+        return 1
+    result = trained.evaluation
+    print(f"Model {trained.model_id}")
+    print(f"  report: {trained.report_folder}")
+    print(f"  model:  {trained.model_folder}")
+    for name in models.SUMMARY_METRICS:
+        value = result.measures[name]
+        print(f"  {name}: {'n/a' if value is None else f'{value:.4f}'}")
+    if result.threshold is None:
+        print(
+            "  no threshold keeps the backward false trigger rate at or "
+            f"below {result.max_false_trigger}"
+        )
+    else:
+        print(
+            f"  lowest threshold with backward false triggers at or below "
+            f"{result.max_false_trigger}: {result.threshold:.2f}"
+        )
+    return 0
+
+
 def show(args: argparse.Namespace) -> int:
     root = builder.repository_root()
     try:
@@ -230,6 +328,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return explore(args)
     if args.command == "show":
         return show(args)
+    if args.command == "train":
+        return train(args)
     if args.command == "training-data":
         if args.action is None:
             parser.parse_args(["training-data", "--help"])
