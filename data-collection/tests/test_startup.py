@@ -7,7 +7,7 @@ from wand_collect import cli
 from wand_collect.app import build_application, is_loopback
 from wand_collect.labels import LabelsError, load_labels
 from wand_collect.state import CaptureStatus
-from wand_core.dataset import DatasetStore
+from wand_core.dataset import DatasetStore, InvalidDatasetNameError
 from wand_core.sources import CameraOpenError, Frame, FrameSource
 from wand_core.testing.synthetic import SceneStyle, render_frame
 
@@ -104,8 +104,10 @@ def test_missing_labels_file_is_reported(tmp_path):
 def test_startup_loads_configuration_opens_the_data_folder_and_labels(config):
     application = build_application(config, open_camera=False)
     try:
-        # The data folder is created next to config/ (the repository root).
-        assert (config.parent / "data" / "dataset.json").is_file()
+        # The dataset is created in data/ next to config/ (the repository root).
+        assert (config.parent / "data" / "default" / "dataset.json").is_file()
+        assert application.dataset == "default"
+        assert application.data_location == config.parent / "data"
         assert isinstance(application.store, DatasetStore)
         snapshot = application.state.snapshot
         assert [label.id for label in snapshot.labels][0] == "alohomora"
@@ -117,21 +119,35 @@ def test_startup_loads_configuration_opens_the_data_folder_and_labels(config):
         application.shutdown()
 
 
-def test_the_data_folder_can_be_overridden(config, tmp_path):
+def test_the_location_and_the_dataset_can_be_overridden(config, tmp_path):
     target = tmp_path / "elsewhere"
-    application = build_application(config, target, open_camera=False)
+    application = build_application(config, target, "mine", open_camera=False)
     application.shutdown()
-    assert (target / "dataset.json").is_file()
+    assert (target / "mine" / "dataset.json").is_file()
     assert not (config.parent / "data").exists()
+
+
+def test_an_invalid_dataset_name_stops_the_startup(config):
+    with pytest.raises(InvalidDatasetNameError):
+        build_application(config, dataset="Not Valid", open_camera=False)
+    assert not (config.parent / "data").exists()
+
+
+def test_a_data_location_that_is_itself_a_dataset_is_warned_about(config):
+    DatasetStore.open(config.parent / "data", create=True)
+    application = build_application(config, open_camera=False)
+    application.shutdown()
+    assert "old layout" in application.layout_warning
+    assert (config.parent / "data" / "default" / "dataset.json").is_file()
 
 
 def test_a_local_override_changes_the_configuration(config):
     (config / "data-collection.local.yaml").write_text(
-        "dataFolder: mine\nserver:\n  port: 9100\n"
+        "dataLocation: mine\ndataset: ada\nserver:\n  port: 9100\n"
     )
     application = build_application(config, open_camera=False)
     application.shutdown()
-    assert (config.parent / "mine" / "dataset.json").is_file()
+    assert (config.parent / "mine" / "ada" / "dataset.json").is_file()
     assert application.settings.server.port == 9100
 
 
@@ -159,7 +175,7 @@ def test_the_application_starts_when_no_camera_is_available(config):
 def test_an_existing_data_folder_is_reopened_not_replaced(config):
     first = build_application(config, open_camera=False)
     first.shutdown()
-    marker = config.parent / "data" / "sessions" / "keep.txt"
+    marker = config.parent / "data" / "default" / "sessions" / "keep.txt"
     marker.write_text("x")
     second = build_application(config, open_camera=False)
     second.shutdown()
@@ -218,10 +234,41 @@ def test_serve_warns_about_a_non_loopback_host(config, served, capsys):
     assert "WARNING" in capsys.readouterr().err
 
 
-def test_serve_accepts_a_data_folder_override(config, served, tmp_path):
+def test_serve_accepts_a_location_and_a_dataset_override(
+    config, served, tmp_path
+):
     target = tmp_path / "custom"
-    cli.main(["serve", "--config", str(config), "--data-folder", str(target)])
-    assert (target / "dataset.json").is_file()
+    args = ["serve", "--config", str(config)]
+    args += ["--data-location", str(target), "--dataset", "mine"]
+    assert cli.main(args) == 0
+    assert (target / "mine" / "dataset.json").is_file()
+
+
+def test_serve_refuses_an_invalid_dataset_name(config, served, capsys):
+    args = ["serve", "--config", str(config), "--dataset", "Not Valid"]
+    assert cli.main(args) == 1
+    assert "not a valid dataset name" in capsys.readouterr().err
+    assert served == []
+
+
+def test_serve_names_the_new_keys_for_the_old_setting(config, served, capsys):
+    (config / "data-collection.local.yaml").write_text("dataFolder: mine\n")
+    assert cli.main(["serve", "--config", str(config)]) == 1
+    err = capsys.readouterr().err
+    assert "dataLocation" in err and "dataset" in err
+    assert served == []
+
+
+def test_the_old_data_folder_option_is_gone(config, served, capsys):
+    with pytest.raises(SystemExit) as info:
+        cli.main(["serve", "--config", str(config), "--data-folder", "x"])
+    assert info.value.code == 2
+
+
+def test_serve_warns_when_the_location_is_a_dataset(config, served, capsys):
+    DatasetStore.open(config.parent / "data", create=True)
+    assert cli.main(["serve", "--config", str(config)]) == 0
+    assert "old layout" in capsys.readouterr().err
 
 
 def test_no_command_prints_help(capsys):

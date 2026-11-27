@@ -15,7 +15,8 @@ column is filled in by task DC-S2.
 
 - Run the application from the repository root with
   `uv run wand-collect serve` and open the printed address in a browser.
-- Use a data folder you can throw away: `--data-folder /tmp/wand-check`.
+- Use a dataset you can throw away: `--data-location /tmp/wand-check
+  --dataset check`.
 - Record each result in section 3 as `pass`, `fail` or `n/a`. Put a note under
   the table for anything that is not a plain pass. Each failure becomes a
   follow-up task in `tasks.md`.

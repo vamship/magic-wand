@@ -4,6 +4,7 @@
 // loaded for capture.
 
 import { api } from "../api.js";
+import { EndButton } from "../end.js";
 import { HoldButton } from "../hold.js";
 import { html } from "../html.js";
 import { CameraPanel } from "../setup.js";
@@ -28,8 +29,6 @@ function StartSession({ snapshot, store, notices, goTo }) {
     );
     if (started) goTo("record");
   };
-  const end = () =>
-    notices.attempt(() => api.post("/api/sessions/current/end"));
   if (locked) {
     const name = snapshot.session.name;
     const text =
@@ -40,7 +39,12 @@ function StartSession({ snapshot, store, notices, goTo }) {
       <p>${text}</p>
       <div class="row">
         <${HoldButton} notices=${notices} />
-        <button onClick=${end}>End session (final)</button>
+        <${EndButton}
+          id=${snapshot.session.id}
+          name=${snapshot.session.name}
+          notices=${notices}
+          label="End session (final)"
+        />
       </div>
     </section>`;
   }
@@ -80,8 +84,6 @@ function CameraCheck({ snapshot, notices, goTo }) {
     );
     if (done !== undefined) goTo("record");
   };
-  const end = () =>
-    notices.attempt(() => api.post("/api/sessions/current/end"));
   return html`<section class="panel start">
       <h3>Check the camera</h3>
       <p>
@@ -96,7 +98,12 @@ function CameraCheck({ snapshot, notices, goTo }) {
           Continue to Record
         </button>
         <${HoldButton} notices=${notices} />
-        <button onClick=${end}>End session (final)</button>
+        <${EndButton}
+          id=${snapshot.session.id}
+          name=${snapshot.session.name}
+          notices=${notices}
+          label="End session (final)"
+        />
       </div>
     </section>
     <${CameraPanel}

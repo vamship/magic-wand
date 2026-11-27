@@ -558,3 +558,43 @@ def test_a_mirrored_library_shows_images_flipped_left_to_right(rig, tmp_path):
     assert (
         rig.client.get(f"/api/samples/{sample_id}").json()["mirrored"] is False
     )
+
+
+def test_switching_the_dataset_rebuilds_the_index_counts_and_revision(
+    rig, tmp_path
+):
+    mine = rig.session()
+    rig.sample(mine)
+    rig.sample(mine, label="zigzag")
+    other = DatasetStore.open(tmp_path / "other", create=True, clock=rig.clock)
+    theirs = other.create_session("bob", Handedness.RIGHT)
+    for _ in range(3):
+        sample_id = other.new_sample_id(theirs.session_id)
+        now = rig.clock()
+        other.add_sample(
+            SampleRecord(
+                sample_id=sample_id,
+                session_id=theirs.session_id,
+                captured_at=now,
+                updated_at=now,
+                label="circle",
+                status=SampleStatus.ACCEPTED,
+                handedness=Handedness.RIGHT,
+                frame_size=(640, 480),
+                positions=PositionColumns(
+                    time_s=[0.0, 0.1],
+                    horizontal=[0.1, 0.2],
+                    vertical=[0.3, 0.4],
+                ),
+            )
+        )
+    revision = rig.state.snapshot.samples_revision
+    assert dict(rig.state.snapshot.counts) == {"circle": 1, "zigzag": 1}
+
+    rig.store.switch_to(tmp_path / "other")
+
+    assert rig.client.get("/api/samples").json()["total"] == 3
+    assert dict(rig.state.snapshot.counts) == {"circle": 3}
+    assert rig.state.snapshot.samples_revision > revision
+    items = rig.client.get("/api/samples").json()["items"]
+    assert {item["sessionId"] for item in items} == {theirs.session_id}

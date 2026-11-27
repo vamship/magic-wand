@@ -146,6 +146,7 @@ class StateSnapshot:
     """Everything the application is doing at one moment. Immutable."""
 
     session: SessionInfo | None = None
+    dataset: str = ""
     settings: SettingsState = field(default_factory=SettingsState)
     camera: CameraState = field(default_factory=CameraState)
     capture: CaptureState = field(default_factory=CaptureState)
@@ -208,6 +209,7 @@ class Owner(str, Enum):
 
 FIELD_OWNERS: dict[str, Owner] = {
     "session": Owner.SESSION_SERVICE,
+    "dataset": Owner.SESSION_SERVICE,
     "settings": Owner.CALIBRATION_SERVICE,
     "camera": Owner.CAPTURE_ENGINE,
     "capture": Owner.CAPTURE_CONTROLLER,

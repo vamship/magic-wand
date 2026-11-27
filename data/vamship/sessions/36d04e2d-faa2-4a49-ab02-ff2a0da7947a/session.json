@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "sessionId": "36d04e2d-faa2-4a49-ab02-ff2a0da7947a",
+  "name": "Herbivicus",
+  "author": "vamship",
+  "handedness": "right",
+  "startedAt": "2026-11-26T16:59:45.320616-05:00",
+  "endedAt": null,
+  "notes": "Herbivicus spells",
+  "camera": {
+    "device": "index:1",
+    "index": 1,
+    "requested": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.0
+    },
+    "actual": {
+      "width": 640,
+      "height": 480,
+      "fps": 29.908610886949567
+    }
+  },
+  "visionSettings": {
+    "hueCenter": 27,
+    "hueHalfWidth": 8,
+    "satMin": 86,
+    "satMax": 190,
+    "valMin": 181,
+    "valMax": 255,
+    "blurSize": 5,
+    "cleanupSize": 3,
+    "minArea": 0.0003,
+    "maxArea": 0.05,
+    "minRoundness": 0.6
+  },
+  "motionSettings": {
+    "startSpeed": 0.499,
+    "endSpeed": 0.125,
+    "startFrames": 2,
+    "endHoldS": 0.3,
+    "minDurationS": 0.3,
+    "maxDurationS": 4.0,
+    "minExtent": 0.1,
+    "lostTimeoutS": 0.25,
+    "smoothingFrames": 3
+  },
+  "clipPadding": {
+    "preS": 2.0,
+    "postS": 2.0
+  },
+  "highestSampleNumber": 7,
+  "profile": "mac-camera-yellow"
+}

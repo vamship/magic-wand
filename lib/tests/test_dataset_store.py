@@ -9,6 +9,7 @@ from wand_core.dataset import (
     DatasetError,
     DatasetStore,
     Handedness,
+    NotADatasetError,
     PositionColumns,
     SampleNotFoundError,
     SampleRecord,
@@ -477,3 +478,37 @@ def test_a_leftover_deleted_folder_is_removed_when_opened(store, session):
     open_data_folder(store.path)
     assert not leftover.exists()
     assert len(store.list_sessions()) == 1
+
+
+# --- Switching the dataset ---------------------------------------------------
+
+
+def test_the_store_can_be_pointed_at_another_data_folder(
+    store, session, clock, tmp_path
+):
+    store.add_sample(make_sample(store, session))
+    other = DatasetStore.open(tmp_path / "other", create=True, clock=clock)
+    other_session = other.create_session("bob", Handedness.LEFT)
+    changes = []
+    store.subscribe(changes.append)
+
+    store.switch_to(tmp_path / "other")
+
+    assert store.path == tmp_path / "other"
+    assert [s.session_id for s in store.list_sessions()] == [
+        other_session.session_id
+    ]
+    assert [c.kind for c in changes] == [ChangeKind.DATASET_CHANGED]
+    assert store.get_session(other_session.session_id).author == "bob"
+
+
+def test_switching_to_something_that_is_not_a_dataset_changes_nothing(
+    store, session, tmp_path
+):
+    changes = []
+    store.subscribe(changes.append)
+    with pytest.raises(NotADatasetError):
+        store.switch_to(tmp_path / "nowhere")
+    assert store.path == tmp_path / "data"
+    assert [s.session_id for s in store.list_sessions()] == [session.session_id]
+    assert changes == []

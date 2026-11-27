@@ -1,6 +1,6 @@
 # Data Collection Application - Tasks
 
-> **Version** 32 | **Updated** 2026-11-26 | **Approved**
+> **Version** 34 | **Updated** 2026-11-27 | **Draft**
 
 ## 1. Overview
 
@@ -131,7 +131,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-D3 | Task list | Completed |
 | DC-F1 | Workspace and tooling | Completed |
 | DC-F2 | Configuration and settings models | Completed |
-| DC-F3 | Data layout migration | Not started |
+| DC-F3 | Data layout migration | Completed |
 | DC-S1 | H.264 encoding spike | Completed |
 | DC-S2 | Linux verification | In progress |
 | DC-L1 | Frame sources | Completed |
@@ -145,7 +145,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-L9 | Dataset store: sessions and samples | Completed |
 | DC-L10 | Dataset store: check, export and load | Completed |
 | DC-L11 | Dataset store: merge | Completed |
-| DC-L12 | Dataset discovery | Not started |
+| DC-L12 | Dataset discovery | Completed |
 | DC-A1 | Application State | Completed |
 | DC-A2 | Application Server | Completed |
 | DC-A3 | Capture Engine | Completed |
@@ -163,16 +163,16 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-A15 | Camera check on resume | Completed |
 | DC-A16 | Put a session on hold | Completed |
 | DC-A17 | Camera list cache | Completed |
-| DC-A18 | Dataset settings and command line | Not started |
-| DC-A19 | Dataset service | Not started |
-| DC-A20 | End any open session | Not started |
+| DC-A18 | Dataset settings and command line | Completed |
+| DC-A19 | Dataset service | Completed |
+| DC-A20 | End any open session | Completed |
 | DC-U15 | Wording, hover and resume-flow polish | Completed |
 | DC-U16 | Accepted and rejected markers | Completed |
 | DC-U17 | Browse grid layout | Completed |
 | DC-U18 | Infinite scroll and the Review workspace | Completed |
 | DC-U19 | Point counts and one page width | Completed |
-| DC-U20 | Dataset selection and merge | Not started |
-| DC-U21 | End a session from Record, Review and Setup | Not started |
+| DC-U20 | Dataset selection and merge | Completed |
+| DC-U21 | End a session from Record, Review and Setup | Completed |
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Completed |
 | DC-U3 | Calibrate page | Completed |
@@ -389,7 +389,7 @@ place.
 ### DC-F3 Data layout migration
 
 - **Type**: chore
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-A18
 - **Requirements**: R2.10
 - **Design**: DH 2, 3, 3.1; Arch 6
@@ -424,23 +424,42 @@ ignores.
 
 **Acceptance criteria.**
 
-- [ ] After the move, `data/` holds one dataset folder for each author in the
+- [x] After the move, `data/` holds one dataset folder for each author in the
       shared sessions, and `training-data/` holds no sessions.
-- [ ] Every shared session appears exactly once, in the dataset of its author,
+- [x] Every shared session appears exactly once, in the dataset of its author,
       and the number of accepted samples per label over all datasets equals the
       number in `training-data/` before the move (4,821 in total at the time of
       writing).
-- [ ] `git status` shows renames for the session files, not deletions and
+- [x] `git status` shows renames for the session files, not deletions and
       additions of changed files; session and sample files are byte-identical
       to before.
-- [ ] `.gitignore` ignores `data/**/videos/` and no longer ignores the rest of
+- [x] `.gitignore` ignores `data/**/videos/` and no longer ignores the rest of
       `data/`; a video clip placed in a dataset is not tracked.
-- [ ] `uv run wand-collect check data/<author>` reports no errors for every
+- [x] `uv run wand-collect check data/<author>` reports no errors for every
       dataset, and given all of them reports no session in conflict.
-- [ ] The owner's local sessions are in `data/vamship` with their video clips,
+- [x] The owner's local sessions are in `data/vamship` with their video clips,
       and the temporary folder was kept until this was confirmed.
-- [ ] `uv run wand-collect serve --dataset vamship` opens that dataset and
+- [x] `uv run wand-collect serve --dataset vamship` opens that dataset and
       lists its sessions.
+
+**Progress (2026-11-26).** Steps 1, 2 and 4 are done. The 29 shared
+sessions were moved with `git mv` into `data/mrunal` (23 sessions),
+`data/vamship` (5) and `data/wen` (1), each with the old `dataset.json`; the
+old `training-data/` content is gone and `.gitignore` ignores
+`data/**/videos/`. The accepted samples per label are identical before and
+after (4,821 in 29 sessions), `wand-collect check` reports no errors on every
+dataset and on all three together, and the app opens `data/vamship` (verified
+by building the application on it). Only files tracked in git were touched.
+
+**Progress (2026-11-27).** Step 3 is done by the owner. Of the 3 local
+sessions, 2 were already in `data/vamship` and were skipped as identical, and
+1 (`36d04e2d`, still open) was added and committed. The video clips of the 2
+skipped sessions (258 each) were moved into their session folders by hand,
+because the merge copies clips only for sessions it adds. `wand-collect check
+data/vamship` reports no errors. The owner chose not to create
+`config/data-collection.local.yaml`; the dataset is chosen with `--dataset
+vamship` or in the Web UI, and until then the application starts on the
+dataset `default` of `config/data-collection.yaml`.
 
 **Implementation notes.** A small script run once is enough; do not commit it
 unless it is worth keeping. Do the move in one commit and the `.gitignore`
@@ -982,7 +1001,7 @@ half-copied session.
 ### DC-L12 Dataset discovery
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-L11
 - **Requirements**: R2.5, R2.10
 - **Design**: DH 3, 3.1, 7.1; Lib 12
@@ -1011,16 +1030,16 @@ data location (a folder such as `data/` whose subfolders are data folders), as
 
 **Acceptance criteria.**
 
-- [ ] A location with three datasets, a stray file and a folder without
+- [x] A location with three datasets, a stray file and a folder without
       `dataset.json` lists exactly the three, with the right counts.
-- [ ] `create_dataset` makes a folder that opens and passes the check; invalid
+- [x] `create_dataset` makes a folder that opens and passes the check; invalid
       names (uppercase, spaces, slashes, empty) and existing names are refused.
-- [ ] Loading two folders that share a session loads it once; with different
+- [x] Loading two folders that share a session loads it once; with different
       copies it fails naming the session, or skips it when asked.
-- [ ] The check on several folders reports open sessions as information and a
+- [x] The check on several folders reports open sessions as information and a
       conflicting duplicate as an error, and never writes.
-- [ ] Existing single-folder behavior and tests are unchanged.
-- [ ] No camera or running application is needed.
+- [x] Existing single-folder behavior and tests are unchanged.
+- [x] No camera or running application is needed.
 
 **Implementation notes.** Add `dataset/discovery.py`; extend `dataset/check.py`
 and the load code. Reuse the content comparison of the merge operation
@@ -1824,7 +1843,7 @@ restart of the application scans again.
 ### DC-A18 Dataset settings and command line
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-L12, DC-A11
 - **Requirements**: R2.10
 - **Design**: DC 5.3, 5.4; DH 3
@@ -1849,13 +1868,13 @@ a dataset name, and add the matching command-line options and command.
 
 **Acceptance criteria.**
 
-- [ ] The new keys and options work, and the app opens
+- [x] The new keys and options work, and the app opens
       `<dataLocation>/<dataset>`; a missing dataset is created.
-- [ ] The old key and the old option are rejected with a message naming the new
+- [x] The old key and the old option are rejected with a message naming the new
       ones.
-- [ ] An invalid dataset name is rejected at startup with a clear message.
-- [ ] `wand-collect datasets` lists the datasets of a test location.
-- [ ] The existing settings, startup and command-line tests are updated and
+- [x] An invalid dataset name is rejected at startup with a clear message.
+- [x] `wand-collect datasets` lists the datasets of a test location.
+- [x] The existing settings, startup and command-line tests are updated and
       pass, and ruff passes.
 
 **Implementation notes.** Touch `settings.py`, `app.py` and `cli.py` in
@@ -1864,7 +1883,7 @@ a dataset name, and add the matching command-line options and command.
 ### DC-A19 Dataset service
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-A18, DC-A9, DC-A8, DC-L11
 - **Requirements**: R2.5, R2.10
 - **Design**: DC 4.3, 4.5, 4.11, 5.2
@@ -1894,17 +1913,17 @@ as the Session Service of `DC` 4.5 describes.
 
 **Acceptance criteria.**
 
-- [ ] Each endpoint works on a temporary data location, and the response and the
+- [x] Each endpoint works on a temporary data location, and the response and the
       next state snapshot show the result.
-- [ ] After choosing another dataset, the session list and the sample list show
+- [x] After choosing another dataset, the session list and the sample list show
       only that dataset's contents, and the state's `dataset` changes.
-- [ ] Creating, choosing and merging are refused while a session is loaded, and
+- [x] Creating, choosing and merging are refused while a session is loaded, and
       allowed after it is ended or put on hold.
-- [ ] A merge into a new dataset creates it; a conflict is skipped or replaced
+- [x] A merge into a new dataset creates it; a conflict is skipped or replaced
       as asked; source datasets are unchanged.
-- [ ] Merging into the dataset in use updates the lists.
-- [ ] Invalid and duplicate names are refused with clear errors.
-- [ ] The application settings' `dataset` is the one in use at startup.
+- [x] Merging into the dataset in use updates the lists.
+- [x] Invalid and duplicate names are refused with clear errors.
+- [x] The application settings' `dataset` is the one in use at startup.
 
 **Implementation notes.** Extend `services/session.py`, `state.py` and
 `server.py`. Add the endpoints to the table in `DC` 5.2 if they are not there.
@@ -1912,7 +1931,7 @@ as the Session Service of `DC` 4.5 describes.
 ### DC-A20 End any open session
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-A9
 - **Requirements**: R2.7
 - **Design**: DC 3.2, 4.5, 5.2
@@ -1929,23 +1948,26 @@ session by its id, as the Session Service of `DC` 4.5 describes:
 - If another session is loaded, that session and the state are left alone.
 - An already ended session gives `session_ended` (409); an unknown id gives
   `not_found` (404).
-- `POST /api/sessions/current/end` keeps working and uses the same code path
-  for the loaded session (`no_session`, 409, when none is loaded).
+- `POST /api/sessions/current/end` is unchanged: it ends a session loaded for
+  capture, and for a session loaded for review it only closes the review and
+  leaves the session open (the Web UI closes a review this way); `no_session`
+  (409) when none is loaded.
 
 **Acceptance criteria.**
 
-- [ ] Ending an open session that is not loaded writes its `endedAt`, leaves the
+- [x] Ending an open session that is not loaded writes its `endedAt`, leaves the
       state unchanged, and the next `GET /api/sessions` shows it as ended.
-- [ ] Ending the session loaded for capture stops capturing (the capture state
+- [x] Ending the session loaded for capture stops capturing (the capture state
       becomes STOPPED), clears the session in the state and records `endedAt`.
-- [ ] Ending the session loaded for review unloads it and records `endedAt`.
-- [ ] Ending a session while a different one is loaded leaves the loaded one and
+- [x] Ending the session loaded for review unloads it and records `endedAt`.
+- [x] Ending a session while a different one is loaded leaves the loaded one and
       the capture state unchanged.
-- [ ] An ended or unknown session returns the stated errors and changes nothing.
-- [ ] An ended session cannot be resumed (the existing refusal) and its samples
+- [x] An ended or unknown session returns the stated errors and changes nothing.
+- [x] An ended session cannot be resumed (the existing refusal) and its samples
       can still be reviewed and edited.
-- [ ] `POST /api/sessions/current/end` behaves as before.
-- [ ] No camera is needed to end a session that is not loaded.
+- [x] `POST /api/sessions/current/end` behaves as before, including closing a
+      review without ending the session.
+- [x] No camera is needed to end a session that is not loaded.
 
 **Implementation notes.** Extend `services/session.py` so that End takes a
 session id, with the current-session endpoint as a shortcut; add the route in
@@ -2710,7 +2732,7 @@ frame count is not stored.
 ### DC-U20 Dataset selection and merge
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-U2, DC-A19
 - **Requirements**: R2.5, R2.10
 - **Design**: DC 4.1, 5.2
@@ -2720,18 +2742,18 @@ choose another, create one, or merge datasets.
 
 **Acceptance criteria.**
 
-- [ ] The Setup page shows the dataset in use (from the state) and a list of the
+- [x] The Setup page shows the dataset in use (from the state) and a list of the
       datasets from `GET /api/datasets` with their session and sample counts;
       choosing one uses `PUT /api/dataset`, and the session list updates.
-- [ ] A New dataset form takes a name, shows the error for an invalid or
+- [x] A New dataset form takes a name, shows the error for an invalid or
       existing name, and creates the dataset.
-- [ ] A Merge dialog lets the user select source datasets and a target (an
+- [x] A Merge dialog lets the user select source datasets and a target (an
       existing dataset or a new name), choose whether conflicts are skipped or
       replaced and whether clips are skipped, and shows the per-session result
       afterwards.
-- [ ] While a session is loaded, these controls are disabled and a notice says
+- [x] While a session is loaded, these controls are disabled and a notice says
       to end or hold the session first.
-- [ ] The dataset in use is visible in the page header on every page.
+- [x] The dataset in use is visible in the page header on every page.
 
 **Implementation notes.** `static/app/setup.js` and the shell of DC-U1.
 Merging replaces data, so ask for a confirmation before a merge with the
@@ -2740,7 +2762,7 @@ replace option.
 ### DC-U21 End a session from Record, Review and Setup
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: DC-A20, DC-U2, DC-U4, DC-U5
 - **Requirements**: R2.7
 - **Design**: DC 3.2, 4.1
@@ -2763,18 +2785,18 @@ the Calibrate page or selecting the session first.
 
 **Acceptance criteria.**
 
-- [ ] Record shows Pause and End session; Review shows End session beside
+- [x] Record shows Pause and End session; Review shows End session beside
       Pause.
-- [ ] On the Record page, clicking End session does not also pause capturing
+- [x] On the Record page, clicking End session does not also pause capturing
       (the page's click-to-pause ignores buttons).
-- [ ] Each button opens the confirmation; cancelling changes nothing;
+- [x] Each button opens the confirmation; cancelling changes nothing;
       confirming ends the session.
-- [ ] After ending from Record or Review, the user is on Setup and the session
+- [x] After ending from Record or Review, the user is on Setup and the session
       is listed as ended.
-- [ ] On Setup, every open session, loaded or not, has End session; ended
+- [x] On Setup, every open session, loaded or not, has End session; ended
       sessions do not. Ending one updates the list at once.
-- [ ] Ending a session that is on hold works without loading it.
-- [ ] A failed request shows its error message and leaves the page as it was.
+- [x] Ending a session that is on hold works without loading it.
+- [x] A failed request shows its error message and leaves the page as it was.
 
 **Implementation notes.** `static/app/record.js`, `review.js` and `setup.js`;
 reuse the confirmation used by the Calibrate page's End session button and by

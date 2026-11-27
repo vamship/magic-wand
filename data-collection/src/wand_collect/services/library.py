@@ -134,6 +134,7 @@ class SampleLibrary:
         with self._lock:
             self._samples.clear()
             self._sessions.clear()
+            self._accepted.clear()
             for session in self._store.list_sessions():
                 self._sessions[session.session_id] = (
                     session.name,
@@ -174,6 +175,13 @@ class SampleLibrary:
         return {k: v for k, v in self._accepted.items() if v > 0}
 
     def _on_change(self, change: Change) -> None:
+        if change.kind is ChangeKind.DATASET_CHANGED:
+            self._rebuild()
+            self._state.modify(
+                Owner.SAMPLE_LIBRARY,
+                lambda s: {"samples_revision": s.samples_revision + 1},
+            )
+            return
         with self._lock:
             if change.kind is ChangeKind.SESSION_DELETED:
                 self._sessions.pop(change.session_id, None)

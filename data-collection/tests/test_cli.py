@@ -225,6 +225,8 @@ def test_check_without_labels_still_runs(tmp_path, capsys):
         ),
         ("merge", ["--target", "--on-conflict", "--skip-clips"]),
         ("check", ["--config"]),
+        ("datasets", ["--data-location", "--config"]),
+        ("serve", ["--config", "--data-location", "--dataset"]),
     ],
 )
 def test_help_documents_every_option(command, options, capsys):
@@ -233,3 +235,81 @@ def test_help_documents_every_option(command, options, capsys):
     text = capsys.readouterr().out
     for option in options:
         assert option in text
+
+
+# --- datasets and several folders ---------------------------------------------
+
+
+def make_location(tmp_path):
+    config = tmp_path / "repo" / "config"
+    config.mkdir(parents=True)
+    (config / "data-collection.yaml").write_text(
+        "dataLocation: data\ndataset: ada\n"
+    )
+    location = config.parent / "data"
+    make_folder(location / "ada", "ada")
+    make_folder(location / "bob", "bob", labels=("a", "b", "c"))
+    (location / "notes.txt").write_text("not a dataset")
+    return config, location
+
+
+def test_datasets_lists_the_datasets_and_marks_the_one_in_use(tmp_path, capsys):
+    config, _ = make_location(tmp_path)
+    assert main(["datasets", "--config", str(config)]) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[0].startswith("* ada") and "1 sessions, 2 samples" in lines[0]
+    assert lines[1].startswith("  bob") and "1 sessions, 3 samples" in lines[1]
+    assert len(lines) == 2
+
+
+def test_datasets_takes_a_location_option(tmp_path, capsys):
+    config, _ = make_location(tmp_path)
+    other = tmp_path / "other"
+    make_folder(other / "zed", "zed")
+    assert (
+        main(
+            ["datasets", "--config", str(config), "--data-location", str(other)]
+        )
+        == 0
+    )
+    out = capsys.readouterr().out
+    assert "zed" in out and "ada" not in out
+
+
+def test_datasets_in_an_empty_location_says_so(tmp_path, capsys):
+    config = tmp_path / "repo" / "config"
+    config.mkdir(parents=True)
+    (config / "data-collection.yaml").write_text("dataset: ada\n")
+    assert main(["datasets", "--config", str(config)]) == 0
+    assert "No datasets" in capsys.readouterr().out
+
+
+def test_check_takes_several_folders_and_lists_open_sessions(tmp_path, capsys):
+    config = tmp_path / "config"
+    config.mkdir()
+    (config / "labels.yaml").write_text(
+        "labels:\n  - id: spell_one\n    name: One\n"
+    )
+    a = make_folder(tmp_path / "a", labels=("spell_one",))
+    b = make_folder(tmp_path / "b", "bob", labels=("spell_one",))
+    code = main(["check", str(a), str(b), "--config", str(config)])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "2 sessions" in out and "still open" in out
+
+
+def test_check_reports_a_session_that_differs_between_folders(tmp_path, capsys):
+    config = tmp_path / "config"
+    config.mkdir()
+    (config / "labels.yaml").write_text(
+        "labels:\n  - id: spell_one\n    name: One\n"
+    )
+    a = make_folder(tmp_path / "a", labels=("spell_one",))
+    b = tmp_path / "b"
+    assert main(["merge", str(a), "-t", str(b)]) == 0
+    store = DatasetStore.open(b)
+    session = store.list_sessions()[0]
+    store.update_session(session.session_id, name="changed")
+    capsys.readouterr()
+    assert main(["check", str(a), str(b), "--config", str(config)]) == 1
+    assert "has different content" in capsys.readouterr().out

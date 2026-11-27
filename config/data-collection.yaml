@@ -1,9 +1,13 @@
 # Settings of the data collection application. Override per machine in
-# data-collection.local.yaml (not in git), for example to store datasets
-# elsewhere.
+# data-collection.local.yaml (not in git), for example to record into a
+# dataset of your own.
 
-# Where datasets are stored.
-dataFolder: data
+# The folder that holds the datasets, one folder for each dataset.
+dataLocation: data
+# The dataset to record into: a folder name inside dataLocation (lowercase
+# letters, digits, hyphens and underscores). It is created if it is missing.
+# Set it to your own name in data-collection.local.yaml.
+dataset: default
 server:
   # Where the application listens. Local only by default.
   host: 127.0.0.1

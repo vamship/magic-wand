@@ -5,6 +5,8 @@
 import { useEffect, useState } from "preact/hooks";
 
 import { api } from "./api.js";
+import { DatasetsPanel } from "./datasets.js";
+import { EndButton } from "./end.js";
 import { HoldButton } from "./hold.js";
 import { html } from "./html.js";
 
@@ -159,7 +161,7 @@ function CurrentSession({ snapshot, notices }) {
   if (!session) return null;
   const capturing = session.role === "capture";
   const role = capturing ? "loaded for capture" : "open for review only";
-  const end = () =>
+  const close = () =>
     notices.attempt(() => api.post("/api/sessions/current/end"));
   return html`<section class="panel current">
     <h3>Current session</h3>
@@ -173,9 +175,14 @@ function CurrentSession({ snapshot, notices }) {
     </p>`}
     <div class="row">
       ${capturing && html`<${HoldButton} notices=${notices} />`}
-      <button onClick=${end}>
-        ${capturing ? "End session (final)" : "Close review"}
-      </button>
+      ${capturing
+        ? html`<${EndButton}
+            id=${session.id}
+            name=${session.name}
+            notices=${notices}
+            label="End session (final)"
+          />`
+        : html`<button onClick=${close}>Close review</button>`}
     </div>
   </section>`;
 }
@@ -310,7 +317,9 @@ function SessionList({ snapshot, notices, goTo }) {
   const locked = isCapturing(snapshot);
   const isCurrent = (entry) =>
     locked && Boolean(session) && session.id === entry.id;
-  const key = session ? `${session.id}:${session.role}` : "none";
+  const key =
+    (session ? `${session.id}:${session.role}` : "none") +
+    `:${snapshot.dataset}`;
 
   const refresh = async () => {
     const list = await notices.attempt(() => api.get("/api/sessions"));
@@ -401,6 +410,14 @@ function SessionList({ snapshot, notices, goTo }) {
               >
                 Resume
               </button>`}
+              ${entry.open &&
+              html`<${EndButton}
+                id=${entry.id}
+                name=${entry.name}
+                notices=${notices}
+                onEnded=${refresh}
+                title="End the session for good, without loading it"
+              />`}
               <button onClick=${() => setEditing(entry.id)}>Edit</button>
               <button
                 disabled=${Boolean(session) && session.id === entry.id}
@@ -428,6 +445,7 @@ export function Setup({ snapshot, store, notices, goTo }) {
       </div>
       <div>
         <${CurrentSession} snapshot=${snapshot} notices=${notices} />
+        <${DatasetsPanel} snapshot=${snapshot} notices=${notices} />
         <${NewSession} snapshot=${snapshot} store=${store} goTo=${goTo} />
       </div>
     </div>
