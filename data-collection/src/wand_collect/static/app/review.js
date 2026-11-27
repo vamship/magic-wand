@@ -1,13 +1,14 @@
 // The Review page: the samples of the loaded session in the sample workspace
 // (the same grid and selected-sample panel as Browse, limited to the session),
-// with what is specific to a session above it: resume capturing, pause the
-// session, and choose the label of the next captures. The newest sample is
+// with what is specific to a session above it: resume capturing, pause or end
+// the session, and choose the label of the next captures. The newest sample is
 // first and selected, so a gesture that has just been captured is the one to
 // look at.
 
 import { useEffect } from "preact/hooks";
 
 import { api } from "./api.js";
+import { EndButton } from "./end.js";
 import { HoldButton } from "./hold.js";
 import { html } from "./html.js";
 import { LabelSelect } from "./labels.js";
@@ -73,6 +74,12 @@ export function Review({ snapshot, shortcuts, notices, goTo }) {
         onClick=${resume}
       />
       ${capturing && html`<${HoldButton} notices=${notices} />`}
+      ${capturing &&
+      html`<${EndButton}
+        id=${session.id}
+        name=${session.name}
+        notices=${notices}
+      />`}
       ${capturing &&
       html`<label>
         Next captures
