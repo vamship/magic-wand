@@ -13,15 +13,6 @@ def test_commands_are_the_documented_ones():
     ]
 
 
-SHELLS = ["index"]
-
-
-@pytest.mark.parametrize("command", SHELLS)
-def test_command_is_a_shell(command, capsys):
-    assert main([command]) == 2
-    assert "not implemented yet" in capsys.readouterr().err
-
-
 @pytest.mark.parametrize("command", list(COMMANDS))
 def test_command_help_works(command, capsys):
     with pytest.raises(SystemExit) as exit_info:

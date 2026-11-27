@@ -9,6 +9,7 @@ from pathlib import Path
 from wand_core.casing import to_snake
 from wand_core.dataset import DatasetError
 from wand_train import definitions, models
+from wand_train import reports as report_writer
 from wand_train.data import builder, gestureset
 from wand_train.data.format import TrainingDataError
 from wand_train.explore import runs
@@ -44,6 +45,12 @@ def build_parser() -> argparse.ArgumentParser:
             add_show_options(command)
         elif name == "train":
             add_train_options(command)
+        elif name == "index":
+            command.add_argument(
+                "--reports",
+                type=Path,
+                help="the reports folder (default: reports/)",
+            )
     return parser
 
 
@@ -208,7 +215,21 @@ def explore(args: argparse.Namespace) -> int:
     writer.finish()
     print(f"\nStored in {writer.folder}")
     print(runs_table(ranked[:5], explorer))
+    try:
+        path = report_writer.write_exploration_report(writer.folder, reports)
+    except Exception as error:  # the results are stored; say what failed
+        return report_failed(error, writer.folder)
+    print(f"Report: {path}")
     return 0
+
+
+def report_failed(error: Exception, folder: Path) -> int:
+    print(
+        f"wand-train: the results are stored in {folder}, but the report "
+        f"could not be written: {error}",
+        file=sys.stderr,
+    )
+    return 1
 
 
 def runs_table(results, explorer) -> str:
@@ -292,6 +313,24 @@ def train(args: argparse.Namespace) -> int:
             f"  lowest threshold with backward false triggers at or below "
             f"{result.max_false_trigger}: {result.threshold:.2f}"
         )
+    try:
+        path = report_writer.write_training_report(
+            trained.report_folder, reports
+        )
+    except Exception as error:
+        return report_failed(error, trained.report_folder)
+    print(f"  report: {path}")
+    return 0
+
+
+def index(args: argparse.Namespace) -> int:
+    root = builder.repository_root()
+    try:
+        path = report_writer.write_index(args.reports or root / "reports")
+    except OSError as error:
+        print(f"wand-train: {error}", file=sys.stderr)
+        return 1
+    print(f"Index: {path}")
     return 0
 
 
@@ -330,6 +369,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return show(args)
     if args.command == "train":
         return train(args)
+    if args.command == "index":
+        return index(args)
     if args.command == "training-data":
         if args.action is None:
             parser.parse_args(["training-data", "--help"])

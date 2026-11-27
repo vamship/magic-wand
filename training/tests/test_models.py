@@ -118,6 +118,8 @@ def test_train_from_a_run_writes_every_file(world, ticking, capsys):
         "source.json",
         "metrics.csv",
         "predictions.parquet",
+        "report.md",
+        "figures",
     }
     source = json.loads((report / "source.json").read_text())
     assert source["explorationRunId"] == run.name

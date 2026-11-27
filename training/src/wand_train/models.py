@@ -175,7 +175,14 @@ def train_model(
             raise ModelExistsError(f"{folder} already exists")
 
     report_folder.mkdir(parents=True)
-    _write_source(report_folder, source, hyperparameters, current)
+    _write_source(
+        report_folder,
+        source,
+        hyperparameters,
+        current,
+        len(training_set),
+        len(test_set),
+    )
     _write_metrics(report_folder, result)
     _write_predictions(report_folder, result)
     trainer.save(
@@ -208,6 +215,8 @@ def _write_source(
     source: Source,
     hyperparameters: dict[str, Any],
     fingerprint: str,
+    training_gestures: int,
+    test_gestures: int,
 ) -> None:
     data = {
         "exploration_run_id": source.run_id,
@@ -217,6 +226,8 @@ def _write_source(
         "seed": source.seed,
         "test_fraction": source.test_fraction,
         "training_data_fingerprint": fingerprint,
+        "training_gestures": training_gestures,
+        "test_gestures": test_gestures,
     }
     (folder / SOURCE_FILE).write_text(
         json.dumps(camel_keys(data), indent=2) + "\n", encoding="utf-8"
