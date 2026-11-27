@@ -13,7 +13,10 @@ def test_commands_are_the_documented_ones():
     ]
 
 
-@pytest.mark.parametrize("command", list(COMMANDS))
+SHELLS = [name for name in COMMANDS if name != "training-data"]
+
+
+@pytest.mark.parametrize("command", SHELLS)
 def test_command_is_a_shell(command, capsys):
     assert main([command]) == 2
     assert "not implemented yet" in capsys.readouterr().err

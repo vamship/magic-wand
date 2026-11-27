@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Training tool for the magic wand classifier."
 requires-python = ">=3.11"
 dependencies = [
+    "pandas>=2.2",
+    "pyarrow>=17",
     "wand-core",
 ]
 
