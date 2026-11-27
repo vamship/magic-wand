@@ -129,7 +129,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-L2 | Classifier loading | Completed |
 | TR-A1 | Training data builder | Completed |
 | TR-A2 | Gesture sets | Completed |
-| TR-A3 | Trainer base and metrics | Not started |
+| TR-A3 | Trainer base and metrics | In progress |
 | TR-A4 | Experiment definitions | Not started |
 | TR-A5 | Explorer | Not started |
 | TR-A6 | Stored explorations | Not started |
@@ -487,7 +487,7 @@ fractions.
 ### TR-A3 Trainer base and metrics
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: TR-A2, TR-L2
 - **Requirements**: R3, N3, N5
 - **Design**: TD 3, 6
