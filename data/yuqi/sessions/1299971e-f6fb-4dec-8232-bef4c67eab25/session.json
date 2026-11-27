@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "sessionId": "1299971e-f6fb-4dec-8232-bef4c67eab25",
+  "name": null,
+  "author": "Yuqi Yan",
+  "handedness": "right",
+  "startedAt": "2026-11-18T20:12:34.502218-05:00",
+  "endedAt": "2026-11-26T01:43:45.037752-05:00",
+  "notes": null,
+  "camera": {
+    "device": "index:0",
+    "index": 0,
+    "requested": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.0
+    },
+    "actual": {
+      "width": 640,
+      "height": 480,
+      "fps": 16.129032260457027
+    }
+  },
+  "visionSettings": {
+    "hueCenter": 100,
+    "hueHalfWidth": 14,
+    "satMin": 178,
+    "satMax": 255,
+    "valMin": 158,
+    "valMax": 255,
+    "blurSize": 5,
+    "cleanupSize": 3,
+    "minArea": 0.0003,
+    "maxArea": 0.05,
+    "minRoundness": 0.6
+  },
+  "motionSettings": {
+    "startSpeed": 0.376,
+    "endSpeed": 0.26,
+    "startFrames": 2,
+    "endHoldS": 0.3,
+    "minDurationS": 0.3,
+    "maxDurationS": 4.0,
+    "minExtent": 0.1,
+    "lostTimeoutS": 0.25,
+    "smoothingFrames": 3
+  },
+  "clipPadding": {
+    "preS": 2.0,
+    "postS": 2.0
+  },
+  "highestSampleNumber": 61,
+  "profile": null
+}
