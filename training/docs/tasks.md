@@ -132,7 +132,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-A3 | Trainer base and metrics | Completed |
 | TR-A4 | Experiment definitions | Completed |
 | TR-A5 | Explorer | Completed |
-| TR-A6 | Stored explorations | Not started |
+| TR-A6 | Stored explorations | Completed |
 | TR-A7 | Evaluator | Not started |
 | TR-A8 | Final training and models | Not started |
 | TR-A9 | Reporter | Not started |
@@ -683,7 +683,7 @@ fold shuffling with the run's seed. Pass the seed to the trainer as well.
 ### TR-A6 Stored explorations
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: TR-A5
 - **Requirements**: R5.5 to R5.7, R5.8, N1
 - **Design**: TD 8, 11
@@ -720,24 +720,24 @@ about them, and provide the `explore` and `show` commands.
 
 **Acceptance criteria.**
 
-- [ ] A run on a synthetic training set with the fake family leaves
+- [x] A run on a synthetic training set with the fake family leaves
       `definition.json`, `run.json` and `results.csv` with the stated columns
       and one row per candidate and fold.
-- [ ] `run.json` records the seed, the test fraction and the training data
+- [x] `run.json` records the seed, the test fraction and the training data
       fingerprint.
-- [ ] Killing a run half way leaves a `results.csv` with the finished
+- [x] Killing a run half way leaves a `results.csv` with the finished
       candidates; `show` works on it and says it is incomplete.
-- [ ] Reloading a finished run gives the same ranking, best candidate, metrics
+- [x] Reloading a finished run gives the same ranking, best candidate, metrics
       and effects as the run printed.
-- [ ] A changed comparator setting in a copy of `definition.json` re-ranks the
+- [x] A changed comparator setting in a copy of `definition.json` re-ranks the
       stored results without error.
-- [ ] A second run never overwrites the first: a run id whose folder already
+- [x] A second run never overwrites the first: a run id whose folder already
       exists stops the command with a clear message.
-- [ ] `explore` never loads or touches the test set rows beyond making the
+- [x] `explore` never loads or touches the test set rows beyond making the
       split.
-- [ ] A definition that does not validate stops the command before any training
+- [x] A definition that does not validate stops the command before any training
       and prints the reason; the exit status is non-zero.
-- [ ] `show --effect` prints the mean of the metric for each value of the
+- [x] `show --effect` prints the mean of the metric for each value of the
       hyperparameter.
 
 **Implementation notes.** `wand_train/explore/runs.py`. Use the `csv` module or

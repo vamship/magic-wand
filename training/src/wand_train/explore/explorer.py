@@ -49,14 +49,12 @@ class Explorer(ABC):
     def make_folds(self, training_set: GestureSet, seed: int) -> list[Fold]:
         """Divide the training set into folds."""
 
-    def explore(
-        self,
-        training_set: GestureSet,
-        seed: int,
-        progress: Progress | None = None,
-        on_candidate: OnCandidate | None = None,
-    ) -> list[CandidateResult]:
-        """Run every candidate on every fold and return them ranked."""
+    def check_candidates(self) -> list[dict]:
+        """Enumerate the candidates and validate every one with the trainer.
+
+        Raises ``HyperparameterError`` naming the candidate and the
+        hyperparameter; nothing is trained.
+        """
         candidates = enumerate_candidates(self.definition)
         for number, candidate in enumerate(candidates, start=1):
             try:
@@ -65,6 +63,17 @@ class Explorer(ABC):
                 raise HyperparameterError(
                     f"candidate {number} of {self.definition.name}: {error}"
                 ) from None
+        return candidates
+
+    def explore(
+        self,
+        training_set: GestureSet,
+        seed: int,
+        progress: Progress | None = None,
+        on_candidate: OnCandidate | None = None,
+    ) -> list[CandidateResult]:
+        """Run every candidate on every fold and return them ranked."""
+        candidates = self.check_candidates()
         folds = self.make_folds(training_set, seed)
         total = len(candidates) * len(folds)
         done = 0

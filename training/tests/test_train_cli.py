@@ -13,7 +13,7 @@ def test_commands_are_the_documented_ones():
     ]
 
 
-SHELLS = [name for name in COMMANDS if name != "training-data"]
+SHELLS = ["train", "index"]
 
 
 @pytest.mark.parametrize("command", SHELLS)
