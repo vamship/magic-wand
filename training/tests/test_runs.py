@@ -1,6 +1,5 @@
 import csv
 import json
-import shutil
 
 import pytest
 
@@ -144,14 +143,10 @@ def test_a_changed_comparator_reranks_the_stored_results(world, tmp_path):
     data["comparator"]["settings"]["direction"] = "min"
     (folder / "definition.json").write_text(json.dumps(data))
     after = runs.ExplorerFactory.from_run(folder).ranking()
-    assert [r.number for r in after] == [
-        r.number for r in reversed(before)
-    ] or (after[0].mean["accuracy"] <= before[0].mean["accuracy"])
     assert after[0].mean["accuracy"] == min(r.mean["accuracy"] for r in before)
 
 
-def test_a_second_run_never_overwrites_the_first(world, tmp_path, capsys):
-    full = gestureset.load(world / "training-data")
+def test_a_second_run_never_overwrites_the_first(world, tmp_path):
     explorer = build_explorer(definitions.parse(definition_data()))
     reports = tmp_path / "reports"
     runs.RunWriter.start(
@@ -164,7 +159,6 @@ def test_a_second_run_never_overwrites_the_first(world, tmp_path, capsys):
             reports, explorer, definition_data(), 1, 0.2, "x", run_id="fixed"
         )
     assert marker.read_text() == "keep"
-    assert full  # the training data is not touched
 
 
 def test_an_invalid_definition_stops_before_training(world, tmp_path, capsys):
@@ -228,7 +222,6 @@ def test_an_interrupted_run_keeps_what_finished(world, tmp_path, capsys):
             "family": "dies",
             "hyperparameters": {"a": [1, 2, 3, 4]},
         }
-        path = write_definition(tmp_path, {**data, "name": "dies"})
         data["name"] = "dies"
         (tmp_path / "dies.json").write_text(json.dumps(data))
         reports = tmp_path / "reports"
@@ -256,7 +249,6 @@ def test_an_interrupted_run_keeps_what_finished(world, tmp_path, capsys):
         assert "incomplete" in capsys.readouterr().out
     finally:
         unregister_trainer("dies")
-    assert path.exists()
 
 
 def test_a_partly_written_candidate_is_left_out(world, tmp_path):
@@ -309,4 +301,3 @@ def test_explore_does_not_touch_the_test_set(world, tmp_path, monkeypatch):
     run_cli(world, tmp_path)
     assert seen
     assert all(rows.isdisjoint(test.rows) for rows in seen)
-    shutil.rmtree(tmp_path / "reports")
