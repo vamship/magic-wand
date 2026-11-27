@@ -128,7 +128,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-L1 | Normalizer | Completed |
 | TR-L2 | Classifier loading | Completed |
 | TR-A1 | Training data builder | Completed |
-| TR-A2 | Gesture sets | Not started |
+| TR-A2 | Gesture sets | In progress |
 | TR-A3 | Trainer base and metrics | Not started |
 | TR-A4 | Experiment definitions | Not started |
 | TR-A5 | Explorer | Not started |
@@ -433,7 +433,7 @@ or `wand_core/testing`).
 ### TR-A2 Gesture sets
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: TR-A1
 - **Requirements**: R2, N1, N5
 - **Design**: TD 3, 5.3
