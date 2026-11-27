@@ -1,6 +1,6 @@
 # Training Subsystem - Design
 
-> **Version** 6 | **Updated** 2026-11-27 | **Draft**
+> **Version** 6 | **Updated** 2026-11-27 | **Approved**
 
 ## 1. Overview
 
