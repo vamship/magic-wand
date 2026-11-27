@@ -135,7 +135,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-A5 | Explorer | Completed |
 | TR-A6 | Stored explorations | Completed |
 | TR-A7 | Evaluator | Completed |
-| TR-A8 | Final training and models | Not started |
+| TR-A8 | Final training and models | In progress |
 | TR-A9 | Reporter | Not started |
 | TR-V1 | End-to-end test | Not started |
 | TR-V2 | Real datasets | Not started |
@@ -819,7 +819,7 @@ calling the prediction function for one gesture at a time.
 ### TR-A8 Final training and models
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: TR-A6, TR-A7, TR-L2
 - **Requirements**: R6.1, R6.2, R6.6 to R6.8, R7.4, R7.6, R7.7, N1, N2
 - **Design**: TD 9, 10
