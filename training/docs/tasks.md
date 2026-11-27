@@ -137,7 +137,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-A7 | Evaluator | Completed |
 | TR-A8 | Final training and models | Completed |
 | TR-A9 | Reporter | Completed |
-| TR-V1 | End-to-end test | In progress |
+| TR-V1 | End-to-end test | Completed |
 | TR-V2 | Real datasets | Not started |
 
 Dependencies, in the order work can start:
@@ -945,7 +945,7 @@ generated reports are not subject to the 80 column rule.
 ### TR-V1 End-to-end test
 
 - **Type**: test
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: TR-A9
 - **Requirements**: N1, N2, N5, N6
 - **Design**: TD 12
