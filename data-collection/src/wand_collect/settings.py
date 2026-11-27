@@ -9,6 +9,7 @@ from pathlib import Path
 
 from pydantic import model_validator
 
+from wand_core.dataset import is_valid_dataset_name
 from wand_core.settings import (
     SettingsModel,
     in_range,
@@ -80,7 +81,8 @@ class Shortcuts(SettingsModel):
 
 
 class DataCollectionSettings(SettingsModel):
-    data_folder: str = "data"
+    data_location: str = "data"
+    dataset: str = "default"
     server: ServerSettings = ServerSettings()
     camera: CameraSettings = CameraSettings()
     countdown_s: float = 3.0
@@ -89,12 +91,28 @@ class DataCollectionSettings(SettingsModel):
     shortcuts: Shortcuts = Shortcuts()
     mirror_preview: bool = True
 
+    @model_validator(mode="before")
+    @classmethod
+    def _old_keys(cls, data):
+        if isinstance(data, dict) and "data_folder" in data:
+            raise ValueError(
+                "dataFolder is no longer used: set dataLocation (the folder "
+                "that holds the datasets) and dataset (the name of the "
+                "dataset to record into)"
+            )
+        return data
+
     @model_validator(mode="after")
     def _check(self) -> DataCollectionSettings:
         in_range("countdownS", self.countdown_s, 0, 60)
         in_range("endThresholdRatio", self.end_threshold_ratio, 0.01, 1)
-        if not self.data_folder:
-            raise ValueError("dataFolder must not be empty")
+        if not self.data_location:
+            raise ValueError("dataLocation must not be empty")
+        if not is_valid_dataset_name(self.dataset):
+            raise ValueError(
+                f"dataset {self.dataset!r} is not a valid name: use lowercase "
+                "letters, digits, hyphens and underscores"
+            )
         return self
 
 
