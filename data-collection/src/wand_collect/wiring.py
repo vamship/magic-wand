@@ -67,6 +67,8 @@ def assemble(
         calibration,
         application.settings,
         camera_lister=cameras,
+        data_location=application.data_location,
+        dataset=application.dataset,
     )
     library = SampleLibrary(
         state,

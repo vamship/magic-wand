@@ -712,3 +712,208 @@ def test_the_current_session_endpoint_still_needs_a_loaded_session(rig):
     response = rig.client.post("/api/sessions/current/end")
     assert response.status_code == 409
     assert response.json()["error"]["code"] == "no_session"
+
+
+# --- Datasets -----------------------------------------------------------------
+
+
+def location_of(rig):
+    return rig.store.path.parent
+
+
+def make_dataset(rig, name, author="Bob", sessions=1, end=True):
+    store = DatasetStore.open(location_of(rig) / name, create=True)
+    ids = []
+    for _ in range(sessions):
+        record = store.create_session(author, Handedness.RIGHT, name=name)
+        ids.append(record.session_id)
+        if end:
+            store.end_session(record.session_id)
+    return ids
+
+
+def listed(rig):
+    return {d["name"]: d for d in rig.client.get("/api/datasets").json()}
+
+
+def tree(folder):
+    return {
+        str(p.relative_to(folder)): p.read_bytes() if p.is_file() else None
+        for p in sorted(folder.rglob("*"))
+    }
+
+
+def test_the_state_names_the_dataset_in_use(rig):
+    assert rig.state.snapshot.dataset == rig.store.path.name
+    assert rig.state.snapshot.to_json_dict()["dataset"] == rig.store.path.name
+
+
+def test_datasets_are_listed_with_counts_and_the_one_in_use(rig):
+    make_dataset(rig, "bob", sessions=2)
+    found = listed(rig)
+    assert set(found) == {"data", "bob"}
+    assert found["data"]["inUse"] is True and found["bob"]["inUse"] is False
+    assert (found["bob"]["sessions"], found["bob"]["samples"]) == (2, 0)
+
+
+def test_a_dataset_can_be_created(rig):
+    response = rig.client.post("/api/datasets", json={"name": "fresh"})
+    assert response.status_code == 200 and response.json() == {"name": "fresh"}
+    assert listed(rig)["fresh"]["sessions"] == 0
+    assert (location_of(rig) / "fresh" / "dataset.json").is_file()
+
+
+@pytest.mark.parametrize("name", ["", "Has Caps", "a/b", "-x"])
+def test_an_invalid_dataset_name_is_refused(rig, name):
+    response = rig.client.post("/api/datasets", json={"name": name})
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "invalid_request"
+
+
+def test_an_existing_dataset_name_is_refused(rig):
+    make_dataset(rig, "bob")
+    response = rig.client.post("/api/datasets", json={"name": "bob"})
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "dataset_exists"
+
+
+def test_choosing_a_dataset_changes_what_the_session_list_shows(rig):
+    mine = make_dataset(rig, "data", author="Ada")
+    theirs = make_dataset(rig, "bob", author="Bob", sessions=2)
+    assert {s["id"] for s in rig.client.get("/api/sessions").json()} == set(
+        mine
+    )
+
+    response = rig.client.put("/api/dataset", json={"name": "bob"})
+
+    assert response.status_code == 204
+    assert rig.state.snapshot.dataset == "bob"
+    assert {s["id"] for s in rig.client.get("/api/sessions").json()} == set(
+        theirs
+    )
+    assert listed(rig)["bob"]["inUse"] is True
+    assert listed(rig)["data"]["inUse"] is False
+
+
+def test_choosing_an_unknown_or_invalid_dataset_is_refused(rig):
+    missing = rig.client.put("/api/dataset", json={"name": "nobody"})
+    assert missing.status_code == 404
+    assert missing.json()["error"]["code"] == "not_found"
+    bad = rig.client.put("/api/dataset", json={"name": "No Good"})
+    assert bad.status_code == 400
+    assert rig.state.snapshot.dataset == "data"
+
+
+def test_new_sessions_go_into_the_chosen_dataset(rig):
+    make_dataset(rig, "bob")
+    rig.client.put("/api/dataset", json={"name": "bob"})
+    session_id = rig.start().json()["id"]
+    assert (location_of(rig) / "bob" / "sessions" / session_id).is_dir()
+    assert not (location_of(rig) / "data" / "sessions" / session_id).exists()
+
+
+@pytest.mark.parametrize("role", ["capture", "review"])
+def test_datasets_cannot_change_while_a_session_is_loaded(rig, role):
+    make_dataset(rig, "bob")
+    if role == "capture":
+        rig.start()
+    else:
+        held = make_dataset(rig, "data", author="Ada", end=False)[0]
+        rig.client.post(f"/api/sessions/{held}/load?mode=review")
+    calls = [
+        rig.client.post("/api/datasets", json={"name": "fresh"}),
+        rig.client.put("/api/dataset", json={"name": "bob"}),
+        rig.client.post(
+            "/api/datasets/merge", json={"sources": ["bob"], "target": "new"}
+        ),
+    ]
+    for response in calls:
+        assert response.status_code == 409
+        assert response.json()["error"]["code"] == "session_active"
+    assert rig.state.snapshot.dataset == "data"
+    assert "fresh" not in listed(rig) and "new" not in listed(rig)
+
+
+def test_datasets_can_change_after_the_session_is_ended_or_held(rig):
+    make_dataset(rig, "bob")
+    rig.start()
+    rig.client.post("/api/sessions/current/hold")
+    assert (
+        rig.client.put("/api/dataset", json={"name": "bob"}).status_code == 204
+    )
+    rig.client.put("/api/dataset", json={"name": "data"})
+    held = rig.client.get("/api/sessions").json()[0]["id"]
+    rig.client.post(f"/api/sessions/{held}/end")
+    assert (
+        rig.client.post("/api/datasets", json={"name": "ok"}).status_code == 200
+    )
+
+
+def test_merging_into_a_new_dataset_copies_sessions_and_keeps_sources(rig):
+    a = make_dataset(rig, "ada", author="Ada")
+    b = make_dataset(rig, "bob", author="Bob", sessions=2)
+    before = (tree(location_of(rig) / "ada"), tree(location_of(rig) / "bob"))
+
+    response = rig.client.post(
+        "/api/datasets/merge", json={"sources": ["ada", "bob"], "target": "all"}
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["target"] == "all" and body["counts"] == {"copied": 3}
+    assert {s["sessionId"] for s in body["sessions"]} == set(a + b)
+    assert {s["source"] for s in body["sessions"]} == {"ada", "bob"}
+    assert listed(rig)["all"]["sessions"] == 3
+    after = (tree(location_of(rig) / "ada"), tree(location_of(rig) / "bob"))
+    assert after == before
+
+
+def test_a_conflict_is_skipped_or_replaced_as_asked(rig):
+    make_dataset(rig, "ada", author="Ada")
+    merge = {"sources": ["ada"], "target": "all"}
+    rig.client.post("/api/datasets/merge", json=merge)
+    ada = DatasetStore.open(location_of(rig) / "ada")
+    session_id = ada.list_sessions()[0].session_id
+    ada.update_session(session_id, name="edited")
+
+    skipped = rig.client.post("/api/datasets/merge", json=merge).json()
+    assert skipped["counts"] == {"conflict": 1}
+    mine = DatasetStore.open(location_of(rig) / "all")
+    assert mine.get_session(session_id).name != "edited"
+
+    replaced = rig.client.post(
+        "/api/datasets/merge", json={**merge, "onConflict": "replace"}
+    ).json()
+    assert replaced["counts"] == {"replaced": 1}
+    assert (
+        DatasetStore.open(location_of(rig) / "all").get_session(session_id).name
+        == "edited"
+    )
+
+
+def test_merging_into_the_dataset_in_use_updates_the_lists(rig):
+    make_dataset(rig, "bob", sessions=2)
+    assert rig.client.get("/api/sessions").json() == []
+    response = rig.client.post(
+        "/api/datasets/merge", json={"sources": ["bob"], "target": "data"}
+    )
+    assert response.status_code == 200
+    assert len(rig.client.get("/api/sessions").json()) == 2
+
+
+def test_bad_merges_are_refused(rig):
+    make_dataset(rig, "bob")
+    post = lambda body: rig.client.post("/api/datasets/merge", json=body)  # noqa: E731
+    assert post({"sources": ["bob"], "target": "bob"}).status_code == 400
+    assert post({"sources": [], "target": "x"}).status_code == 400
+    assert post({"sources": ["bob"], "target": "Bad Name"}).status_code == 400
+    assert post({"sources": ["nobody"], "target": "x"}).status_code == 404
+    assert "x" not in listed(rig)
+
+
+def test_the_store_reindexing_follows_a_dataset_change(rig):
+    changes = []
+    rig.store.subscribe(changes.append)
+    make_dataset(rig, "bob")
+    rig.client.put("/api/dataset", json={"name": "bob"})
+    assert [c.kind.value for c in changes] == ["dataset_changed"]
