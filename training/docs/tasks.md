@@ -129,7 +129,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-L2 | Classifier loading | Completed |
 | TR-A1 | Training data builder | Completed |
 | TR-A2 | Gesture sets | Completed |
-| TR-A3 | Trainer base and metrics | In progress |
+| TR-A3 | Trainer base and metrics | Completed |
 | TR-A4 | Experiment definitions | Not started |
 | TR-A5 | Explorer | Not started |
 | TR-A6 | Stored explorations | Not started |
@@ -487,7 +487,7 @@ fractions.
 ### TR-A3 Trainer base and metrics
 
 - **Type**: feat
-- **Status**: In progress
+- **Status**: Completed
 - **Depends on**: TR-A2, TR-L2
 - **Requirements**: R3, N3, N5
 - **Design**: TD 3, 6
@@ -534,23 +534,23 @@ registers a loader in the library's registry (TR-L2).
 
 **Acceptance criteria.**
 
-- [ ] The standard metrics are computed correctly on hand-made predictions
+- [x] The standard metrics are computed correctly on hand-made predictions
       (accuracy, macro F1 and log loss against hand-computed values).
-- [ ] An unknown hyperparameter, a wrong kind and an out-of-range value each
+- [x] An unknown hyperparameter, a wrong kind and an out-of-range value each
       raise an error naming the hyperparameter; missing ones take their
       defaults.
-- [ ] The fake family beats chance on a synthetic set of distinct shapes.
-- [ ] A trainer uses exactly the two sets it is given: a test shows that data
+- [x] The fake family beats chance on a synthetic set of distinct shapes.
+- [x] A trainer uses exactly the two sets it is given: a test shows that data
       outside them never reaches the model.
-- [ ] Scaling or any other learned value comes from the training set only (a
+- [x] Scaling or any other learned value comes from the training set only (a
       test with a fake that records the data it saw).
-- [ ] The result can include the predictions, with label, confidence and
+- [x] The result can include the predictions, with label, confidence and
       probabilities for every evaluation gesture.
-- [ ] A model saved by the fake family loads with the library's `load`, and its
+- [x] A model saved by the fake family loads with the library's `load`, and its
       predictions equal those made at training time.
-- [ ] A subclass can add its own metrics, and they are returned beside the
+- [x] A subclass can add its own metrics, and they are returned beside the
       standard ones.
-- [ ] A family can be added by writing a subclass and registering it, with no
+- [x] A family can be added by writing a subclass and registering it, with no
       change to the base or to other families.
 
 **Implementation notes.** `wand_train/trainers/base.py`, `metrics.py`,
