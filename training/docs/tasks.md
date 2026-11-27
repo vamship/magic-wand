@@ -132,7 +132,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-A3 | Trainer base and metrics | Completed |
 | TR-A4 | Experiment definitions | Completed |
 | TR-A5 | Explorer | Completed |
-| TR-A6 | Stored explorations | Not started |
+| TR-A6 | Stored explorations | In progress |
 | TR-A7 | Evaluator | Not started |
 | TR-A8 | Final training and models | Not started |
 | TR-A9 | Reporter | Not started |
@@ -683,7 +683,7 @@ fold shuffling with the run's seed. Pass the seed to the trainer as well.
 ### TR-A6 Stored explorations
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: TR-A5
 - **Requirements**: R5.5 to R5.7, R5.8, N1
 - **Design**: TD 8, 11
