@@ -5,7 +5,7 @@
   "author": "vamship",
   "handedness": "right",
   "startedAt": "2026-11-26T16:59:45.320616-05:00",
-  "endedAt": null,
+  "endedAt": "2026-11-27T12:53:25.727140-05:00",
   "notes": "Herbivicus spells",
   "camera": {
     "device": "index:1",
@@ -18,7 +18,7 @@
     "actual": {
       "width": 640,
       "height": 480,
-      "fps": 29.908610886949567
+      "fps": 30.09625128435154
     }
   },
   "visionSettings": {
@@ -49,6 +49,6 @@
     "preS": 2.0,
     "postS": 2.0
   },
-  "highestSampleNumber": 7,
+  "highestSampleNumber": 266,
   "profile": "mac-camera-yellow"
 }

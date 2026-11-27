@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "sessionId": "586a3724-e150-4558-828d-6e2891c6266e",
+  "name": "Expelliarmus - 2",
+  "author": "vamship",
+  "handedness": "right",
+  "startedAt": "2026-11-27T14:17:09.733275-05:00",
+  "endedAt": "2026-11-27T14:49:25.319352-05:00",
+  "notes": "Expelliarmus spells (yellow ball) captured downstairs",
+  "camera": {
+    "device": "index:1",
+    "index": 1,
+    "requested": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.0
+    },
+    "actual": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.093232212810364
+    }
+  },
+  "visionSettings": {
+    "hueCenter": 24,
+    "hueHalfWidth": 8,
+    "satMin": 78,
+    "satMax": 255,
+    "valMin": 124,
+    "valMax": 255,
+    "blurSize": 5,
+    "cleanupSize": 3,
+    "minArea": 0.0003,
+    "maxArea": 0.05,
+    "minRoundness": 0.6
+  },
+  "motionSettings": {
+    "startSpeed": 0.499,
+    "endSpeed": 0.125,
+    "startFrames": 2,
+    "endHoldS": 0.3,
+    "minDurationS": 0.3,
+    "maxDurationS": 4.0,
+    "minExtent": 0.1,
+    "lostTimeoutS": 0.25,
+    "smoothingFrames": 3
+  },
+  "clipPadding": {
+    "preS": 2.0,
+    "postS": 2.0
+  },
+  "highestSampleNumber": 267,
+  "profile": "mac-camera-yellow-downstairs"
+}

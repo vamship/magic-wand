@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "sessionId": "5dd91307-23bd-4355-96b2-79a07ea5b6fa",
+  "name": "Expelliarmus",
+  "author": "vamship",
+  "handedness": "right",
+  "startedAt": "2026-11-27T12:55:07.128523-05:00",
+  "endedAt": "2026-11-27T14:49:43.535229-05:00",
+  "notes": "Expelliarmus spells (yellow ball)",
+  "camera": {
+    "device": "index:1",
+    "index": 1,
+    "requested": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.0
+    },
+    "actual": {
+      "width": 640,
+      "height": 480,
+      "fps": 30.09625128435154
+    }
+  },
+  "visionSettings": {
+    "hueCenter": 27,
+    "hueHalfWidth": 8,
+    "satMin": 86,
+    "satMax": 190,
+    "valMin": 181,
+    "valMax": 255,
+    "blurSize": 5,
+    "cleanupSize": 3,
+    "minArea": 0.0003,
+    "maxArea": 0.05,
+    "minRoundness": 0.6
+  },
+  "motionSettings": {
+    "startSpeed": 0.499,
+    "endSpeed": 0.125,
+    "startFrames": 2,
+    "endHoldS": 0.3,
+    "minDurationS": 0.3,
+    "maxDurationS": 4.0,
+    "minExtent": 0.1,
+    "lostTimeoutS": 0.25,
+    "smoothingFrames": 3
+  },
+  "clipPadding": {
+    "preS": 2.0,
+    "postS": 2.0
+  },
+  "highestSampleNumber": 27,
+  "profile": "mac-camera-yellow"
+}
