@@ -1,6 +1,6 @@
 # Architecture
 
-> **Version** 11 | **Updated** 2026-11-26 | **Approved**
+> **Version** 12 | **Updated** 2026-11-27 | **Draft**
 
 ## 1. Overview
 
@@ -574,7 +574,6 @@ magic-wand/
     tests/
   training/           training tool
     docs/             requirements, design, tasks
-    experiments/      experiment definitions, by family (in git)
     src/              training code
     tests/
   inference/          inference application
@@ -582,6 +581,8 @@ magic-wand/
     src/              application code
     tests/
   data/               datasets, one folder per dataset; in git, no video
+  experiment-definitions/
+                      experiment definitions, by family; in git
   training-data/      consolidated raw and normalized gestures; in git
   reports/            exploration and training reports; in git
   models/             trained classifiers; in git
