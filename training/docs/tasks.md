@@ -130,7 +130,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-A1 | Training data builder | Completed |
 | TR-A2 | Gesture sets | Completed |
 | TR-A3 | Trainer base and metrics | Completed |
-| TR-A4 | Experiment definitions | Not started |
+| TR-A4 | Experiment definitions | In progress |
 | TR-A5 | Explorer | Not started |
 | TR-A6 | Stored explorations | Not started |
 | TR-A7 | Evaluator | Not started |
@@ -561,7 +561,7 @@ them) and clip probabilities in the log loss.
 ### TR-A4 Experiment definitions
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: TR-F1
 - **Requirements**: R4, N5
 - **Design**: TD 7
