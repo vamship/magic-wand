@@ -171,7 +171,7 @@ fields are snake case; in JSON and YAML they are camel case
 | DC-U17 | Browse grid layout | Completed |
 | DC-U18 | Infinite scroll and the Review workspace | Completed |
 | DC-U19 | Point counts and one page width | Completed |
-| DC-U20 | Dataset selection and merge | Not started |
+| DC-U20 | Dataset selection and merge | In progress |
 | DC-U21 | End a session from Record, Review and Setup | Completed |
 | DC-U1 | Web UI shell | Completed |
 | DC-U2 | Setup page | Completed |
@@ -2713,7 +2713,7 @@ frame count is not stored.
 ### DC-U20 Dataset selection and merge
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: DC-U2, DC-A19
 - **Requirements**: R2.5, R2.10
 - **Design**: DC 4.1, 5.2
