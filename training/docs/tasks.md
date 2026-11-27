@@ -127,7 +127,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-F1 | Training package and tooling | Completed |
 | TR-L1 | Normalizer | Completed |
 | TR-L2 | Classifier loading | Completed |
-| TR-A1 | Training data builder | Not started |
+| TR-A1 | Training data builder | Completed |
 | TR-A2 | Gesture sets | Not started |
 | TR-A3 | Trainer base and metrics | Not started |
 | TR-A4 | Experiment definitions | Not started |
@@ -367,7 +367,7 @@ inside the family loaders.
 ### TR-A1 Training data builder
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: TR-F1, TR-L1, DC-L12
 - **Requirements**: R1, N1, N4, N5
 - **Design**: TD 5.1, 5.2, 11; DH 3, 3.1, 5
@@ -403,23 +403,23 @@ inside the family loaders.
 
 **Acceptance criteria.**
 
-- [ ] A synthetic dataset gives a table with every column of `TD` 5.2, and the
+- [x] A synthetic dataset gives a table with every column of `TD` 5.2, and the
       normalized values equal the library normalizer's output.
-- [ ] Rejected samples are left out; labels are copied as they are.
-- [ ] Building twice gives identical content (compare the data frames, not the
+- [x] Rejected samples are left out; labels are copied as they are.
+- [x] Building twice gives identical content (compare the data frames, not the
       file bytes), and the order of the dataset arguments does not matter.
-- [ ] The fingerprint changes when a label or a status changes, and not when
+- [x] The fingerprint changes when a label or a status changes, and not when
       only `builtAt` changes.
-- [ ] A session present in two datasets is used once; differing copies stop the
+- [x] A session present in two datasets is used once; differing copies stop the
       build with a message naming the session.
-- [ ] `check` exits 0 on matching data and non-zero, with a message, on a
+- [x] `check` exits 0 on matching data and non-zero, with a message, on a
       changed dataset.
-- [ ] A `gestures.json` with an unknown `formatVersion` is refused by `check`
+- [x] A `gestures.json` with an unknown `formatVersion` is refused by `check`
       and `summary`, and by the loader of TR-A2.
-- [ ] `gestures.json` records `sourceCommit` as the short git commit when the
+- [x] `gestures.json` records `sourceCommit` as the short git commit when the
       repository has one, and an empty string otherwise.
-- [ ] Building the shared datasets (about 4,800 samples) takes seconds.
-- [ ] A helper that writes a small synthetic dataset folder with distinct
+- [x] Building the shared datasets (about 4,800 samples) takes seconds.
+- [x] A helper that writes a small synthetic dataset folder with distinct
       shapes (for example a circle, a line and a zigzag, with noise, several
       authors and sessions) exists for the tests of this and later tasks.
 
