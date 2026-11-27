@@ -126,7 +126,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-D3 | Task list | In progress |
 | TR-F1 | Training package and tooling | Completed |
 | TR-L1 | Normalizer | Completed |
-| TR-L2 | Classifier loading | Not started |
+| TR-L2 | Classifier loading | In progress |
 | TR-A1 | Training data builder | Not started |
 | TR-A2 | Gesture sets | Not started |
 | TR-A3 | Trainer base and metrics | Not started |
@@ -318,7 +318,7 @@ with one row per gesture.
 ### TR-L2 Classifier loading
 
 - **Type**: feat
-- **Status**: Not started
+- **Status**: In progress
 - **Depends on**: TR-L1
 - **Requirements**: R3.5, R6.8, N6
 - **Design**: Lib 13; Arch 4.4; TD 10.2
