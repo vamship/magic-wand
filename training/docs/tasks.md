@@ -124,7 +124,7 @@ fields are snake case; in JSON and YAML they are camel case
 | TR-D1 | Requirements | Completed |
 | TR-D2 | Design | Completed |
 | TR-D3 | Task list | In progress |
-| TR-F1 | Training package and tooling | Not started |
+| TR-F1 | Training package and tooling | Completed |
 | TR-L1 | Normalizer | Not started |
 | TR-L2 | Classifier loading | Not started |
 | TR-A1 | Training data builder | Not started |
@@ -212,7 +212,7 @@ Every part of the approved design is assigned to at least one task.
 ### TR-F1 Training package and tooling
 
 - **Type**: chore
-- **Status**: Not started
+- **Status**: Completed
 - **Depends on**: none
 - **Requirements**: N5
 - **Design**: TD 11; Arch 6; `docs/standards.md` 2
@@ -227,20 +227,20 @@ own instructions file.
 
 **Acceptance criteria.**
 
-- [ ] `uv sync` succeeds, and `uv.lock` is up to date and committed.
-- [ ] The root `pyproject.toml` lists `training` as a workspace member, adds
+- [x] `uv sync` succeeds, and `uv.lock` is up to date and committed.
+- [x] The root `pyproject.toml` lists `training` as a workspace member, adds
       `wand_train` to the first-party packages of the import sorting rule and
       `training/tests` to the test paths.
-- [ ] `training/pyproject.toml` declares `requires-python` as 3.11 or later and
+- [x] `training/pyproject.toml` declares `requires-python` as 3.11 or later and
       depends on `wand-core` through the workspace.
-- [ ] `uv run wand-train --help` lists the five sub-commands; each one's
+- [x] `uv run wand-train --help` lists the five sub-commands; each one's
       `--help` works.
-- [ ] `uv run pytest`, `uv run ruff format --check` and `uv run ruff check`
+- [x] `uv run pytest`, `uv run ruff format --check` and `uv run ruff check`
       pass, with at least one placeholder test in `training/tests`.
-- [ ] `training/CLAUDE.md` exists. Like the other components' instructions
+- [x] `training/CLAUDE.md` exists. Like the other components' instructions
       files, it states the role, the task and the process, and points to
       `training/docs/` and the root documents.
-- [ ] The folder `training/experiments/` exists and is tracked in git (add a
+- [x] The folder `training/experiments/` exists and is tracked in git (add a
       `.gitkeep`).
 
 **Implementation notes.**
