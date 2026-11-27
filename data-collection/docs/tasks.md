@@ -424,23 +424,49 @@ ignores.
 
 **Acceptance criteria.**
 
-- [ ] After the move, `data/` holds one dataset folder for each author in the
+- [x] After the move, `data/` holds one dataset folder for each author in the
       shared sessions, and `training-data/` holds no sessions.
-- [ ] Every shared session appears exactly once, in the dataset of its author,
+- [x] Every shared session appears exactly once, in the dataset of its author,
       and the number of accepted samples per label over all datasets equals the
       number in `training-data/` before the move (4,821 in total at the time of
       writing).
-- [ ] `git status` shows renames for the session files, not deletions and
+- [x] `git status` shows renames for the session files, not deletions and
       additions of changed files; session and sample files are byte-identical
       to before.
-- [ ] `.gitignore` ignores `data/**/videos/` and no longer ignores the rest of
+- [x] `.gitignore` ignores `data/**/videos/` and no longer ignores the rest of
       `data/`; a video clip placed in a dataset is not tracked.
-- [ ] `uv run wand-collect check data/<author>` reports no errors for every
+- [x] `uv run wand-collect check data/<author>` reports no errors for every
       dataset, and given all of them reports no session in conflict.
 - [ ] The owner's local sessions are in `data/vamship` with their video clips,
       and the temporary folder was kept until this was confirmed.
-- [ ] `uv run wand-collect serve --dataset vamship` opens that dataset and
+- [x] `uv run wand-collect serve --dataset vamship` opens that dataset and
       lists its sessions.
+
+**Progress (2026-11-26).** Steps 1, 2 and 4 are done. The 29 shared
+sessions were moved with `git mv` into `data/mrunal` (23 sessions),
+`data/vamship` (5) and `data/wen` (1), each with the old `dataset.json`; the
+old `training-data/` content is gone and `.gitignore` ignores
+`data/**/videos/`. The accepted samples per label are identical before and
+after (4,821 in 29 sessions), `wand-collect check` reports no errors on every
+dataset and on all three together, and the app opens `data/vamship` (verified
+by building the application on it). Only files tracked in git were touched.
+
+Still to do, by the owner of the local data (step 3), because it touches files
+that are not in git: the local `data/dataset.json` and `data/sessions/` (3
+sessions with video clips) are still in `data/` and must be merged into
+`data/vamship`:
+
+```text
+mkdir ~/wand-local-backup
+mv data/dataset.json data/sessions ~/wand-local-backup/
+uv run wand-collect merge ~/wand-local-backup --target data/vamship
+uv run wand-collect check data/vamship
+```
+
+and `dataset: vamship` set in `config/data-collection.local.yaml`. The merge
+only reads the backup, which stays until the result has been checked. Until
+this is done, the application prints a warning that `data/` is itself a
+dataset (the old layout).
 
 **Implementation notes.** A small script run once is enough; do not commit it
 unless it is worth keeping. Do the move in one commit and the `.gitignore`

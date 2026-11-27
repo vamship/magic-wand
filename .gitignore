@@ -12,8 +12,8 @@ __pycache__/
 .ruff_cache/
 *.egg-info/
 
-# Datasets and local configuration
-data/
-training-data/**/videos/
+# Datasets and local configuration. Datasets in data/ are in git, but video
+# clips are not.
+data/**/videos/
 config/profiles/
 config/*.local.yaml
